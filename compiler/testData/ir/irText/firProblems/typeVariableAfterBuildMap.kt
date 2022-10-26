@@ -1,3 +1,4 @@
+// FIR_IDENTICAL
 // WITH_STDLIB
 
 abstract class Visibility(val name: String, val isPublicAPI: Boolean) {

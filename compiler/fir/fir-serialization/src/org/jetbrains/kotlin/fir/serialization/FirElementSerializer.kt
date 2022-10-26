@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
 import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.comparators.FirCallableDeclarationComparator
+import org.jetbrains.kotlin.fir.declarations.comparators.FirMemberDeclarationComparator
 import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertyAccessor
 import org.jetbrains.kotlin.fir.declarations.utils.*
 import org.jetbrains.kotlin.fir.deserialization.projection
@@ -53,6 +54,7 @@ import org.jetbrains.kotlin.serialization.deserialization.ProtoEnumFlags
 import org.jetbrains.kotlin.types.AbstractTypeApproximator
 import org.jetbrains.kotlin.types.ConstantValueKind
 import org.jetbrains.kotlin.types.TypeApproximatorConfiguration
+import org.jetbrains.kotlin.utils.mapToIndex
 
 class FirElementSerializer private constructor(
     private val session: FirSession,
@@ -147,32 +149,53 @@ class FirElementSerializer private constructor(
 
         val providedCallables = mutableListOf<FirCallableDeclaration>()
         val providedConstructors = mutableListOf<FirConstructor>()
-        val providedNestedClassifiers = mutableListOf<FirClassifierSymbol<*>>()
+        val providedNestedClasses = mutableListOf<FirClassLikeDeclaration>()
 
         for (extensionProvider in extensionDeclarationProviders) {
             for (declaration in extensionProvider.provideDeclarationsForClass(klass, scopeSession)) {
                 when (declaration) {
                     is FirConstructor -> providedConstructors += declaration
                     is FirCallableDeclaration -> providedCallables += declaration
-                    is FirClassLikeDeclaration -> providedNestedClassifiers += declaration.symbol
+                    is FirClassLikeDeclaration -> providedNestedClasses += declaration
                     else -> error("Unsupported declaration type in: ${klass.render()} ${declaration.render()}")
                 }
             }
         }
 
+        providedCallables.sortWith(FirCallableDeclarationComparator)
+        providedConstructors.sortWith(FirCallableDeclarationComparator)
+        providedNestedClasses.sortWith(FirMemberDeclarationComparator)
+
+        /*
+         * Order of constructors:
+         *   - declared constructors in declaration order
+         *   - generated constructors in sorted order
+         *   - provided constructors in sorted order
+         */
         if (regularClass != null && regularClass.classKind != ClassKind.ENUM_ENTRY) {
-            for (constructor in regularClass.constructors()) {
-                builder.addConstructor(constructorProto(constructor))
+            val indexByDeclaration = regularClass.declarations.filterIsInstance<FirConstructor>().mapToIndex()
+
+            val (declared, nonDeclared) = regularClass.constructors().partition { it in indexByDeclaration }
+
+            fun addConstructors(constructors: List<FirConstructor>) {
+                for (constructor in constructors) {
+                    builder.addConstructor(constructorProto(constructor))
+                }
             }
-            for (constructor in providedConstructors) {
-                builder.addConstructor(constructorProto(constructor))
-            }
+
+            addConstructors(declared.sortedBy { indexByDeclaration.getValue(it) })
+            addConstructors(nonDeclared.sortedWith(FirCallableDeclarationComparator))
+            addConstructors(providedConstructors)
         }
 
-        val callableMembers =
-            extension.customClassMembersProducer?.getCallableMembers(klass)
-                ?: (klass.memberDeclarations() + providedCallables)
-                    .sortedWith(FirCallableDeclarationComparator)
+        /*
+         * Order of callables:
+         *   - declared callables in declaration order
+         *   - generated callables in sorted order
+         *   - provided callables in sorted order
+         */
+        val callableMembers = extension.customClassMembersProducer?.getCallableMembers(klass)
+            ?: (klass.memberDeclarations() + providedCallables)
 
         for (declaration in callableMembers) {
             if (declaration !is FirEnumEntry && declaration.isStatic) continue // ??? Miss values() & valueOf()
@@ -184,12 +207,23 @@ class FirElementSerializer private constructor(
             }
         }
 
+        /*
+         * Order of nested classifiers:
+         *   - declared classifiers in declaration order
+         *   - generated classifiers in sorted order
+         *   - provided classifiers in sorted order
+         */
         fun FirClass.nestedClassifiers(): List<FirClassifierSymbol<*>> {
             val scope =
                 defaultType().scope(session, scopeSession, FakeOverrideTypeCalculator.DoNothing, requiredPhase = null) ?: return emptyList()
             return buildList {
-                scope.getClassifierNames().mapNotNullTo(this) { scope.getSingleClassifier(it) }
-                addAll(providedNestedClassifiers)
+                val indexByDeclaration = declarations.filterIsInstance<FirClassLikeDeclaration>().mapToIndex()
+                val (declared, nonDeclared) = scope.getClassifierNames()
+                    .mapNotNull { scope.getSingleClassifier(it)?.fir as FirClassLikeDeclaration? }
+                    .partition { it in indexByDeclaration }
+                declared.sortedBy { indexByDeclaration.getValue(it) }.mapTo(this) { it.symbol }
+                nonDeclared.sortedWith(FirMemberDeclarationComparator).mapTo(this) { it.symbol }
+                providedNestedClasses.mapTo(this) { it.symbol }
             }
         }
 
@@ -268,9 +302,16 @@ class FirElementSerializer private constructor(
     }
 
     private fun FirClass.memberDeclarations(): List<FirCallableDeclaration> {
-        return collectDeclarations<FirCallableDeclaration, FirCallableSymbol<*>> { memberScope, addDeclarationIfNeeded ->
+        val indexByDeclaration = declarations.mapIndexed { index, declaration -> declaration to index }.toMap()
+        val allDeclarations = collectDeclarations<FirCallableDeclaration, FirCallableSymbol<*>> { memberScope, addDeclarationIfNeeded ->
             memberScope.processAllFunctions { addDeclarationIfNeeded(it) }
             memberScope.processAllProperties { addDeclarationIfNeeded(it) }
+        }.sortedBy { indexByDeclaration[it] ?: Int.MAX_VALUE }
+
+        val (declared, nonDeclared) = allDeclarations.partition { it in indexByDeclaration }
+        return buildList {
+            addAll(declared.sortedBy { indexByDeclaration.getValue(it) })
+            addAll(nonDeclared.sortedWith(FirCallableDeclarationComparator))
         }
     }
 

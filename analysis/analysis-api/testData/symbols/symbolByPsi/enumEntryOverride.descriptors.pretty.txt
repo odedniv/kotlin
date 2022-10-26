@@ -5,10 +5,10 @@ enum class MyEnumClass {
     override fun foo()
   },
   SecondEntry {
-    override fun foo()
-
     override val i: kotlin.Int
       get()
+
+    override fun foo()
   },
   ThirdEntry {
     override fun foo()
@@ -16,9 +16,9 @@ enum class MyEnumClass {
     override fun foo(i: kotlin.Int)
   };
 
+  val i: kotlin.Int
+
   abstract fun foo()
 
   fun foo(i: kotlin.Int)
-
-  val i: kotlin.Int
 }

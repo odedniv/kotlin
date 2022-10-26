@@ -89,18 +89,15 @@ class JavaClassesSerializerExtension : KotlinSerializerExtensionBase(BuiltInSeri
 
     override fun shouldUseNormalizedVisibility() = true
 
-    override val customClassMembersProducer =
-            object : ClassMembersProducer {
-                override fun getCallableMembers(classDescriptor: ClassDescriptor) =
-                        arrayListOf<CallableMemberDescriptor>().apply {
-                            addAll(classDescriptor.unsubstitutedMemberScope.getSortedCallableDescriptors())
-                            addAll(classDescriptor.staticScope.getSortedCallableDescriptors())
-                        }
-            }
+    override val customClassMembersProducer = object : ClassMembersProducer {
+        override fun getCallableMembers(classDescriptor: ClassDescriptor): List<CallableMemberDescriptor> = buildList {
+            addAll(classDescriptor.unsubstitutedMemberScope.getUnsortedCallableDescriptors())
+            addAll(classDescriptor.staticScope.getUnsortedCallableDescriptors())
+        }
+    }
 
-    private fun MemberScope.getSortedCallableDescriptors(): Collection<CallableMemberDescriptor> =
+    private fun MemberScope.getUnsortedCallableDescriptors(): Collection<CallableMemberDescriptor> =
         DescriptorUtils.getAllDescriptors(this)
             .filterIsInstance<CallableMemberDescriptor>()
             .filter { it.kind != CallableMemberDescriptor.Kind.FAKE_OVERRIDE }
-            .let { DescriptorSerializer.sort(it) }
 }

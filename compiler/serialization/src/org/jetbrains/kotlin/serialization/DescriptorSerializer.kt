@@ -43,6 +43,7 @@ import org.jetbrains.kotlin.types.extensions.TypeAttributeTranslators
 import org.jetbrains.kotlin.types.typeUtil.contains
 import org.jetbrains.kotlin.types.typeUtil.immediateSupertypes
 import org.jetbrains.kotlin.types.typeUtil.replaceAnnotations
+import org.jetbrains.kotlin.utils.mapToIndex
 import java.util.*
 
 class DescriptorSerializer private constructor(
@@ -130,20 +131,38 @@ class DescriptorSerializer private constructor(
             }
         }
 
+        val allDescriptors = DescriptorUtils.getAllDescriptors(classDescriptor.defaultType.memberScope)
+        val indexByDeclaration = allDescriptors.mapToIndex()
+
+        /*
+         * Order of constructors:
+         *   - declared constructors in declaration order
+         *   - generated constructors in sorted order
+         */
         if (!DescriptorUtils.isAnonymousObject(classDescriptor) && classDescriptor.kind != ClassKind.ENUM_ENTRY) {
-            for (descriptor in classDescriptor.constructors) {
-                builder.addConstructor(constructorProto(descriptor))
+            val (declared, nonDeclared) = classDescriptor.constructors.partition { it in indexByDeclaration }
+
+            fun addConstructors(constructors: List<ConstructorDescriptor>) {
+                for (constructor in constructors) {
+                    builder.addConstructor(constructorProto(constructor))
+                }
             }
+
+            addConstructors(declared.sortedBy { indexByDeclaration.getValue(it) })
+            addConstructors(nonDeclared.sortedWith(MemberComparator.INSTANCE))
         }
 
-        val callableMembers =
-            extension.customClassMembersProducer?.getCallableMembers(classDescriptor)
-                ?: sort(
-                    DescriptorUtils.getAllDescriptors(classDescriptor.defaultType.memberScope)
-                        .filterIsInstance<CallableMemberDescriptor>()
-                        .filter { it.kind != CallableMemberDescriptor.Kind.FAKE_OVERRIDE }
-                )
+        val callableMembers = extension.customClassMembersProducer?.getCallableMembers(classDescriptor)
+            ?: allDescriptors
+                .filterIsInstance<CallableMemberDescriptor>()
+                .filter { it.kind != CallableMemberDescriptor.Kind.FAKE_OVERRIDE }
 
+        /*
+         * Order of callables:
+         *   - declared callables in declaration order
+         *   - generated callables in sorted order
+         *   - provided callables in sorted order
+         */
         for (descriptor in callableMembers) {
             when (descriptor) {
                 is PropertyDescriptor -> propertyProto(descriptor)?.let { builder.addProperty(it) }
@@ -151,7 +170,19 @@ class DescriptorSerializer private constructor(
             }
         }
 
-        val nestedClassifiers = sort(DescriptorUtils.getAllDescriptors(classDescriptor.unsubstitutedInnerClassesScope))
+        /*
+         * Order of nested classifiers:
+         *   - declared classifiers in declaration order
+         *   - generated classifiers in sorted order
+         *   - provided classifiers in sorted order
+         */
+        val nestedClassifiers = buildList {
+            val (declared, nonDeclared) = DescriptorUtils.getAllDescriptors(classDescriptor.unsubstitutedInnerClassesScope).partition {
+                it in indexByDeclaration
+            }
+            addAll(declared.sortedBy { indexByDeclaration.getValue(it) })
+            addAll(nonDeclared.sortedWith(MemberComparator.INSTANCE))
+        }
         for (descriptor in nestedClassifiers) {
             if (descriptor is TypeAliasDescriptor) {
                 typeAliasProto(descriptor)?.let { builder.addTypeAlias(it) }

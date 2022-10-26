@@ -22,7 +22,7 @@ annotation class Anno5(s: kotlin.String) {
 interface I
 
 class X : @Anno1 I {
-  fun f(arg: @Anno2 I): @Anno3 I
-
   val x: @Anno4 I
+
+  fun f(arg: @Anno2 I): @Anno3 I
 }

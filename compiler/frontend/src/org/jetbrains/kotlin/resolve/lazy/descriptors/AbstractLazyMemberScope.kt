@@ -16,12 +16,15 @@
 
 package org.jetbrains.kotlin.resolve.lazy.descriptors
 
+import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.descriptors.impl.DeclarationDescriptorNonRootImpl
 import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.resolve.BindingTrace
+import org.jetbrains.kotlin.resolve.MemberComparator
 import org.jetbrains.kotlin.resolve.calls.components.InferenceSession
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.lazy.LazyClassContext
@@ -31,9 +34,11 @@ import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.LexicalScope
 import org.jetbrains.kotlin.resolve.scopes.MemberScopeImpl
 import org.jetbrains.kotlin.resolve.source.KotlinSourceElement
+import org.jetbrains.kotlin.resolve.source.getPsi
 import org.jetbrains.kotlin.storage.MemoizedFunctionToNotNull
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.utils.Printer
+import org.jetbrains.kotlin.utils.mapToIndex
 
 abstract class AbstractLazyMemberScope<out D : DeclarationDescriptor, out DP : DeclarationProvider>
 protected constructor(
@@ -228,6 +233,7 @@ protected constructor(
     ): MutableSet<DeclarationDescriptor> {
         val declarations = declarationProvider.getDeclarations(kindFilter, nameFilter)
         val result = LinkedHashSet<DeclarationDescriptor>(declarations.size)
+        val indexByDeclaration = declarations.mapToIndex<PsiElement>()
         for (declaration in declarations) {
             when (declaration) {
                 is KtClassOrObject -> {
@@ -272,7 +278,48 @@ protected constructor(
                 else -> throw IllegalArgumentException("Unsupported declaration kind: " + declaration)
             }
         }
-        return result
+
+        fun DeclarationDescriptor.sourcePsi(): PsiElement? {
+            val source = when (this) {
+                is DeclarationDescriptorNonRootImpl -> source
+                is ClassDescriptor -> source
+                else -> null
+            }
+            return source?.getPsi()
+        }
+
+        val (declared, nonDeclared) = result.partition {
+            val source = it.sourcePsi()
+            source in indexByDeclaration
+        }
+
+        val sortedDeclared = declared.sortedBy { indexByDeclaration.getValue(it.sourcePsi()!!) }
+        val declaredProperties = mutableListOf<DeclarationDescriptor>()
+        val declaredFunctions = mutableListOf<DeclarationDescriptor>()
+        val declaredEnumEntries = mutableListOf<DeclarationDescriptor>()
+        val declaredClasses = mutableListOf<DeclarationDescriptor>()
+
+        for (declaration in sortedDeclared) {
+            val list = when (declaration) {
+                is PropertyDescriptor -> declaredProperties
+                is FunctionDescriptor -> declaredFunctions
+                is ClassDescriptor -> when (declaration.kind) {
+                    ClassKind.ENUM_ENTRY -> declaredEnumEntries
+                    else -> declaredClasses
+                }
+                is TypeAliasDescriptor -> declaredClasses
+                else -> error("Unknown descriptor kind: $declaration")
+            }
+            list += declaration
+        }
+
+        return LinkedHashSet<DeclarationDescriptor>().apply {
+            addAll(declaredEnumEntries)
+            addAll(declaredProperties)
+            addAll(declaredFunctions)
+            addAll(declaredClasses)
+            addAll(nonDeclared.sortedWith(MemberComparator.INSTANCE))
+        }
     }
 
     // Do not change this, override in concrete subclasses:

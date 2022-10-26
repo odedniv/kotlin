@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.resolve.scopes.receivers.ContextClassReceiver
 import org.jetbrains.kotlin.serialization.deserialization.*
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
+import org.jetbrains.kotlin.utils.addIfNotNull
 import org.jetbrains.kotlin.utils.addToStdlib.flatMapToNullable
 
 class DeserializedClassDescriptor(
@@ -143,9 +144,11 @@ class DeserializedClassDescriptor(
 
     override fun getUnsubstitutedPrimaryConstructor(): ClassConstructorDescriptor? = primaryConstructor()
 
-    private fun computeConstructors(): Collection<ClassConstructorDescriptor> =
-        computeSecondaryConstructors() + listOfNotNull(unsubstitutedPrimaryConstructor) +
-                c.components.additionalClassPartsProvider.getConstructors(this)
+    private fun computeConstructors(): Collection<ClassConstructorDescriptor> = buildList {
+        addIfNotNull(unsubstitutedPrimaryConstructor)
+        addAll(computeSecondaryConstructors())
+        addAll(c.components.additionalClassPartsProvider.getConstructors(this@DeserializedClassDescriptor))
+    }
 
     private fun computeSecondaryConstructors(): List<ClassConstructorDescriptor> =
         classProto.constructorList.filter { Flags.IS_SECONDARY.get(it.flags) }.map {
@@ -300,22 +303,28 @@ class DeserializedClassDescriptor(
             return c.components.platformDependentDeclarationFilter.isFunctionAvailable(this@DeserializedClassDescriptor, function)
         }
 
-        override fun computeNonDeclaredFunctions(name: Name, functions: MutableList<SimpleFunctionDescriptor>) {
+        override fun computeNonDeclaredFunctions(
+            name: Name,
+            declaredFunctions: List<SimpleFunctionDescriptor>
+        ): List<SimpleFunctionDescriptor> {
             val fromSupertypes = ArrayList<SimpleFunctionDescriptor>()
             for (supertype in refinedSupertypes()) {
                 fromSupertypes.addAll(supertype.memberScope.getContributedFunctions(name, NoLookupLocation.FOR_ALREADY_TRACKED))
             }
-
-            functions.addAll(c.components.additionalClassPartsProvider.getFunctions(name, this@DeserializedClassDescriptor))
-            generateFakeOverrides(name, fromSupertypes, functions)
+            val result = declaredFunctions.toMutableList()
+            result.addAll(c.components.additionalClassPartsProvider.getFunctions(name, this@DeserializedClassDescriptor))
+            generateFakeOverrides(name, fromSupertypes, result)
+            return result - declaredFunctions
         }
 
-        override fun computeNonDeclaredProperties(name: Name, descriptors: MutableList<PropertyDescriptor>) {
+        override fun computeNonDeclaredProperties(name: Name, declaredProperties: List<PropertyDescriptor>): List<PropertyDescriptor> {
             val fromSupertypes = ArrayList<PropertyDescriptor>()
             for (supertype in refinedSupertypes()) {
                 fromSupertypes.addAll(supertype.memberScope.getContributedVariables(name, NoLookupLocation.FOR_ALREADY_TRACKED))
             }
-            generateFakeOverrides(name, fromSupertypes, descriptors)
+            val result = declaredProperties.toMutableList()
+            generateFakeOverrides(name, fromSupertypes, result)
+            return result - declaredProperties
         }
 
         private fun <D : CallableMemberDescriptor> generateFakeOverrides(

@@ -111,16 +111,22 @@ open class LazyClassMemberScope(
     }
 
     protected open fun computeExtraDescriptors(result: MutableCollection<DeclarationDescriptor>, location: LookupLocation) {
+        val properties = mutableListOf<PropertyDescriptor>()
+        val functions = mutableListOf<FunctionDescriptor>()
+
         for (supertype in supertypes) {
             for (descriptor in supertype.memberScope.getContributedDescriptors()) {
                 if (descriptor is FunctionDescriptor) {
-                    result.addAll(getContributedFunctions(descriptor.name, location))
+                    functions.addAll(getContributedFunctions(descriptor.name, location))
                 } else if (descriptor is PropertyDescriptor) {
-                    result.addAll(getContributedVariables(descriptor.name, location))
+                    properties.addAll(getContributedVariables(descriptor.name, location))
                 }
                 // Nothing else is inherited
             }
         }
+
+        result.addAll(properties)
+        result.addAll(functions)
 
         addDataClassMethods(result, location)
         addSyntheticFunctions(result, location)
@@ -511,13 +517,18 @@ open class LazyClassMemberScope(
     }
 
     private fun addSyntheticSecondaryConstructors(result: MutableCollection<ClassConstructorDescriptor>) {
-        c.syntheticResolveExtension.generateSyntheticSecondaryConstructors(thisDescriptor, trace.bindingContext, result)
+        val destination = mutableListOf<ClassConstructorDescriptor>()
+        c.syntheticResolveExtension.generateSyntheticSecondaryConstructors(thisDescriptor, trace.bindingContext, destination)
+        result.addAll(destination.sortedWith(MemberComparator.INSTANCE))
     }
 
     fun getConstructors(): Collection<ClassConstructorDescriptor> {
         val result = (mainScope as LazyClassMemberScope?)?.secondaryConstructors?.invoke() ?: secondaryConstructors()
         val primaryConstructor = getPrimaryConstructor()
-        return if (primaryConstructor == null) result else result + primaryConstructor
+        return if (primaryConstructor == null) result else buildList {
+            add(primaryConstructor)
+            addAll(result)
+        }
     }
 
     fun getPrimaryConstructor(): ClassConstructorDescriptor? =

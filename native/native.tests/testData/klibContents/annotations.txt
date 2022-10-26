@@ -14,12 +14,12 @@
     annotation class AnnoSetter constructor() : Annotation
     annotation class AnnoSetter2 constructor() : Annotation
     @AnnoClass class Foo @AnnoConstructor constructor(@AnnoConstructorParameter i: Int) {
-        @delegate:AnnoDelegatedField val immutableProp: Int
-        var mutableProp: Int
-            @AnnoSetter2 set
         @AnnoProperty @field:AnnoBackingField var prop: Int
             @AnnoGetter get
             @AnnoSetter set
+        var mutableProp: Int
+            @AnnoSetter2 set
+        @delegate:AnnoDelegatedField val immutableProp: Int
     }
     @AnnoPropertyExtensionReceiver val Foo.extProp: Int
     @AnnoFunction fun @receiver:AnnoFunctionExtensionReceiver Foo.extfun(@AnnoFunctionParam x: Int)

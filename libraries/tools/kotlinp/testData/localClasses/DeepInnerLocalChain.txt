@@ -59,17 +59,17 @@ local final inner class .DeepInnerLocalChainKt$test$Local$Inner$prop$1$foo$bar$D
   // signature: <init>(LDeepInnerLocalChainKt$test$Local$Inner$prop$1$foo$bar$DeepLocal;)V
   public constructor()
 
+  // signature: local()LDeepInnerLocalChainKt$test$Local;
+  public final fun local(): .DeepInnerLocalChainKt$test$Local
+
+  // signature: inner()LDeepInnerLocalChainKt$test$Local$Inner;
+  public final fun inner(): .DeepInnerLocalChainKt$test$Local.Inner
+
   // signature: deep()LDeepInnerLocalChainKt$test$Local$Inner$prop$1$foo$bar$DeepLocal;
   public final fun deep(): .DeepInnerLocalChainKt$test$Local$Inner$prop$1$foo$bar$DeepLocal
 
   // signature: deepest()LDeepInnerLocalChainKt$test$Local$Inner$prop$1$foo$bar$DeepLocal$Deepest;
   public final fun deepest(): .DeepInnerLocalChainKt$test$Local$Inner$prop$1$foo$bar$DeepLocal.Deepest?
-
-  // signature: inner()LDeepInnerLocalChainKt$test$Local$Inner;
-  public final fun inner(): .DeepInnerLocalChainKt$test$Local.Inner
-
-  // signature: local()LDeepInnerLocalChainKt$test$Local;
-  public final fun local(): .DeepInnerLocalChainKt$test$Local
 
   // module name: test-module
 }

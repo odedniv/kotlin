@@ -77,11 +77,6 @@ CLASS IR_EXTERNAL_DECLARATION_STUB CLASS name:Int modality:FINAL visibility:publ
       public open fun equals (other: kotlin.Any?): kotlin.Boolean [fake_override,operator] declared in kotlin.Comparable
     $this: VALUE_PARAMETER IR_EXTERNAL_DECLARATION_STUB name:<this> type:kotlin.Int
     VALUE_PARAMETER IR_EXTERNAL_DECLARATION_STUB name:other index:0 type:kotlin.Any?
-  FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.Int [fake_override]
-    overridden:
-      public open fun hashCode (): kotlin.Int [fake_override] declared in kotlin.Number
-      public open fun hashCode (): kotlin.Int [fake_override] declared in kotlin.Comparable
-    $this: VALUE_PARAMETER FAKE_OVERRIDE name:<this> type:kotlin.Any
   FUN IR_EXTERNAL_DECLARATION_STUB name:inc visibility:public modality:FINAL <> ($this:kotlin.Int) returnType:kotlin.Int [operator]
     $this: VALUE_PARAMETER IR_EXTERNAL_DECLARATION_STUB name:<this> type:kotlin.Int
   FUN IR_EXTERNAL_DECLARATION_STUB name:inv visibility:public modality:FINAL <> ($this:kotlin.Int) returnType:kotlin.Int
@@ -380,3 +375,8 @@ CLASS IR_EXTERNAL_DECLARATION_STUB CLASS name:Int modality:FINAL visibility:publ
       overridden:
         public open fun toString (): kotlin.String declared in kotlin.Any
       $this: VALUE_PARAMETER FAKE_OVERRIDE name:<this> type:kotlin.Any
+  FUN FAKE_OVERRIDE name:hashCode visibility:public modality:OPEN <> ($this:kotlin.Any) returnType:kotlin.Int [fake_override]
+    overridden:
+      public open fun hashCode (): kotlin.Int [fake_override] declared in kotlin.Number
+      public open fun hashCode (): kotlin.Int [fake_override] declared in kotlin.Comparable
+    $this: VALUE_PARAMETER FAKE_OVERRIDE name:<this> type:kotlin.Any

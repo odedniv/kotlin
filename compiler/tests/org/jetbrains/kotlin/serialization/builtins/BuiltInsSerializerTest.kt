@@ -124,4 +124,8 @@ class BuiltInsSerializerTest : TestCaseWithTmpdir() {
     fun testPropertyAccessorAnnotations() {
         doTest("propertyAccessorAnnotations.kt")
     }
+
+    fun testPropertiesOrder() {
+        doTest("propertiesOrder.kt")
+    }
 }

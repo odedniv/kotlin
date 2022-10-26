@@ -14,9 +14,9 @@
     @Retention(value = AnnotationRetention.SOURCE) annotation class AnnoSetter constructor() : Annotation
     @Retention(value = AnnotationRetention.SOURCE) annotation class AnnoSetter2 constructor() : Annotation
     class Foo constructor(i: Int) {
-        val immutableProp: Int
-        var mutableProp: Int
         var prop: Int
+        var mutableProp: Int
+        val immutableProp: Int
     }
     val Foo.extProp: Int
     fun Foo.extfun(x: Int)

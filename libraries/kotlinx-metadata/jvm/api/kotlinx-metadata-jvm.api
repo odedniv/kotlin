@@ -1026,6 +1026,12 @@ public abstract class kotlinx/metadata/KmVersionRequirementVisitor {
 	public fun visitVersion (III)V
 }
 
+public final class kotlinx/metadata/internalx/serialization/compiler/extensions/SerializationPluginMetadataExtensions {
+	public static final field PROPERTIES_NAMES_IN_PROGRAM_ORDER_FIELD_NUMBER I
+	public static final field propertiesNamesInProgramOrder Lkotlinx/metadata/internal/protobuf/GeneratedMessageLite$GeneratedExtension;
+	public static fun registerAllExtensions (Lkotlinx/metadata/internal/protobuf/ExtensionRegistryLite;)V
+}
+
 public class kotlinx/metadata/jvm/JvmClassExtensionVisitor : kotlinx/metadata/jvm/JvmDeclarationContainerExtensionVisitor, kotlinx/metadata/KmClassExtensionVisitor {
 	public static final field Companion Lkotlinx/metadata/jvm/JvmClassExtensionVisitor$Companion;
 	public static final field TYPE Lkotlinx/metadata/KmExtensionType;

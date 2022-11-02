@@ -125,7 +125,6 @@ fun buildDecompiledText(
             val allDescriptors = descriptor.secondaryConstructors + descriptor.defaultType
                 .memberScope
                 .getContributedDescriptors()
-                .sortedWith(MemberComparator.INSTANCE) // KT-54801
             val (enumEntries, members) = allDescriptors.partition(::isEnumEntry)
 
             for ((index, enumEntry) in enumEntries.withIndex()) {

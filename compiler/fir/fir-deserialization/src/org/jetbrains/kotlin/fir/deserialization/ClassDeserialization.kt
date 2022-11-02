@@ -40,6 +40,7 @@ import org.jetbrains.kotlin.serialization.deserialization.ProtoEnumFlags
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 import org.jetbrains.kotlin.serialization.deserialization.getName
 import org.jetbrains.kotlin.serialization.deserialization.loadValueClassRepresentation
+import org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationPluginMetadataExtensions
 
 fun deserializeClassToSymbol(
     classId: ClassId,
@@ -142,7 +143,7 @@ fun deserializeClassToSymbol(
         )
 
         addDeclarations(
-            classProto.propertyList.map {
+            classProto.propertiesInOrder().map {
                 classDeserializer.loadProperty(it, classProto, symbol)
             }
         )
@@ -316,6 +317,17 @@ abstract class DeserializedClassConfigurator(val session: FirSession) : FirSessi
 class JvmDeserializedClassConfigurator(session: FirSession): DeserializedClassConfigurator(session) {
     override fun FirRegularClassBuilder.configure(classId: ClassId) {
         addSerializableIfNeeded(classId)
+    }
+}
+
+private fun ProtoBuf.ClassOrBuilder.propertiesInOrder(): List<ProtoBuf.Property> {
+    val properties = propertyList
+    val order = getExtension(SerializationPluginMetadataExtensions.propertiesNamesInProgramOrder)
+        .takeIf { it.isNotEmpty() }
+        ?: return properties
+    val propertiesByName = properties.groupBy { it.name }
+    return order.flatMap { propertiesByName[it] ?: emptyList() }.also {
+        assert(it.size == properties.size)
     }
 }
 

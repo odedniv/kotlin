@@ -2030,6 +2030,11 @@ public class KlibTextTestCaseGenerated extends AbstractKlibTextTestCase {
             runTest("compiler/testData/ir/irText/firProblems/typeVariableAfterBuildMap.kt");
         }
 
+        @TestMetadata("valueClassEquals.kt")
+        public void testValueClassEquals() throws Exception {
+            runTest("compiler/testData/ir/irText/firProblems/valueClassEquals.kt");
+        }
+
         @TestMetadata("VarInInit.kt")
         public void testVarInInit() throws Exception {
             runTest("compiler/testData/ir/irText/firProblems/VarInInit.kt");

@@ -64,6 +64,12 @@ FILE: inlineClassMembers.kt
             ^hashCode Int(1)
         }
 
+        public final operator fun equals(other: R|kotlin/Any?|): R|kotlin/Boolean|
+
+        public final fun hashCode(): R|kotlin/Int|
+
+        public final fun toString(): R|kotlin/String|
+
     }
     public final inline class ReservedMembersMfvc : R|kotlin/Any| {
         public constructor(x: R|kotlin/Int|, y: R|kotlin/Int|): R|ReservedMembersMfvc| {

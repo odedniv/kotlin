@@ -74,7 +74,7 @@ sealed class ResolutionMode(val forceFullCompletion: Boolean) {
         }
     }
 
-    class AssignmentLValue(val variableAssignment: FirVariableAssignment) : ResolutionMode() {
+    class AssignmentLValue(val variableAssignment: FirVariableAssignment) : ResolutionMode(forceFullCompletion = true) {
         override fun toString(): String = "AssignmentLValue: ${variableAssignment.render()}"
     }
 

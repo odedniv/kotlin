@@ -24,7 +24,7 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.util.libsDirectory
 import org.jetbrains.kotlin.gradle.targets.js.KotlinJsReportAggregatingTestRun
 import org.jetbrains.kotlin.gradle.tasks.KotlinTasksProvider
 import org.jetbrains.kotlin.gradle.tasks.configuration.BaseKotlinCompileConfig.Companion.ARTIFACT_TYPE_ATTRIBUTE
-import org.jetbrains.kotlin.gradle.tasks.configuration.BaseKotlinCompileConfig.Companion.DIRECTORY_ARTIFACT_TYPE
+import org.jetbrains.kotlin.gradle.tasks.configuration.Kotlin2JsCompileConfig
 import org.jetbrains.kotlin.gradle.testing.internal.kotlinTestRegistry
 import org.jetbrains.kotlin.gradle.testing.testTaskName
 
@@ -142,7 +142,7 @@ open class KotlinJsIrTargetConfigurator :
             usesPlatformOf(target)
             attributes.attribute(
                 ARTIFACT_TYPE_ATTRIBUTE,
-                DIRECTORY_ARTIFACT_TYPE
+                Kotlin2JsCompileConfig.UNPACKED_KLIB_ARTIFACT_TYPE
             )
         }
 
@@ -160,7 +160,7 @@ open class KotlinJsIrTargetConfigurator :
             usesPlatformOf(target)
             attributes.attribute(
                 ARTIFACT_TYPE_ATTRIBUTE,
-                DIRECTORY_ARTIFACT_TYPE
+                Kotlin2JsCompileConfig.UNPACKED_KLIB_ARTIFACT_TYPE
             )
         }
 

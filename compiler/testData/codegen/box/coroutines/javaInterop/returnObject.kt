@@ -38,7 +38,7 @@ inline fun inlineMe3(crossinline c: suspend () -> Unit) = object: SuspendRunnabl
 // FILE: A.java
 
 import test.InlineMeKt;
-import helpers.CoroutineUtilKt;
+import helpers.StateMachineCheckerKt;
 import helpers.EmptyContinuation;
 import kotlin.jvm.functions.Function1;
 import kotlin.coroutines.Continuation;
@@ -48,7 +48,7 @@ public class A {
     static Function1<Continuation<? super Unit>, Object> callback = new Function1<Continuation<? super Unit>, Object>() {
         @Override
         public Object invoke(Continuation<? super Unit> continuation) {
-            return CoroutineUtilKt.getStateMachineChecker().suspendHere(continuation);
+            return StateMachineCheckerKt.getStateMachineChecker().suspendHere(continuation);
         }
     };
     public static Object call() {

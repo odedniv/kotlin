@@ -18,7 +18,7 @@ import org.jetbrains.kotlin.ir.symbols.IrFieldSymbol
 abstract class IrFieldAccessExpression : IrDeclarationReference() {
     abstract override val symbol: IrFieldSymbol
 
-    abstract val superQualifierSymbol: IrClassSymbol?
+    abstract var superQualifierSymbol: IrClassSymbol?
 
     var receiver: IrExpression? = null
 

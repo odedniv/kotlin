@@ -847,7 +847,7 @@ object IrTree : AbstractTreeBuilder() {
         parent(declarationReference)
 
         +symbol(fieldSymbolType)
-        +field("superQualifierSymbol", classSymbolType, nullable = true)
+        +field("superQualifierSymbol", classSymbolType, nullable = true, mutable = true)
         +field("receiver", expression, nullable = true, mutable = true, isChild = true) {
             baseDefaultValue = code("null")
         }

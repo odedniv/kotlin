@@ -7,8 +7,8 @@ package org.jetbrains.kotlin.backend.jvm.lower
 
 import org.jetbrains.kotlin.backend.common.FileLoweringPass
 import org.jetbrains.kotlin.backend.common.phaser.makeIrFilePhase
+import org.jetbrains.kotlin.backend.jvm.ir.erasedUpperBound
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
-import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
@@ -19,8 +19,9 @@ import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrClassifierSymbol
 import org.jetbrains.kotlin.ir.symbols.IrFieldSymbol
 import org.jetbrains.kotlin.ir.types.classifierOrNull
-import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.superTypes
+import org.jetbrains.kotlin.ir.util.isClass
+import org.jetbrains.kotlin.ir.util.isEnumClass
 import org.jetbrains.kotlin.ir.util.isFromJava
 import org.jetbrains.kotlin.ir.util.parentClassOrNull
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
@@ -85,12 +86,11 @@ private object AddSuperQualifierToJavaFieldAccessLowering : IrElementVisitorVoid
         var superQualifierClassifierSymbol = dispatchReceiverRepresentativeClassifierSymbol
         var superQualifierClassFromJava: IrClass? = dispatchReceiverRepresentativeClassifierSymbol.ownerClassIfFromJava()
         while (superQualifierClassifierSymbol !== originalContainingClassSymbol) {
-            superQualifierClassifierSymbol = superQualifierClassifierSymbol.superTypes().find {
-                val kind = it.getClass()?.kind
-                // Note: for class we will find class here,
-                // for type parameter either class or another type parameter (they cannot be in supertypes together)
-                kind == ClassKind.CLASS || kind == ClassKind.ENUM_CLASS || kind == null
-            }?.classifierOrNull ?: break
+            superQualifierClassifierSymbol = superQualifierClassifierSymbol.superTypes()
+                .firstNotNullOfOrNull { supertype ->
+                    supertype.erasedUpperBound.takeIf { it.isClass || it.isEnumClass }
+                }
+                ?.symbol ?: break
             val isFromJava = superQualifierClassifierSymbol.isFromJava()
             if (superQualifierClassFromJava == null) {
                 superQualifierClassFromJava = superQualifierClassifierSymbol.ownerClassIfFromJava()

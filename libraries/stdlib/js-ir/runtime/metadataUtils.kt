@@ -26,7 +26,12 @@ internal fun setMetadataFor(
 
     if (interfaces != null) {
         val receiver = if (metadata.iid != null) ctor else ctor.prototype
-        receiver.`$imask$` = implement(*interfaces)
+        receiver.`$get_imask$` = {
+            if (js("!receiver.hasOwnProperty('__imask__')")) {
+                receiver.__imask__ = implement(interfaces)
+            }
+            receiver.__imask__
+        }
     }
 }
 
@@ -91,7 +96,7 @@ internal external interface Metadata {
 }
 
 internal fun isInterfaceImpl(obj: dynamic, iface: Int): Boolean {
-    val mask: BitMask = obj.`$imask$`.unsafeCast<BitMask?>() ?: return false
+    val mask: BitMask = if (obj.`$get_imask$` == null) return false else obj.`$get_imask$`()
     return mask.isBitSet(iface)
 }
 

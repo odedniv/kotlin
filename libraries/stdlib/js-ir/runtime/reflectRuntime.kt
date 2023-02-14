@@ -31,12 +31,12 @@ internal fun getLocalDelegateReference(name: String, superType: dynamic, mutable
 private fun getPropertyRefClass(obj: Ctor, metadata: Metadata, imask: BitMask): dynamic {
     obj.`$metadata$` = metadata
     obj.constructor = obj
-    obj.`$imask$` = imask
+    if (obj.`$get_imask$` == null) obj.`$get_imask$` = { imask }
     return obj;
 }
 
-private fun getInterfaceMaskFor(obj: Ctor, superType: dynamic): BitMask =
-    obj.`$imask$` ?: implement(superType)
+private fun getInterfaceMaskFor(obj: dynamic, superType: dynamic): BitMask =
+    if (obj.`$get_imask$` != null) obj.`$get_imask$`() else implement(arrayOf(superType))
 
 @Suppress("UNUSED_PARAMETER")
 private fun getKPropMetadata(paramCount: Int, setter: Any?): dynamic {

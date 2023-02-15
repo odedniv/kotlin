@@ -9,9 +9,8 @@ import org.jetbrains.kotlin.backend.common.FileLoweringPass
 import org.jetbrains.kotlin.backend.common.phaser.makeIrFilePhase
 import org.jetbrains.kotlin.backend.jvm.ir.erasedUpperBound
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
+import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.IrElement
-import org.jetbrains.kotlin.ir.declarations.IrClass
-import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFieldAccessExpression
@@ -22,7 +21,6 @@ import org.jetbrains.kotlin.ir.types.classifierOrNull
 import org.jetbrains.kotlin.ir.types.superTypes
 import org.jetbrains.kotlin.ir.util.isClass
 import org.jetbrains.kotlin.ir.util.isEnumClass
-import org.jetbrains.kotlin.ir.util.isFromJava
 import org.jetbrains.kotlin.ir.util.parentClassOrNull
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 
@@ -83,25 +81,15 @@ private object AddSuperQualifierToJavaFieldAccessLowering : IrElementVisitorVoid
         dispatchReceiverRepresentativeClassifierSymbol: IrClassifierSymbol,
         originalContainingClassSymbol: IrClassSymbol
     ): IrClassSymbol {
-        var superQualifierClassifierSymbol = dispatchReceiverRepresentativeClassifierSymbol
-        var superQualifierClassFromJava: IrClass? = dispatchReceiverRepresentativeClassifierSymbol.ownerClassIfFromJava()
-        while (superQualifierClassifierSymbol !== originalContainingClassSymbol) {
-            superQualifierClassifierSymbol = superQualifierClassifierSymbol.superTypes()
-                .firstNotNullOfOrNull { supertype ->
-                    supertype.erasedUpperBound.takeIf { it.isClass || it.isEnumClass }
-                }
-                ?.symbol ?: break
-            val isFromJava = superQualifierClassifierSymbol.isFromJava()
-            if (superQualifierClassFromJava == null) {
-                superQualifierClassFromJava = superQualifierClassifierSymbol.ownerClassIfFromJava()
-            } else if (!isFromJava) {
-                superQualifierClassFromJava = null
-            }
+        val superTypesFromBase = generateSequence(dispatchReceiverRepresentativeClassifierSymbol) { classifierSymbol ->
+            if (classifierSymbol == originalContainingClassSymbol) return@generateSequence null
+            classifierSymbol.superTypes().firstNotNullOfOrNull { supertype ->
+                val erasedUpperBound = supertype.erasedUpperBound
+                erasedUpperBound.takeIf { it.isClass || it.isEnumClass }
+            }?.symbol
         }
-        return superQualifierClassFromJava?.symbol ?: originalContainingClassSymbol
+        return superTypesFromBase.filterIsInstance<IrClassSymbol>().findLast {
+            it.owner.visibility == DescriptorVisibilities.PUBLIC
+        } ?: originalContainingClassSymbol
     }
-
-    private fun IrClassifierSymbol.isFromJava() = (owner as? IrDeclaration)?.isFromJava() == true
-
-    private fun IrClassifierSymbol.ownerClassIfFromJava(): IrClass? = (owner as? IrClass)?.takeIf { it.isFromJava() }
 }

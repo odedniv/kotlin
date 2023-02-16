@@ -6,10 +6,12 @@
 package org.jetbrains.kotlin.analysis.low.level.api.fir.providers
 
 import org.jetbrains.kotlin.analysis.low.level.api.fir.sessions.LLFirSession
+import org.jetbrains.kotlin.analysis.low.level.api.fir.util.LLFirSymbolProviderNameCache
 import org.jetbrains.kotlin.analysis.utils.collections.buildSmartList
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.resolve.providers.FirSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.providers.FirSymbolProviderInternals
+import org.jetbrains.kotlin.fir.resolve.providers.flatMapToNullableSet
 import org.jetbrains.kotlin.fir.resolve.providers.symbolProvider
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
@@ -27,36 +29,52 @@ internal class LLFirModuleWithDependenciesSymbolProvider(
     val dependencyProvider: LLFirDependentModuleProviders,
     private val providers: List<FirSymbolProvider>,
 ) : FirSymbolProvider(session) {
+    // TODO: Computing classifier names is futile until `JavaSymbolProvider` returns something useful in the IDE. See KTIJ-24642 and the
+    //       problem with `FirJavaFacade.knownClassNamesInPackage`.
+    private val symbolNameCache = object : LLFirSymbolProviderNameCache(session) {
+        override fun computeClassifierNames(packageFqName: FqName): Set<String>? {
+            throw NotImplementedError()
+        }
+
+        override fun computeCallableNames(packageFqName: FqName): Set<Name>? = buildSet {
+            addAll(dependencyProvider.computeCallableNamesInPackage(packageFqName) ?: return null)
+            addAll(providers.flatMapToNullableSet { it.computeCallableNamesInPackage(packageFqName) } ?: return null)
+        }
+    }
 
     override fun getClassLikeSymbolByClassId(classId: ClassId): FirClassLikeSymbol<*>? =
         getClassLikeSymbolByFqNameWithoutDependencies(classId)
             ?: dependencyProvider.getClassLikeSymbolByClassId(classId)
-
 
     fun getClassLikeSymbolByFqNameWithoutDependencies(classId: ClassId): FirClassLikeSymbol<*>? =
         providers.firstNotNullOfOrNull { it.getClassLikeSymbolByClassId(classId) }
 
     @FirSymbolProviderInternals
     override fun getTopLevelCallableSymbolsTo(destination: MutableList<FirCallableSymbol<*>>, packageFqName: FqName, name: Name) {
-        getTopLevelCallableSymbolsToWithoutDependencies(destination, packageFqName, name)
+        if (!symbolNameCache.mayHaveTopLevelCallable(packageFqName, name)) return
+
+        getTopLevelCallableSymbolsFromProviders(destination, packageFqName, name)
         dependencyProvider.getTopLevelCallableSymbolsTo(destination, packageFqName, name)
     }
 
     @FirSymbolProviderInternals
     fun getTopLevelCallableSymbolsToWithoutDependencies(destination: MutableList<FirCallableSymbol<*>>, packageFqName: FqName, name: Name) {
+        if (!symbolNameCache.mayHaveTopLevelCallable(packageFqName, name)) return
+
+        getTopLevelCallableSymbolsFromProviders(destination, packageFqName, name)
+    }
+
+    @FirSymbolProviderInternals
+    private fun getTopLevelCallableSymbolsFromProviders(destination: MutableList<FirCallableSymbol<*>>, packageFqName: FqName, name: Name) {
         providers.forEach { it.getTopLevelCallableSymbolsTo(destination, packageFqName, name) }
     }
 
     @FirSymbolProviderInternals
     override fun getTopLevelFunctionSymbolsTo(destination: MutableList<FirNamedFunctionSymbol>, packageFqName: FqName, name: Name) {
-        getTopLevelFunctionSymbolsToWithoutDependencies(destination, packageFqName, name)
-        dependencyProvider.getTopLevelFunctionSymbolsTo(destination, packageFqName, name)
-    }
+        if (!symbolNameCache.mayHaveTopLevelCallable(packageFqName, name)) return
 
-    @FirSymbolProviderInternals
-    override fun getTopLevelPropertySymbolsTo(destination: MutableList<FirPropertySymbol>, packageFqName: FqName, name: Name) {
-        getTopLevelPropertySymbolsToWithoutDependencies(destination, packageFqName, name)
-        dependencyProvider.getTopLevelPropertySymbolsTo(destination, packageFqName, name)
+        getTopLevelFunctionSymbolsFromProviders(destination, packageFqName, name)
+        dependencyProvider.getTopLevelFunctionSymbolsTo(destination, packageFqName, name)
     }
 
     @FirSymbolProviderInternals
@@ -65,11 +83,37 @@ internal class LLFirModuleWithDependenciesSymbolProvider(
         packageFqName: FqName,
         name: Name
     ) {
+        if (!symbolNameCache.mayHaveTopLevelCallable(packageFqName, name)) return
+
+        getTopLevelFunctionSymbolsFromProviders(destination, packageFqName, name)
+    }
+
+    @FirSymbolProviderInternals
+    private fun getTopLevelFunctionSymbolsFromProviders(
+        destination: MutableList<FirNamedFunctionSymbol>,
+        packageFqName: FqName,
+        name: Name
+    ) {
         providers.forEach { it.getTopLevelFunctionSymbolsTo(destination, packageFqName, name) }
     }
 
     @FirSymbolProviderInternals
+    override fun getTopLevelPropertySymbolsTo(destination: MutableList<FirPropertySymbol>, packageFqName: FqName, name: Name) {
+        if (!symbolNameCache.mayHaveTopLevelCallable(packageFqName, name)) return
+
+        getTopLevelPropertySymbolsToFromProviders(destination, packageFqName, name)
+        dependencyProvider.getTopLevelPropertySymbolsTo(destination, packageFqName, name)
+    }
+
+    @FirSymbolProviderInternals
     fun getTopLevelPropertySymbolsToWithoutDependencies(destination: MutableList<FirPropertySymbol>, packageFqName: FqName, name: Name) {
+        if (!symbolNameCache.mayHaveTopLevelCallable(packageFqName, name)) return
+
+        getTopLevelPropertySymbolsToFromProviders(destination, packageFqName, name)
+    }
+
+    @FirSymbolProviderInternals
+    private fun getTopLevelPropertySymbolsToFromProviders(destination: MutableList<FirPropertySymbol>, packageFqName: FqName, name: Name) {
         providers.forEach { it.getTopLevelPropertySymbolsTo(destination, packageFqName, name) }
     }
 
@@ -77,12 +121,13 @@ internal class LLFirModuleWithDependenciesSymbolProvider(
         getPackageWithoutDependencies(fqName)
             ?: dependencyProvider.getPackage(fqName)
 
+    // Computing the set of such package names is expensive and would require a new index. For now, it is not worth the marginal gains.
     override fun computePackageSetWithTopLevelCallables(): Set<String>? = null
 
     override fun knownTopLevelClassifiersInPackage(packageFqName: FqName): Set<String>? = null
 
-    override fun computeCallableNamesInPackage(packageFqName: FqName): Set<Name>? = null
-
+    override fun computeCallableNamesInPackage(packageFqName: FqName): Set<Name>? =
+        symbolNameCache.getTopLevelCallableNamesInPackage(packageFqName)
 
     fun getPackageWithoutDependencies(fqName: FqName): FqName? =
         providers.firstNotNullOfOrNull { it.getPackage(fqName) }
@@ -95,6 +140,17 @@ internal abstract class LLFirDependentModuleProviders(
     abstract val dependentProviders: List<FirSymbolProvider>
     abstract val dependentSessions: List<LLFirSession>
 
+    // TODO: Computing classifier names is futile until `JavaSymbolProvider` returns something useful in the IDE. See KTIJ-24642 and the
+    //       problem with `FirJavaFacade.knownClassNamesInPackage`.
+    private val symbolNameCache = object : LLFirSymbolProviderNameCache(session) {
+        override fun computeClassifierNames(packageFqName: FqName): Set<String>? {
+            throw NotImplementedError()
+        }
+
+        override fun computeCallableNames(packageFqName: FqName): Set<Name>? =
+            dependentProviders.flatMapToNullableSet { it.computeCallableNamesInPackage(packageFqName) }
+    }
+
     override fun getClassLikeSymbolByClassId(classId: ClassId): FirClassLikeSymbol<*>? =
         dependentProviders.firstNotNullOfOrNull { provider ->
             when (provider) {
@@ -103,9 +159,10 @@ internal abstract class LLFirDependentModuleProviders(
             }
         }
 
-
     @FirSymbolProviderInternals
     override fun getTopLevelCallableSymbolsTo(destination: MutableList<FirCallableSymbol<*>>, packageFqName: FqName, name: Name) {
+        if (!symbolNameCache.mayHaveTopLevelCallable(packageFqName, name)) return
+
         val facades = SmartSet.create<JvmClassName>()
         for (provider in dependentProviders) {
             val newSymbols = buildSmartList {
@@ -120,6 +177,8 @@ internal abstract class LLFirDependentModuleProviders(
 
     @FirSymbolProviderInternals
     override fun getTopLevelFunctionSymbolsTo(destination: MutableList<FirNamedFunctionSymbol>, packageFqName: FqName, name: Name) {
+        if (!symbolNameCache.mayHaveTopLevelCallable(packageFqName, name)) return
+
         val facades = SmartSet.create<JvmClassName>()
         for (provider in dependentProviders) {
             val newSymbols = buildSmartList {
@@ -136,6 +195,8 @@ internal abstract class LLFirDependentModuleProviders(
 
     @FirSymbolProviderInternals
     override fun getTopLevelPropertySymbolsTo(destination: MutableList<FirPropertySymbol>, packageFqName: FqName, name: Name) {
+        if (!symbolNameCache.mayHaveTopLevelCallable(packageFqName, name)) return
+
         val facades = SmartSet.create<JvmClassName>()
         for (provider in dependentProviders) {
             val newSymbols = buildSmartList {
@@ -156,10 +217,13 @@ internal abstract class LLFirDependentModuleProviders(
             }
         }
 
-    // TODO: Consider having proper implementations for sake of optimizations
+    // Computing the set of such package names is expensive and would require a new index. For now, it is not worth the marginal gains.
     override fun computePackageSetWithTopLevelCallables(): Set<String>? = null
+
     override fun knownTopLevelClassifiersInPackage(packageFqName: FqName): Set<String>? = null
-    override fun computeCallableNamesInPackage(packageFqName: FqName): Set<Name>? = null
+
+    override fun computeCallableNamesInPackage(packageFqName: FqName): Set<Name>? =
+        symbolNameCache.getTopLevelCallableNamesInPackage(packageFqName)
 
     private fun <S : FirCallableSymbol<*>> addNewSymbolsConsideringJvmFacades(
         destination: MutableList<S>,

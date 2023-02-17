@@ -176,14 +176,14 @@ class Merger(
 
     private fun transitiveJsExport(): List<JsStatement> {
         return if (isEsModules) {
-            crossModuleReferences.transitiveJsExportFrom.map {
+            crossModuleReferences.transitiveExportFrom.map {
                 JsExport(JsExport.Subject.All, it.getRequireName())
             }
         } else {
             val internalModuleName = ReservedJsNames.makeInternalModuleName()
             val exporterName = ReservedJsNames.makeJsExporterName()
 
-            crossModuleReferences.transitiveJsExportFrom.map {
+            crossModuleReferences.transitiveExportFrom.map {
                 JsInvocation(
                     JsNameRef(exporterName, it.internalName.makeRef()),
                     internalModuleName.makeRef()

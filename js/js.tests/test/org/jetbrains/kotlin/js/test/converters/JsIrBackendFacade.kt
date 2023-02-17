@@ -167,8 +167,8 @@ class JsIrBackendFacade(
             mainArguments,
             moduleToName = runIf(isEsModules) {
                 loweredIr.allModules.associateWith {
-                    val artifactName = JsEnvironmentConfigurator.getJsModuleArtifactName(testServices, it.safeName)
-                    "./${if (isWindows) artifactName.minify() else artifactName}"
+                    val artifactName = JsEnvironmentConfigurator.getJsModuleArtifactName(testServices, it.safeName.removePrefix("kotlin_"))
+                    if (isWindows) artifactName.minify() else artifactName
                 }
             } ?: emptyMap()
         )
@@ -307,7 +307,7 @@ fun String.augmentWithModuleName(moduleName: String): String {
         else -> error("Unexpected file '$this' extension")
     }
 
-    return if (normalizedName.isPath()) {
+    return if (suffix == ESM_EXTENSION) {
         replaceAfterLast(File.separator, normalizedName.replace("./", "")).removeSuffix(suffix) + suffix
     } else {
         return removeSuffix("_v5$suffix") + "-${normalizedName}_v5$suffix"

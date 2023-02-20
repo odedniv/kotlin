@@ -24,7 +24,6 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.associateWithClosure
 import org.jetbrains.kotlin.gradle.plugin.mpp.internal
 import org.jetbrains.kotlin.gradle.plugin.sources.applyLanguageSettingsToCompilerOptions
 import org.jetbrains.kotlin.gradle.report.BuildMetricsService
-import org.jetbrains.kotlin.gradle.report.BuildReportsService
 import org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile
 import org.jetbrains.kotlin.gradle.tasks.KOTLIN_BUILD_DIR_NAME
 import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
@@ -63,7 +62,6 @@ internal abstract class AbstractKotlinCompileConfig<TASK : AbstractKotlinCompile
 
         val compilerSystemPropertiesService = CompilerSystemPropertiesService.registerIfAbsent(project)
         val buildMetricsService = BuildMetricsService.registerIfAbsent(project)
-        val buildReportsService = buildMetricsService?.let { BuildReportsService.registerIfAbsent(project, buildMetricsService) }
         val incrementalModuleInfoProvider =
             IncrementalModuleInfoBuildService.registerIfAbsent(project, objectFactory.providerWithLazyConvention {
                 GradleCompilerRunner.buildModulesInfo(project.gradle)
@@ -82,9 +80,6 @@ internal abstract class AbstractKotlinCompileConfig<TASK : AbstractKotlinCompile
             task.localStateDirectories.from(task.taskBuildLocalStateDirectory).disallowChanges()
             buildMetricsService?.also { metricsService ->
                 task.buildMetricsService.value(metricsService).disallowChanges()
-                buildReportsService?.also { reportsService ->
-                    task.buildReportsService.value(reportsService).disallowChanges()
-                }
             }
             task.systemPropertiesService.value(compilerSystemPropertiesService).disallowChanges()
             task.incrementalModuleInfoProvider.value(incrementalModuleInfoProvider).disallowChanges()

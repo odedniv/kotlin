@@ -213,6 +213,7 @@ dependencies {
     fatJarContents(commonDependency("org.jetbrains.intellij.deps:asm-all")) { isTransitive = false }
     fatJarContents(commonDependency("com.google.guava:guava")) { isTransitive = false }
     fatJarContents(commonDependency("net.java.dev.jna:jna")) { isTransitive = false }
+    fatJarContents(commonDependency("com.google.code.gson:gson")) { isTransitive = false}
 
     fatJarContentsStripServices(jpsModel()) { isTransitive = false }
     fatJarContentsStripServices(jpsModelImpl()) { isTransitive = false }

@@ -52,7 +52,6 @@ dependencies {
     commonCompileOnly(intellijCore())
     commonCompileOnly(commonDependency("org.jetbrains.teamcity:serviceMessages"))
     commonCompileOnly("com.gradle:gradle-enterprise-gradle-plugin:3.12.4")
-    commonCompileOnly(commonDependency("com.google.code.gson:gson"))
     commonCompileOnly(commonDependency("com.google.guava:guava"))
     commonCompileOnly("de.undercouch:gradle-download-task:4.1.1")
     commonCompileOnly("com.github.gundy:semver4j:0.16.4:nodeps") {
@@ -65,6 +64,7 @@ dependencies {
     commonImplementation(project(":kotlin-util-klib"))
     commonImplementation(project(":native:kotlin-klib-commonizer-api"))
     commonImplementation(project(":kotlin-project-model"))
+    commonImplementation(project(":kotlin-build-statistic"))
 
     commonRuntimeOnly(project(":kotlin-compiler-embeddable"))
     commonRuntimeOnly(project(":kotlin-annotation-processing-embeddable"))
@@ -99,6 +99,7 @@ dependencies {
     testImplementation(commonDependency("junit:junit"))
     testImplementation(project(":kotlin-gradle-statistics"))
     testImplementation(project(":kotlin-tooling-metadata"))
+    testImplementation(projectTests(":kotlin-build-statistic"))
 }
 
 if (kotlinBuildProperties.isInJpsBuildIdeaSync) {

@@ -6,8 +6,10 @@
 package org.jetbrains.kotlin.cli.js
 
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import org.jetbrains.kotlin.KtSourceFile
+import org.jetbrains.kotlin.KtVirtualFileSourceFile
 import org.jetbrains.kotlin.backend.common.CompilationException
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
@@ -25,15 +27,15 @@ import org.jetbrains.kotlin.cli.common.arguments.K2JsArgumentConstants
 import org.jetbrains.kotlin.cli.common.arguments.K2JsArgumentConstants.RUNTIME_DIAGNOSTIC_EXCEPTION
 import org.jetbrains.kotlin.cli.common.arguments.K2JsArgumentConstants.RUNTIME_DIAGNOSTIC_LOG
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoot
+import org.jetbrains.kotlin.cli.common.config.kotlinSourceRoots
 import org.jetbrains.kotlin.cli.common.fir.FirDiagnosticsCompilerResultsReporter
-import org.jetbrains.kotlin.cli.common.messages.AnalyzerWithCompilerReport
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
+import org.jetbrains.kotlin.cli.common.messages.*
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity.*
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-import org.jetbrains.kotlin.cli.common.messages.MessageUtil
 import org.jetbrains.kotlin.cli.js.klib.generateIrForKlibSerialization
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
+import org.jetbrains.kotlin.cli.jvm.compiler.forAllFiles
+import org.jetbrains.kotlin.cli.jvm.compiler.pipeline.GroupedKtSources
 import org.jetbrains.kotlin.cli.jvm.plugins.PluginCliParser
 import org.jetbrains.kotlin.config.*
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
@@ -47,9 +49,7 @@ import org.jetbrains.kotlin.fir.backend.Fir2IrVisibilityConverter
 import org.jetbrains.kotlin.fir.declarations.FirFile
 import org.jetbrains.kotlin.fir.descriptors.FirModuleDescriptor
 import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrar
-import org.jetbrains.kotlin.fir.pipeline.FirResult
-import org.jetbrains.kotlin.fir.pipeline.buildResolveAndCheckFir
-import org.jetbrains.kotlin.fir.pipeline.convertToIrAndActualize
+import org.jetbrains.kotlin.fir.pipeline.*
 import org.jetbrains.kotlin.fir.resolve.ScopeSession
 import org.jetbrains.kotlin.fir.serialization.FirElementAwareSerializableStringTable
 import org.jetbrains.kotlin.fir.serialization.FirKLibSerializerExtension
@@ -476,6 +476,25 @@ class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
         return sourceModule
     }
 
+    private fun collectSources(compilerConfiguration: CompilerConfiguration, project: Project): GroupedKtSources {
+        val platformSources = linkedSetOf<KtSourceFile>()
+        val commonSources = linkedSetOf<KtSourceFile>()
+        val sourcesByModuleName = mutableMapOf<String, MutableSet<KtSourceFile>>()
+
+        compilerConfiguration.kotlinSourceRoots.forAllFiles(compilerConfiguration, project) { virtualFile, isCommon, moduleName ->
+            val file = KtVirtualFileSourceFile(virtualFile)
+            if (isCommon) {
+                commonSources.add(file)
+            } else {
+                platformSources.add(file)
+            }
+            if (moduleName != null) {
+                sourcesByModuleName.getOrPut(moduleName) { mutableSetOf() }.add(file)
+            }
+        }
+        return GroupedKtSources(platformSources, commonSources, sourcesByModuleName)
+    }
+
     private fun processSourceModuleWithK2(
         environmentForJS: KotlinCoreEnvironment,
         libraries: List<String>,
@@ -494,12 +513,7 @@ class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
         val mainModuleName = configuration.get(CommonConfigurationKeys.MODULE_NAME)!!
         val escapedMainModuleName = Name.special("<$mainModuleName>")
 
-        val ktFiles = environmentForJS.getSourceFiles()
-        val syntaxErrors = ktFiles.fold(false) { errorsFound, ktFile ->
-            AnalyzerWithCompilerReport.reportSyntaxErrors(ktFile, messageCollector).isHasErrors or errorsFound
-        }
-
-        val mainModule = MainModule.SourceFiles(environmentForJS.getSourceFiles())
+        val groupedSources = collectSources(configuration, environmentForJS.project)
 
         val binaryModuleData = BinaryModuleData.initialize(escapedMainModuleName, JsPlatforms.defaultJsPlatform, JsPlatformAnalyzerServices)
         val dependencyList = DependencyListForCliModule.build(binaryModuleData) {
@@ -512,15 +526,21 @@ class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
         val resolvedLibraries = jsResolveLibraries(libraries + friendLibraries, logger).getFullResolvedList()
 
         val sessionsWithSources = prepareJsSessions(
-            ktFiles, configuration, escapedMainModuleName.asString(), resolvedLibraries, dependencyList,
-            extensionRegistrars, isCommonSourceForPsi, fileBelongsToModuleForPsi
+            files = groupedSources.commonSources + groupedSources.platformSources,
+            configuration = configuration,
+            rootModuleName = escapedMainModuleName.asString(),
+            resolvedLibraries = resolvedLibraries,
+            libraryList = dependencyList,
+            extensionRegistrars = extensionRegistrars,
+            isCommonSource = groupedSources.isCommonSourceForLt,
+            fileBelongsToModule = groupedSources.fileBelongsToModuleForLt
         )
 
         val outputs = sessionsWithSources.map {
-            buildResolveAndCheckFir(it.session, it.files, diagnosticsReporter)
+            resolveAndCheckFir(it.session, it.session.buildFirViaLightTree(it.files, diagnosticsReporter), diagnosticsReporter)
         }
 
-        if (syntaxErrors || diagnosticsReporter.hasErrors) {
+        if (diagnosticsReporter.hasErrors) {
             FirDiagnosticsCompilerResultsReporter.reportToMessageCollector(diagnosticsReporter, messageCollector, renderDiagnosticNames)
             return null
         }
@@ -611,6 +631,7 @@ class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
             }
         }
 
+        val mainModule = MainModule.SourceFiles(environmentForJS.getSourceFiles())
         return ModulesStructure(
             environmentForJS.project, mainModule, configuration, libraries, friendLibraries
         )

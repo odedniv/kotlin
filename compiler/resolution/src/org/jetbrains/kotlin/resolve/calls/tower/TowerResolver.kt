@@ -124,13 +124,13 @@ class TowerResolver {
             name in HIDES_MEMBERS_NAME_LIST || implicitScopeTower.getNameForGivenImportAlias(name) in HIDES_MEMBERS_NAME_LIST
         private val skippedDataForLookup = mutableListOf<TowerData>()
 
-        private val localLevels: Collection<ScopeTowerLevel> by lazy(LazyThreadSafetyMode.NONE) {
+        private val localLevels: Collection<ScopeTowerLevel> by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
             implicitScopeTower.lexicalScope.parentsWithSelf.filterIsInstance<LexicalScope>()
                 .filter { it.kind.withLocalDescriptors && it.mayFitForName(name) }.map { ScopeBasedTowerLevel(implicitScopeTower, it) }
                 .toList()
         }
 
-        private val nonLocalLevels: Collection<ScopeTowerLevel> by lazy(LazyThreadSafetyMode.NONE) {
+        private val nonLocalLevels: Collection<ScopeTowerLevel> by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
             implicitScopeTower.createNonLocalLevels()
         }
 

@@ -824,12 +824,6 @@ private val implicitlyExportedDeclarationsMarkingLowering = makeDeclarationTrans
     description = "Add @JsImplicitExport annotation to declarations which are not exported but are used inside other exported declarations as a type"
 )
 
-//private val typeCleanupLowering = makeBodyLoweringPhase(
-//    ::TypesCleanupLowering,
-//    name = "TypesCleanupLowering",
-//    description = "Clean up types except exported"
-//)
-
 private val cleanupLoweringPhase = makeBodyLoweringPhase(
     { CleanupLowering() },
     name = "CleanupLowering",
@@ -955,7 +949,6 @@ val loweringList = listOf<Lowering>(
     callsLoweringPhase,
     escapedIdentifiersLowering,
     implicitlyExportedDeclarationsMarkingLowering,
-//    typeCleanupLowering,
     cleanupLoweringPhase,
     // Currently broken due to static members lowering making single-open-class
     // files non-recognizable as single-class files

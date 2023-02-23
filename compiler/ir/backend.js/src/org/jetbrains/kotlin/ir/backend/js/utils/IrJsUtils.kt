@@ -76,6 +76,12 @@ private fun getKotlinOrJsQualifier(parent: IrPackageFragment, shouldIncludePacka
     return (parent as? IrFile)?.getJsQualifier()?.let { FqName(it) } ?: parent.fqName.takeIf { shouldIncludePackage }
 }
 
+fun IrFunctionSymbol.isUnitInstanceFunction(context: JsIrBackendContext): Boolean {
+    return owner.origin === JsLoweredDeclarationOrigin.OBJECT_GET_INSTANCE_FUNCTION &&
+            owner.returnType.classifierOrNull === context.irBuiltIns.unitClass
+}
+
+
 val IrFunctionAccessExpression.typeArguments: List<IrType?>
     get() = List(typeArgumentsCount) { getTypeArgument(it) }
 

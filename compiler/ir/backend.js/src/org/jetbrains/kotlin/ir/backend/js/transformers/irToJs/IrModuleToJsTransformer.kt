@@ -175,14 +175,13 @@ class IrModuleToJsTransformer(
     }
 
     fun makeIrFragmentsGenerators(files: Collection<IrFile>, allModules: Collection<IrModuleFragment>): List<() -> JsIrProgramFragment> {
-        val internationService = DefaultIrInternationService()
         val exportModelGenerator = ExportModelGenerator(backendContext, generateNamespacesForPackages = !isEsModules)
         val exportData = exportModelGenerator.generateExportWithExternals(files)
 
         doStaticMembersLowering(allModules)
 
         return exportData.map {
-            { generateProgramFragment(it, minimizedMemberNames = false, internationService) }
+            { generateProgramFragment(it, minimizedMemberNames = false) }
         }
     }
 
@@ -210,12 +209,10 @@ class IrModuleToJsTransformer(
 
         val program = JsIrProgram(
             exportData.map { data ->
-                val internationService = DefaultIrInternationService()
-
                 JsIrModule(
                     data.fragment.safeName,
                     data.fragment.externalModuleName(),
-                    data.files.map { generateProgramFragment(it, mode.minimizedMemberNames, internationService) }
+                    data.files.map { generateProgramFragment(it, mode.minimizedMemberNames) }
                 )
             }
         )
@@ -227,11 +224,7 @@ class IrModuleToJsTransformer(
     private val pathPrefixMap = backendContext.configuration.getMap(JSConfigurationKeys.FILE_PATHS_PREFIX_MAP)
     private val optimizeGeneratedJs = backendContext.configuration.get(JSConfigurationKeys.OPTIMIZE_GENERATED_JS, true)
 
-    private fun generateProgramFragment(
-        fileExports: IrFileExports,
-        minimizedMemberNames: Boolean,
-        internationService: IrInternationService
-    ): JsIrProgramFragment {
+    private fun generateProgramFragment(fileExports: IrFileExports, minimizedMemberNames: Boolean): JsIrProgramFragment {
         val nameGenerator = JsNameLinkingNamer(backendContext, minimizedMemberNames)
 
         val globalNameScope = NameTable<IrDeclaration>()
@@ -320,8 +313,7 @@ class IrModuleToJsTransformer(
         val definitionSet = fileExports.file.declarations.toSet()
 
         fun computeTag(declaration: IrDeclaration): String? {
-            val signature = (backendContext.irFactory as IdSignatureRetriever).declarationSignature(declaration)
-            val tag = signature?.let { internationService.signatureTag(it) }
+            val tag = (backendContext.irFactory as IdSignatureRetriever).declarationSignature(declaration)?.toString()
 
             if (tag == null && declaration !in definitionSet) {
                 error("signature for ${declaration.render()} not found")

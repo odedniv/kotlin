@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.ir.backend.js
 
 import org.jetbrains.kotlin.konan.file.File
+import org.jetbrains.kotlin.konan.file.ZipFileSystemAccessor
 import org.jetbrains.kotlin.library.KotlinLibrary
 import org.jetbrains.kotlin.library.KotlinLibraryProperResolverWithAttributes
 import org.jetbrains.kotlin.library.UnresolvedLibrary
@@ -20,7 +21,8 @@ class JsLibraryResolver(
     distributionKlib: String?,
     localKotlinDir: String?,
     skipCurrentDir: Boolean,
-    logger: Logger
+    logger: Logger,
+    private val zipAccessor: ZipFileSystemAccessor?
 ) : KotlinLibraryProperResolverWithAttributes<KotlinLibrary>(
     repositories,
     directLibs,
@@ -31,11 +33,11 @@ class JsLibraryResolver(
     emptyList()
 ) {
     // Stick with the default KotlinLibrary for now.
-    override fun libraryComponentBuilder(file: File, isDefault: Boolean) = createKotlinLibraryComponents(file, isDefault)
+    override fun libraryComponentBuilder(file: File, isDefault: Boolean) = createKotlinLibraryComponents(file, isDefault, zipAccessor)
 }
 
 // TODO: This is a temporary set of library resolver policies for js compiler.
-fun jsResolveLibraries(libraries: Collection<String>, repositories: Collection<String>, logger: Logger): KotlinLibraryResolveResult {
+fun jsResolveLibraries(libraries: Collection<String>, repositories: Collection<String>, logger: Logger,     zipAccessor: ZipFileSystemAccessor? = null): KotlinLibraryResolveResult {
     val unresolvedLibraries = libraries.map { UnresolvedLibrary(it, null) }
     val libraryAbsolutePaths = libraries.map { File(it).absolutePath }
     // Configure the resolver to only work with absolute paths for now.
@@ -45,7 +47,8 @@ fun jsResolveLibraries(libraries: Collection<String>, repositories: Collection<S
         distributionKlib = null,
         localKotlinDir = null,
         skipCurrentDir = false,
-        logger = logger
+        logger = logger,
+        zipAccessor = zipAccessor
     ).libraryResolver()
     val resolvedLibraries =
         libraryResolver.resolveWithDependencies(
@@ -55,4 +58,15 @@ fun jsResolveLibraries(libraries: Collection<String>, repositories: Collection<S
             noEndorsedLibs = true
         )
     return resolvedLibraries
+}
+
+class JsResolution(
+    private val libraryResolver: KotlinLibraryResolver<KotlinLibrary>,
+    val libraries: List<KotlinLibrary>
+) {
+    fun resolveWithDependencies(): KotlinLibraryResolveResult {
+        return with(libraryResolver) {
+            libraries.resolveDependencies()
+        }
+    }
 }

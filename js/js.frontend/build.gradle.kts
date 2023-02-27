@@ -4,6 +4,7 @@ plugins {
 }
 
 dependencies {
+    api(project(":kotlin-util-klib"))
     api(project(":compiler:util"))
     api(project(":compiler:frontend"))
     api(project(":core:compiler.common.js"))

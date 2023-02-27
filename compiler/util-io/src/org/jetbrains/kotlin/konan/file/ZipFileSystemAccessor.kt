@@ -16,3 +16,30 @@ object ZipFileSystemInPlaceAccessor : ZipFileSystemAccessor {
         return zipFile.withZipFileSystem(action)
     }
 }
+
+class ZipFileSystemCacheableAccessor : ZipFileSystemAccessor {
+    private val openFileSystems = hashMapOf<File, FileSystem>()
+
+    override fun <T> withZipFileSystem(zipFile: File, action: (FileSystem) -> T): T {
+        val fileSystem = openFileSystems.getOrPut(zipFile) { zipFile.zipFileSystem() }
+        return action(fileSystem)
+    }
+
+    fun close() {
+        val closingFileSystems = openFileSystems.values.toMutableList()
+        closingFileSystems.clear()
+
+        var lastException: Exception? = null
+        while (true) {
+            val fileSystem = closingFileSystems.removeLastOrNull() ?: break
+            try {
+                fileSystem.close()
+            } catch (e: Exception) {
+                lastException = e
+            }
+        }
+        lastException?.let {
+            throw it
+        }
+    }
+}

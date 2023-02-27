@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.cli.js
 
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil
 import org.jetbrains.kotlin.backend.common.CompilationException
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
@@ -84,6 +85,7 @@ import org.jetbrains.kotlin.ir.util.IrMessageLogger
 import org.jetbrains.kotlin.js.analyzer.JsAnalysisResult
 import org.jetbrains.kotlin.js.config.*
 import org.jetbrains.kotlin.js.resolve.JsPlatformAnalyzerServices
+import org.jetbrains.kotlin.konan.file.ZipFileSystemCacheableAccessor
 import org.jetbrains.kotlin.library.KotlinAbiVersion
 import org.jetbrains.kotlin.library.metadata.KlibMetadataVersion
 import org.jetbrains.kotlin.library.unresolvedDependencies
@@ -108,6 +110,12 @@ private val K2JSCompilerArguments.granularity: JsGenerationGranularity
         this.irPerFile -> JsGenerationGranularity.PER_FILE
         else -> JsGenerationGranularity.WHOLE_PROGRAM
     }
+
+private class ZipFileSystemAccessorOwner : Disposable {
+    val zipFileSystemAccessor = ZipFileSystemCacheableAccessor()
+
+    override fun dispose() { zipFileSystemAccessor.close() }
+}
 
 class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
 
@@ -229,6 +237,10 @@ class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
         configurationJs.put(JSConfigurationKeys.GENERATE_POLYFILLS, arguments.generatePolyfills)
         configurationJs.put(JSConfigurationKeys.GENERATE_DTS, arguments.generateDts)
         configurationJs.put(JSConfigurationKeys.GENERATE_INLINE_ANONYMOUS_FUNCTIONS, arguments.irGenerateInlineAnonymousFunctions)
+
+        val zipFileSystemAccessorOwner = ZipFileSystemAccessorOwner()
+        Disposer.register(rootDisposable, zipFileSystemAccessorOwner)
+        configurationJs.put(JSConfigurationKeys.ZIP_FILE_SYSTEM_ACCESSOR, zipFileSystemAccessorOwner.zipFileSystemAccessor)
 
         if (!checkKotlinPackageUsage(environmentForJS.configuration, sourcesFiles)) return COMPILATION_ERROR
 
@@ -523,7 +535,8 @@ class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
 
         val repositories = configuration[JSConfigurationKeys.REPOSITORIES] ?: emptyList()
         val logger = configuration.resolverLogger
-        val resolvedLibraries = jsResolveLibraries(libraries + friendLibraries, repositories, logger).getFullResolvedList()
+        val zipAccessor = configuration.get(JSConfigurationKeys.ZIP_FILE_SYSTEM_ACCESSOR)
+        val resolvedLibraries = jsResolveLibraries(libraries + friendLibraries, repositories, logger, zipAccessor).getFullResolvedList()
 
         FirJsSessionFactory.createJsLibrarySession(
             mainModuleName,

@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.library.impl
 
 import org.jetbrains.kotlin.konan.file.File
+import org.jetbrains.kotlin.konan.file.ZipFileSystemAccessor
 import org.jetbrains.kotlin.konan.properties.Properties
 import org.jetbrains.kotlin.konan.properties.loadProperties
 import org.jetbrains.kotlin.library.*
@@ -322,11 +323,12 @@ fun createKotlinLibrary(
     libraryFile: File,
     component: String,
     isDefault: Boolean = false,
-    perFile: Boolean = false
+    perFile: Boolean = false,
+    zipAccessor: ZipFileSystemAccessor? = null,
 ): KotlinLibrary {
-    val baseAccess = BaseLibraryAccess<KotlinLibraryLayout>(libraryFile, component)
-    val metadataAccess = MetadataLibraryAccess<MetadataKotlinLibraryLayout>(libraryFile, component)
-    val irAccess = IrLibraryAccess<IrKotlinLibraryLayout>(libraryFile, component)
+    val baseAccess = BaseLibraryAccess<KotlinLibraryLayout>(libraryFile, component, zipAccessor)
+    val metadataAccess = MetadataLibraryAccess<MetadataKotlinLibraryLayout>(libraryFile, component, zipAccessor)
+    val irAccess = IrLibraryAccess<IrKotlinLibraryLayout>(libraryFile, component, zipAccessor)
 
     val base = BaseKotlinLibraryImpl(baseAccess, isDefault)
     val metadata = MetadataLibraryImpl(metadataAccess)
@@ -337,12 +339,13 @@ fun createKotlinLibrary(
 
 fun createKotlinLibraryComponents(
     libraryFile: File,
-    isDefault: Boolean = true
-) : List<KotlinLibrary> {
-    val baseAccess = BaseLibraryAccess<KotlinLibraryLayout>(libraryFile, null)
+    isDefault: Boolean = true,
+    zipAccessor: ZipFileSystemAccessor? = null,
+): List<KotlinLibrary> {
+    val baseAccess = BaseLibraryAccess<KotlinLibraryLayout>(libraryFile, null, zipAccessor)
     val base = BaseKotlinLibraryImpl(baseAccess, isDefault)
     return base.componentList.map {
-        createKotlinLibrary(libraryFile, it, isDefault)
+        createKotlinLibrary(libraryFile, it, isDefault, zipAccessor = zipAccessor)
     }
 }
 
@@ -358,7 +361,7 @@ fun isKotlinLibrary(libraryFile: java.io.File): Boolean =
 
 val File.isPre_1_4_Library: Boolean
     get() {
-        val baseAccess = BaseLibraryAccess<KotlinLibraryLayout>(this, null)
+        val baseAccess = BaseLibraryAccess<KotlinLibraryLayout>(this, null, null)
         val base = BaseKotlinLibraryImpl(baseAccess, false)
         return base.has_pre_1_4_manifest
     }

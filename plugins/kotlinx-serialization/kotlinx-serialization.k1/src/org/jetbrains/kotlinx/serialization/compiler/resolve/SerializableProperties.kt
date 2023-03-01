@@ -18,7 +18,6 @@ import org.jetbrains.kotlin.serialization.deserialization.descriptors.Deserializ
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedPropertyDescriptor
 import org.jetbrains.kotlin.serialization.deserialization.getName
 import org.jetbrains.kotlinx.serialization.compiler.diagnostic.SERIALIZABLE_PROPERTIES
-import org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationDescriptorSerializerPlugin
 import org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationPluginMetadataExtensions
 
 class SerializableProperties(private val serializableClass: ClassDescriptor, val bindingContext: BindingContext) :
@@ -112,19 +111,16 @@ fun PropertyDescriptor.declaresDefaultValue(): Boolean {
     return false
 }
 
-fun BindingContext.serializablePropertiesFor(
-    classDescriptor: ClassDescriptor,
-    serializationDescriptorSerializer: SerializationDescriptorSerializerPlugin? = null
-): SerializableProperties {
-    val props = this.get(SERIALIZABLE_PROPERTIES, classDescriptor) ?: SerializableProperties(classDescriptor, this)
-    serializationDescriptorSerializer?.putIfNeeded(classDescriptor, props)
-    return props
+fun BindingContext.serializablePropertiesFor(classDescriptor: ClassDescriptor): SerializableProperties {
+    return this.get(SERIALIZABLE_PROPERTIES, classDescriptor) ?: SerializableProperties(classDescriptor, this)
 }
 
 fun <P : ISerializableProperty> restoreCorrectOrderFromClassProtoExtension(descriptor: ClassDescriptor, props: List<P>): List<P> {
     if (descriptor !is DeserializedClassDescriptor) return props
     val correctOrder: List<Name> = descriptor.classProto.getExtension(SerializationPluginMetadataExtensions.propertiesNamesInProgramOrder)
-        .map { descriptor.c.nameResolver.getName(it) }
+        .takeUnless { it.isEmpty() }
+        ?.map { descriptor.c.nameResolver.getName(it) }
+        ?: return props
     val propsMap = props.associateBy { it.originalDescriptorName }
     return correctOrder.map { propsMap.getValue(it) }
 }

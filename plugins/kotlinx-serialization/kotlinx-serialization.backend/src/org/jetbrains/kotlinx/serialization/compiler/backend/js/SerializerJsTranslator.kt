@@ -25,7 +25,6 @@ import org.jetbrains.kotlin.psi.KtPureClassOrObject
 import org.jetbrains.kotlin.resolve.descriptorUtil.getSuperClassNotAny
 import org.jetbrains.kotlinx.serialization.compiler.backend.common.SerializerCodegen
 import org.jetbrains.kotlinx.serialization.compiler.backend.common.getSerialTypeInfo
-import org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationDescriptorSerializerPlugin
 import org.jetbrains.kotlinx.serialization.compiler.resolve.*
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerialEntityNames.SERIAL_DESCRIPTOR_CLASS_IMPL
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerialEntityNames.typeArgPrefix
@@ -33,9 +32,8 @@ import org.jetbrains.kotlinx.serialization.compiler.resolve.SerialEntityNames.ty
 open class SerializerJsTranslator(
     descriptor: ClassDescriptor,
     val translator: DeclarationBodyVisitor,
-    val context: TranslationContext,
-    metadataPlugin: SerializationDescriptorSerializerPlugin?
-) : SerializerCodegen(descriptor, context.bindingContext(), metadataPlugin) {
+    val context: TranslationContext
+) : SerializerCodegen(descriptor, context.bindingContext()) {
 
     internal fun generateFunction(descriptor: FunctionDescriptor, bodyGen: JsBlockBuilder.(JsFunction, TranslationContext) -> Unit) {
         val f = context.buildFunction(descriptor, bodyGen)
@@ -355,8 +353,7 @@ open class SerializerJsTranslator(
         // todo: external deserialization with primary constructor and setters calls after resolution of KT-11586
         val constrDesc = KSerializerDescriptorResolver.createLoadConstructorDescriptor(
             serializableDescriptor,
-            context.bindingContext(),
-            null
+            context.bindingContext()
         )
         val constrRef = context.getInnerNameForDescriptor(constrDesc).makeRef()
         val args: MutableList<JsExpression> = bitMasks.toMutableList()
@@ -369,14 +366,13 @@ open class SerializerJsTranslator(
         fun translate(
             descriptor: ClassDescriptor,
             translator: DeclarationBodyVisitor,
-            context: TranslationContext,
-            metadataPlugin: SerializationDescriptorSerializerPlugin?
+            context: TranslationContext
         ) {
             val serializableDesc = getSerializableClassDescriptorBySerializer(descriptor) ?: return
             if (serializableDesc.isEnumWithLegacyGeneratedSerializer()) {
                 SerializerForEnumsTranslator(descriptor, translator, context).generate()
             } else {
-                SerializerJsTranslator(descriptor, translator, context, metadataPlugin).generate()
+                SerializerJsTranslator(descriptor, translator, context).generate()
             }
         }
     }

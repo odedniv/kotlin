@@ -30,7 +30,6 @@ import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.util.OperatorNameConventions
-import org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationDescriptorSerializerPlugin
 import org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationPluginContext
 import org.jetbrains.kotlinx.serialization.compiler.resolve.CallingConventions
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerialEntityNames
@@ -52,13 +51,12 @@ internal typealias FunctionWithArgs = Pair<IrFunctionSymbol, List<IrExpression>>
 
 open class SerializerIrGenerator(
     val irClass: IrClass,
-    compilerContext: SerializationPluginContext,
-    metadataPlugin: SerializationDescriptorSerializerPlugin?,
+    compilerContext: SerializationPluginContext
 ) : BaseIrGenerator(irClass, compilerContext) {
     protected val serializableIrClass = compilerContext.getSerializableClassDescriptorBySerializer(irClass)!!
 
     protected val serialName: String = serializableIrClass.serialName()
-    protected val properties = serializablePropertiesForIrBackend(serializableIrClass, metadataPlugin)
+    protected val properties = serializablePropertiesForIrBackend(serializableIrClass)
     protected val serializableProperties = properties.serializableProperties
     protected val isGeneratedSerializer = irClass.superTypes.any(IrType::isGeneratedKSerializer)
 
@@ -624,11 +622,7 @@ open class SerializerIrGenerator(
 
 
     companion object {
-        fun generate(
-            irClass: IrClass,
-            context: SerializationPluginContext,
-            metadataPlugin: SerializationDescriptorSerializerPlugin?,
-        ) {
+        fun generate(irClass: IrClass, context: SerializationPluginContext) {
             val serializableDesc = context.getSerializableClassDescriptorBySerializer(irClass) ?: return
             val generator = when {
                 serializableDesc.isEnumWithLegacyGeneratedSerializer() -> SerializerForEnumsGenerator(
@@ -636,7 +630,7 @@ open class SerializerIrGenerator(
                     context
                 )
                 serializableDesc.isSingleFieldValueClass -> SerializerForInlineClassGenerator(irClass, context)
-                else -> SerializerIrGenerator(irClass, context, metadataPlugin)
+                else -> SerializerIrGenerator(irClass, context)
             }
             generator.generate()
             if (irClass.isFromPlugin(context.afterK2)) {

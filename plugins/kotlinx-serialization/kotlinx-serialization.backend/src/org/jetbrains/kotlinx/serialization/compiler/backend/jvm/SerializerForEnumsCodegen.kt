@@ -12,7 +12,7 @@ import org.jetbrains.org.objectweb.asm.Type
 class SerializerForEnumsCodegen(
     codegen: ImplementationBodyCodegen,
     serializableClass: ClassDescriptor
-) : SerializerCodegenImpl(codegen, serializableClass, null) {
+) : SerializerCodegenImpl(codegen, serializableClass) {
     override fun generateSave(function: FunctionDescriptor) = codegen.generateMethod(function) { _, _ ->
         // fun save(output: KOutput, obj : T)
         val outputVar = 1

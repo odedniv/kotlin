@@ -13,17 +13,15 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlinx.serialization.compiler.backend.common.SerializationDescriptorUtils.getSyntheticLoadMember
 import org.jetbrains.kotlinx.serialization.compiler.backend.common.SerializationDescriptorUtils.getSyntheticSaveMember
-import org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationDescriptorSerializerPlugin
 import org.jetbrains.kotlinx.serialization.compiler.resolve.*
 
 abstract class SerializerCodegen(
     protected val serializerDescriptor: ClassDescriptor,
-    bindingContext: BindingContext,
-    metadataPlugin: SerializationDescriptorSerializerPlugin?
+    bindingContext: BindingContext
 ) : AbstractSerialGenerator(bindingContext, serializerDescriptor) {
     val serializableDescriptor: ClassDescriptor = getSerializableClassDescriptorBySerializer(serializerDescriptor)!!
     protected val serialName: String = serializableDescriptor.serialName()
-    protected val properties = bindingContext.serializablePropertiesFor(serializableDescriptor, metadataPlugin)
+    protected val properties = bindingContext.serializablePropertiesFor(serializableDescriptor)
     protected val serializableProperties = properties.serializableProperties
 
     private fun checkSerializability() {

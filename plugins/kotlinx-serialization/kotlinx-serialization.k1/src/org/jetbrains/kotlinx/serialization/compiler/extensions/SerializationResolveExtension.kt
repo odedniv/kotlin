@@ -9,7 +9,6 @@ import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
-import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.platform.jvm.isJvm
@@ -23,7 +22,7 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlinx.serialization.compiler.backend.common.SerializationDescriptorUtils
 import org.jetbrains.kotlinx.serialization.compiler.resolve.*
 
-open class SerializationResolveExtension @JvmOverloads constructor(val metadataPlugin: SerializationDescriptorSerializerPlugin? = null) : SyntheticResolveExtension {
+open class SerializationResolveExtension : SyntheticResolveExtension {
     override fun getSyntheticNestedClassNames(thisDescriptor: ClassDescriptor): List<Name> = when {
         (thisDescriptor.shouldHaveGeneratedSerializer) && !thisDescriptor.hasCompanionObjectAsSerializer ->
             listOf(SerialEntityNames.SERIALIZER_CLASS_NAME)
@@ -99,7 +98,7 @@ open class SerializationResolveExtension @JvmOverloads constructor(val metadataP
             // do not add synthetic deserialization constructor if .deserialize method is customized
             if (thisDescriptor.hasCompanionObjectAsSerializer && SerializationDescriptorUtils.getSyntheticLoadMember(thisDescriptor.companionObjectDescriptor!!) == null) return
             if (thisDescriptor.isInlineClass()) return
-            result.add(KSerializerDescriptorResolver.createLoadConstructorDescriptor(thisDescriptor, bindingContext, metadataPlugin))
+            result.add(KSerializerDescriptorResolver.createLoadConstructorDescriptor(thisDescriptor, bindingContext))
         }
     }
 

@@ -17,7 +17,6 @@ import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedPropertyDescriptor
-import org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationDescriptorSerializerPlugin
 import org.jetbrains.kotlinx.serialization.compiler.resolve.*
 
 class IrSerializableProperty(
@@ -98,7 +97,6 @@ fun IrProperty.analyzeIfFromAnotherModule(): Pair<Boolean, Boolean> {
 @OptIn(ObsoleteDescriptorBasedAPI::class)
 internal fun serializablePropertiesForIrBackend(
     irClass: IrClass,
-    serializationDescriptorSerializer: SerializationDescriptorSerializerPlugin? = null,
     typeReplacement: Map<IrProperty, IrSimpleType>? = null
 ): IrSerializableProperties {
     val properties = irClass.properties.toList()
@@ -148,7 +146,6 @@ internal fun serializablePropertiesForIrBackend(
             }
             serializablePropertiesForIrBackend(
                 supers,
-                serializationDescriptorSerializer,
                 originalToTypeFromFO
             ).serializableProperties + primaryCtorSerializableProps + bodySerializableProps
         }

@@ -6,23 +6,17 @@
 package org.jetbrains.kotlinx.serialization.compiler.extensions
 
 import org.jetbrains.kotlin.codegen.ImplementationBodyCodegen
-import org.jetbrains.kotlin.codegen.StackValue
 import org.jetbrains.kotlin.codegen.extensions.ExpressionCodegenExtension
-import org.jetbrains.kotlin.codegen.state.KotlinTypeMapperBase
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
-import org.jetbrains.kotlin.types.TypeSystemCommonBackendContext
-import org.jetbrains.kotlin.types.model.KotlinTypeMarker
-import org.jetbrains.kotlinx.serialization.compiler.backend.jvm.*
-import org.jetbrains.org.objectweb.asm.Type
-import org.jetbrains.org.objectweb.asm.tree.InsnList
-import org.jetbrains.org.objectweb.asm.tree.MethodInsnNode
+import org.jetbrains.kotlinx.serialization.compiler.backend.jvm.SerialInfoCodegenImpl
+import org.jetbrains.kotlinx.serialization.compiler.backend.jvm.SerializableCodegenImpl
+import org.jetbrains.kotlinx.serialization.compiler.backend.jvm.SerializableCompanionCodegenImpl
+import org.jetbrains.kotlinx.serialization.compiler.backend.jvm.SerializerCodegenImpl
 
-open class SerializationCodegenExtension @JvmOverloads constructor(val metadataPlugin: SerializationDescriptorSerializerPlugin? = null) : ExpressionCodegenExtension {
+open class SerializationCodegenExtension : ExpressionCodegenExtension {
     override fun generateClassSyntheticParts(codegen: ImplementationBodyCodegen) {
         SerialInfoCodegenImpl.generateSerialInfoImplBody(codegen)
         SerializableCodegenImpl.generateSerializableExtensions(codegen)
-        SerializerCodegenImpl.generateSerializerExtensions(codegen, metadataPlugin)
+        SerializerCodegenImpl.generateSerializerExtensions(codegen)
         SerializableCompanionCodegenImpl.generateSerializableExtensions(codegen)
     }
 

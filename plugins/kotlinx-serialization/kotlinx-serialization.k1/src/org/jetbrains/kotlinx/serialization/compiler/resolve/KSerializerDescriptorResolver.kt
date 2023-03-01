@@ -7,7 +7,10 @@ package org.jetbrains.kotlinx.serialization.compiler.resolve
 
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.*
-import org.jetbrains.kotlin.descriptors.annotations.*
+import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
+import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptorImpl
+import org.jetbrains.kotlin.descriptors.annotations.Annotations
+import org.jetbrains.kotlin.descriptors.annotations.createDeprecatedAnnotation
 import org.jetbrains.kotlin.descriptors.impl.*
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.name.Name
@@ -24,7 +27,6 @@ import org.jetbrains.kotlin.storage.LockBasedStorageManager
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.typeUtil.createProjection
 import org.jetbrains.kotlin.types.typeUtil.makeNullable
-import org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationDescriptorSerializerPlugin
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerialEntityNames.IMPL_NAME
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerialEntityNames.SERIALIZER_CLASS_NAME
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerialEntityNames.typeArgPrefix
@@ -302,8 +304,7 @@ object KSerializerDescriptorResolver {
 
     fun createLoadConstructorDescriptor(
         classDescriptor: ClassDescriptor,
-        bindingContext: BindingContext,
-        metadataPlugin: SerializationDescriptorSerializerPlugin?
+        bindingContext: BindingContext
     ): ClassConstructorDescriptor {
         if (!classDescriptor.isInternalSerializable) throw IllegalArgumentException()
 
@@ -317,7 +318,7 @@ object KSerializerDescriptorResolver {
         val markerDesc = classDescriptor.getKSerializerConstructorMarker()
         val markerType = markerDesc.toSimpleType(nullable = true)
 
-        val serializableProperties = bindingContext.serializablePropertiesFor(classDescriptor, metadataPlugin).serializableProperties
+        val serializableProperties = bindingContext.serializablePropertiesFor(classDescriptor).serializableProperties
         val parameterDescsAsProps = serializableProperties.map { it.descriptor }
         val bitMaskSlotsCount = serializableProperties.bitMaskSlotCount()
         var i = 0

@@ -81,6 +81,6 @@ class J : I2 {
 }
 
 fun useI2(i2: I2) {
-    i2.<!INVISIBLE_MEMBER!>memberProperty<!>
-    i2.<!INVISIBLE_MEMBER!>memberFunction<!>()
+    i2.<!INVISIBLE_REFERENCE!>memberProperty<!>
+    i2.<!INVISIBLE_REFERENCE!>memberFunction<!>()
 }

@@ -155,8 +155,9 @@ class CodeConformanceTest : TestCase() {
     }
 
     fun testNoBadSubstringsInProjectCode() {
-        class TestData(val message: String, val filter: (File, String) -> Boolean) {
-            val result: MutableList<File> = ArrayList()
+        class TestData(val message: String, allowedFiles: List<String> = emptyList(), val filter: (File, String) -> Boolean) {
+            val allowedMatcher = FileMatcher(File("."), allowedFiles)
+            val allFilesMatchedByFilter: MutableList<File> = ArrayList()
         }
 
         val atAuthorPattern = Pattern.compile("/\\*.+@author.+\\*/", Pattern.DOTALL)
@@ -201,26 +202,88 @@ class CodeConformanceTest : TestCase() {
                         "Please consider changing the package in these files:\n%s"
             ) { _, source ->
                 " org.objectweb.asm" in source
+            },
+            TestData(
+                message = "%d source files contain references to package gnu.trove.\n" +
+                        "Please avoid using trove library in new use cases. " +
+                        "Please consider changing usages in these files:\n%s",
+                allowedFiles = listOf(
+                    "analysis/light-classes-base/src/org/jetbrains/kotlin/asJava/classes/KotlinClassInnerStuffCache.kt",
+                    "build-common/src/org/jetbrains/kotlin/incremental/IncrementalJvmCache.kt",
+                    "compiler/backend/src/org/jetbrains/kotlin/codegen/FrameMap.kt",
+                    "compiler/backend/src/org/jetbrains/kotlin/codegen/inline/SMAP.kt",
+                    "compiler/backend/src/org/jetbrains/kotlin/codegen/optimization/common/ControlFlowGraph.kt",
+                    "compiler/cli/src/org/jetbrains/kotlin/cli/jvm/compiler/CliVirtualFileFinder.kt",
+                    "compiler/cli/src/org/jetbrains/kotlin/cli/jvm/compiler/KotlinCliJavaFileManagerImpl.kt",
+                    "compiler/cli/src/org/jetbrains/kotlin/cli/jvm/index/JvmDependenciesIndexImpl.kt",
+                    "compiler/daemon/src/org/jetbrains/kotlin/daemon/RemoteLookupTrackerClient.kt",
+                    "compiler/frontend/src/org/jetbrains/kotlin/resolve/lazy/FileScopeFactory.kt",
+                    "compiler/frontend/src/org/jetbrains/kotlin/resolve/lazy/LazyImportScope.kt",
+                    "compiler/frontend/src/org/jetbrains/kotlin/types/expressions/PreliminaryLoopVisitor.kt",
+                    "compiler/ir/backend.jvm/lower/src/org/jetbrains/kotlin/backend/jvm/lower/EnumClassLowering.kt",
+                    "compiler/psi/src/org/jetbrains/kotlin/psi/KotlinStringLiteralTextEscaper.kt",
+                    "compiler/resolution.common.jvm/src/org/jetbrains/kotlin/load/java/structure/impl/classFiles/BinaryJavaClass.kt",
+                    "compiler/resolution/src/org/jetbrains/kotlin/resolve/calls/results/OverloadingConflictResolver.kt",
+                    "compiler/tests-common/tests/org/jetbrains/kotlin/test/testFramework/KtUsefulTestCase.java",
+                    "js/js.ast/src/org/jetbrains/kotlin/js/backend/JsReservedIdentifiers.java",
+                    "js/js.ast/src/org/jetbrains/kotlin/js/backend/JsToStringGenerationVisitor.java",
+                    "js/js.sourcemap/src/org/jetbrains/kotlin/js/sourceMap/SourceMap3Builder.kt",
+                    "native/commonizer/src/org/jetbrains/kotlin/commonizer/TargetDependent.kt",
+                    "native/commonizer/src/org/jetbrains/kotlin/commonizer/konan/NativeLibrary.kt",
+                    "native/commonizer/src/org/jetbrains/kotlin/commonizer/mergedtree/AssociatedClassifierIdsResolver.kt",
+                    "native/commonizer/src/org/jetbrains/kotlin/commonizer/mergedtree/CirClassNode.kt",
+                    "native/commonizer/src/org/jetbrains/kotlin/commonizer/mergedtree/CirClassifierIndex.kt",
+                    "native/commonizer/src/org/jetbrains/kotlin/commonizer/mergedtree/CirFictitiousFunctionClassifiers.kt",
+                    "native/commonizer/src/org/jetbrains/kotlin/commonizer/mergedtree/CirKnownClassifiers.kt",
+                    "native/commonizer/src/org/jetbrains/kotlin/commonizer/mergedtree/CirModuleNode.kt",
+                    "native/commonizer/src/org/jetbrains/kotlin/commonizer/mergedtree/CirPackageNode.kt",
+                    "native/commonizer/src/org/jetbrains/kotlin/commonizer/mergedtree/CirProvidedClassifiersByModules.kt",
+                    "native/commonizer/src/org/jetbrains/kotlin/commonizer/mergedtree/CirRootNode.kt",
+                    "native/commonizer/src/org/jetbrains/kotlin/commonizer/mergedtree/CirTypeSignature.kt",
+                    "native/commonizer/src/org/jetbrains/kotlin/commonizer/metadata/CirDeserializers.kt",
+                    "native/commonizer/src/org/jetbrains/kotlin/commonizer/metadata/CirTypeResolver.kt",
+                    "native/commonizer/src/org/jetbrains/kotlin/commonizer/utils/misc.kt",
+                    "native/native.tests/tests/org/jetbrains/kotlin/konan/blackboxtest/support/settings/SettingsContainers.kt"
+                )
+            ) { _, source ->
+                "gnu.trove" in source
             }
         )
 
         nonSourcesMatcher.excludeWalkTopDown(SOURCES_FILE_PATTERN).forEach { sourceFile ->
             val source = sourceFile.readText()
             for (test in tests) {
-                if (test.filter(sourceFile, source)) test.result.add(sourceFile)
+                if (test.filter(sourceFile, source)) {
+                    test.allFilesMatchedByFilter.add(sourceFile)
+                }
             }
         }
 
-        if (tests.flatMap { it.result }.isNotEmpty()) {
-            fail(buildString {
-                for (test in tests) {
-                    if (test.result.isNotEmpty()) {
-                        append(test.message.format(test.result.size, test.result.joinToString("\n")))
-                        appendLine()
-                        appendLine()
-                    }
+        val failure = buildString {
+            for (test in tests) {
+                val (allowed, notAllowed) = test.allFilesMatchedByFilter.partition { test.allowedMatcher.matchExact(it) }
+                if (notAllowed.isNotEmpty()) {
+                    append(test.message.format(notAllowed.size, notAllowed.joinToString("\n")))
+                    appendLine()
+                    appendLine()
                 }
-            })
+
+                val unmatched = test.allowedMatcher.unmatchedExact(allowed)
+                if (unmatched.isNotEmpty()) {
+                    val testMessage = test.message.format(unmatched.size, "NONE")
+                    append(
+                        "Unused \"allowed files\" for test:\n" +
+                                "`$testMessage`\n" +
+                                "Remove exceptions for the test list:${unmatched.joinToString("\n", prefix = "\n")}"
+                    )
+                    appendLine()
+                    appendLine()
+                }
+            }
+        }
+
+        if (failure.isNotEmpty()) {
+            fail(failure)
         }
     }
 
@@ -259,14 +322,20 @@ class CodeConformanceTest : TestCase() {
         private val paths = files.mapTo(HashSet()) { it.invariantSeparatorsPath }
         private val relativePaths = files.filterTo(ArrayList()) { it.isDirectory }.mapTo(HashSet()) { it.invariantSeparatorsPath + "/" }
 
+        private fun File.invariantRelativePath() = relativeTo(root).invariantSeparatorsPath
+
         fun matchExact(file: File): Boolean {
-            return file.relativeTo(root).invariantSeparatorsPath in paths
+            return file.invariantRelativePath() in paths
         }
 
         fun matchWithContains(file: File): Boolean {
             if (matchExact(file)) return true
-            val relativePath = file.relativeTo(root).invariantSeparatorsPath
+            val relativePath = file.invariantRelativePath()
             return relativePaths.any { relativePath.startsWith(it) }
+        }
+
+        fun unmatchedExact(files: List<File>): Set<String> {
+            return paths - files.map { it.invariantRelativePath() }.toSet()
         }
     }
 

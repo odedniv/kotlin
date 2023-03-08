@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.builtins.functions.FunctionTypeKindExtractor
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.FirSessionComponent
 import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 
 abstract class FirFunctionTypeKindService : FirSessionComponent {
@@ -29,3 +30,10 @@ abstract class FirFunctionTypeKindService : FirSessionComponent {
 }
 
 val FirSession.functionTypeService: FirFunctionTypeKindService by FirSession.sessionComponentAccessor()
+
+/**
+ * A [ClassId] can only be a name for a generated function class if it ends with a digit. See [FunctionTypeKind].
+ *
+ * Checking this first is usually faster than checking `functionTypeService.getKindByClassNamePrefix` or a class cache.
+ */
+fun ClassId.mayBeSyntheticFunctionClassName(): Boolean = relativeClassName.asString().lastOrNull()?.isDigit() == true

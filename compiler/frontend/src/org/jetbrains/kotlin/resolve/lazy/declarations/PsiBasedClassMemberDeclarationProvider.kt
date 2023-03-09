@@ -24,16 +24,17 @@ class PsiBasedClassMemberDeclarationProvider(
     override val ownerInfo: KtClassLikeInfo
 ) : AbstractPsiBasedDeclarationProvider(storageManager), ClassMemberDeclarationProvider {
 
-    override fun doCreateIndex(index: AbstractPsiBasedDeclarationProvider.Index) {
-        for (declaration in ownerInfo.declarations) {
-            index.putToIndex(declaration)
-        }
-
+    override fun doCreateIndex(index: Index) {
         for (parameter in ownerInfo.primaryConstructorParameters) {
             if (parameter.hasValOrVar()) {
                 index.putToIndex(parameter)
             }
         }
+
+        for (declaration in ownerInfo.declarations) {
+            index.putToIndex(declaration)
+        }
+
     }
 
     override fun toString() = "Declarations for $ownerInfo"

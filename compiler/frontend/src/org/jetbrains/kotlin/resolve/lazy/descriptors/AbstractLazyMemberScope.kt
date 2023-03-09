@@ -157,6 +157,8 @@ protected constructor(
         return result.toList()
     }
 
+    protected open fun getAdditionalDeclaredProperties(name: Name, result: MutableSet<PropertyDescriptor>) {}
+
     private fun getDeclaredProperties(
         name: Name
     ): Collection<PropertyDescriptor> {
@@ -166,7 +168,7 @@ protected constructor(
         }
 
         val result = LinkedHashSet<PropertyDescriptor>()
-
+        getAdditionalDeclaredProperties(name, result)
         val declarations = declarationProvider.getPropertyDeclarations(name)
         for (propertyDeclaration in declarations) {
             val propertyDescriptor = c.descriptorResolver.resolvePropertyDescriptor(

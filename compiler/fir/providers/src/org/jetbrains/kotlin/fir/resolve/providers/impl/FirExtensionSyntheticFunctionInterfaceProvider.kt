@@ -71,8 +71,10 @@ abstract class FirSyntheticFunctionInterfaceProviderBase(
 ) : FirSymbolProvider(session) {
     override fun getClassLikeSymbolByClassId(classId: ClassId): FirRegularClassSymbol? {
         if (!classId.mayBeSyntheticFunctionClassName()) return null
-        return cache.getValue(classId)
+        return getClassLikeSymbolByClassIdWithoutClassIdChecks(classId)
     }
+
+    fun getClassLikeSymbolByClassIdWithoutClassIdChecks(classId: ClassId): FirRegularClassSymbol? = cache.getValue(classId)
 
     @FirSymbolProviderInternals
     override fun getTopLevelCallableSymbolsTo(destination: MutableList<FirCallableSymbol<*>>, packageFqName: FqName, name: Name) {
@@ -85,6 +87,8 @@ abstract class FirSyntheticFunctionInterfaceProviderBase(
     @FirSymbolProviderInternals
     override fun getTopLevelPropertySymbolsTo(destination: MutableList<FirPropertySymbol>, packageFqName: FqName, name: Name) {
     }
+
+    fun getFunctionKindPackageNames(): Set<FqName> = session.functionTypeService.getFunctionKindPackageNames()
 
     override fun getPackage(fqName: FqName): FqName? {
         return fqName.takeIf { session.functionTypeService.hasKindWithSpecificPackage(it) }

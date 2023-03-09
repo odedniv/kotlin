@@ -426,9 +426,11 @@ open class LazyClassMemberScope(
         }
     }
 
-    override fun getNonDeclaredProperties(name: Name, result: MutableSet<PropertyDescriptor>) {
+    override fun getAdditionalDeclaredProperties(name: Name, result: MutableSet<PropertyDescriptor>) {
         createPropertiesFromPrimaryConstructorParameters(name, result)
+    }
 
+    override fun getNonDeclaredProperties(name: Name, result: MutableSet<PropertyDescriptor>) {
         // Members from supertypes
         val fromSupertypes = ArrayList<PropertyDescriptor>()
         for (supertype in supertypes) {

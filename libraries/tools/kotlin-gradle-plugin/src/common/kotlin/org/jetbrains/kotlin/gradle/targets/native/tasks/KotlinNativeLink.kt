@@ -187,10 +187,14 @@ constructor(
         CacheBuilder.Settings.createWithProject(project, binary, konanTarget, toolOptions, externalDependenciesArgs)
     }
 
-    private class CacheSettings(val orchestration: NativeCacheOrchestration, val kind: NativeCacheKind, val gradleUserHomeDir: File)
+    private class CacheSettings(val orchestration: NativeCacheOrchestration, val kind: NativeCacheKind,
+                                val icEnabled: Boolean, val threads: Int,
+                                val gradleUserHomeDir: File, val gradleBuildDir: File)
 
     private val cacheSettings by lazy {
-        CacheSettings(project.getKonanCacheOrchestration(), project.getKonanCacheKind(konanTarget), project.gradle.gradleUserHomeDir)
+        CacheSettings(project.getKonanCacheOrchestration(), project.getKonanCacheKind(konanTarget),
+                      project.isKonanIncrementalCompilationEnabled(), project.getKonanParallelThreads(),
+                      project.gradle.gradleUserHomeDir, project.buildDir)
     }
 
     override fun createCompilerArguments(context: CreateCompilerArgumentsContext) = context.create<K2NativeCompilerArguments> {
@@ -343,6 +347,13 @@ constructor(
                         && konanPropertiesService.get().cacheWorksFor(konanTarget)
                     ) {
                         add("-Xauto-cache-from=${cacheSettings.gradleUserHomeDir}")
+                        add("-Xbackend-threads=${cacheSettings.threads}")
+                        if (cacheSettings.icEnabled) {
+                            val icCacheDir = cacheSettings.gradleBuildDir.resolve("kotlin-native-ic-cache")
+                            icCacheDir.mkdirs()
+                            add("-Xenable-incremental-compilation")
+                            add("-Xic-cache-dir=$icCacheDir")
+                        }
                     }
                 }
                 NativeCacheOrchestration.Gradle -> {

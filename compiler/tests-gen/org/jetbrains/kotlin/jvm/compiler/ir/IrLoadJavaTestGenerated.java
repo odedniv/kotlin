@@ -3979,6 +3979,11 @@ public class IrLoadJavaTestGenerated extends AbstractIrLoadJavaTest {
                 runTest("compiler/testData/loadJava/compiledKotlin/memberOrder/innerClasses.kt");
             }
 
+            @TestMetadata("sameNamesInDifferentOrder.kt")
+            public void testSameNamesInDifferentOrder() throws Exception {
+                runTest("compiler/testData/loadJava/compiledKotlin/memberOrder/sameNamesInDifferentOrder.kt");
+            }
+
             @TestMetadata("topLevelCallables.kt")
             public void testTopLevelCallables() throws Exception {
                 runTest("compiler/testData/loadJava/compiledKotlin/memberOrder/topLevelCallables.kt");

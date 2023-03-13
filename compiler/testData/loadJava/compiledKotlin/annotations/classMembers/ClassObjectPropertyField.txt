@@ -5,12 +5,12 @@ public final annotation class Anno : kotlin.Annotation {
 }
 
 public final class Class {
-    /*primary*/ public constructor Class()
 
     public companion object Companion {
-        /*primary*/ private constructor Companion()
         @field:test.Anno public final var property: kotlin.Int
             public final fun `<get-property>`(): kotlin.Int
             public final fun `<set-property>`(/*0*/ `<set-?>`: kotlin.Int): kotlin.Unit
+        /*primary*/ private constructor Companion()
     }
+    /*primary*/ public constructor Class()
 }

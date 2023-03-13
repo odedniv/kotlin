@@ -5,6 +5,6 @@ public interface A {
 }
 
 public final class B : test.A {
-    /*primary*/ public constructor B()
     public open override /*1*/ /*fake_override*/ fun f(): kotlin.String
+    /*primary*/ public constructor B()
 }

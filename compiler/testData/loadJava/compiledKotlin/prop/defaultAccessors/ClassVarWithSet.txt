@@ -1,16 +1,9 @@
 package test
 
 public final class ClassVal {
-    /*primary*/ public constructor ClassVal()
     public final var property1: kotlin.Int
         public final fun `<get-property1>`(): kotlin.Int
         public final fun `<set-property1>`(/*0*/ `<set-?>`: kotlin.Int): kotlin.Unit
-    public final var property10: kotlin.Int
-        public final fun `<get-property10>`(): kotlin.Int
-        protected final fun `<set-property10>`(/*0*/ `<set-?>`: kotlin.Int): kotlin.Unit
-    public final var property11: kotlin.Int
-        public final fun `<get-property11>`(): kotlin.Int
-        internal final fun `<set-property11>`(/*0*/ `<set-?>`: kotlin.Int): kotlin.Unit
     public final var property2: java.lang.Object
         public final fun `<get-property2>`(): java.lang.Object
         protected final fun `<set-property2>`(/*0*/ `<set-?>`: java.lang.Object): kotlin.Unit
@@ -29,4 +22,11 @@ public final class ClassVal {
     public final var property9: kotlin.Int
         public final fun `<get-property9>`(): kotlin.Int
         private final fun `<set-property9>`(/*0*/ `<set-?>`: kotlin.Int): kotlin.Unit
+    public final var property10: kotlin.Int
+        public final fun `<get-property10>`(): kotlin.Int
+        protected final fun `<set-property10>`(/*0*/ `<set-?>`: kotlin.Int): kotlin.Unit
+    public final var property11: kotlin.Int
+        public final fun `<get-property11>`(): kotlin.Int
+        internal final fun `<set-property11>`(/*0*/ `<set-?>`: kotlin.Int): kotlin.Unit
+    /*primary*/ public constructor ClassVal()
 }

@@ -5,8 +5,8 @@ public final annotation class Anno : kotlin.Annotation {
 }
 
 public final class Class {
-    /*primary*/ public constructor Class()
     public final var property: kotlin.Int
         public final fun `<get-property>`(): kotlin.Int
         @test.Anno public final fun `<set-property>`(/*0*/ value: kotlin.Int): kotlin.Unit
+    /*primary*/ public constructor Class()
 }

@@ -5,10 +5,10 @@ public final annotation class Anno : kotlin.Annotation {
 }
 
 public final class Class {
-    /*primary*/ public constructor Class()
 
     public interface Trait {
         @test.Anno public abstract val property: kotlin.Int
             public abstract fun `<get-property>`(): kotlin.Int
     }
+    /*primary*/ public constructor Class()
 }

@@ -11,6 +11,6 @@ public interface B {
 }
 
 context(test.A) public final class C {
-    /*primary*/ public constructor C()
     context(test.B) public final fun f(): kotlin.Unit
+    /*primary*/ public constructor C()
 }

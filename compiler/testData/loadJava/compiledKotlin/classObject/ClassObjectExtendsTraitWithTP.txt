@@ -4,9 +4,9 @@ public interface Bbb</*0*/ P> {
 }
 
 public final class ClassObjectExtendsTraitWithTP {
-    /*primary*/ public constructor ClassObjectExtendsTraitWithTP()
 
     public companion object Companion : test.Bbb<kotlin.String> {
         /*primary*/ private constructor Companion()
     }
+    /*primary*/ public constructor ClassObjectExtendsTraitWithTP()
 }

@@ -1,7 +1,6 @@
 package test
 
 public final class A {
-    /*primary*/ public constructor A()
     public final val a: kotlin.Int
         public final fun `<get-a>`(): kotlin.Int
     public final val c: kotlin.Int
@@ -12,4 +11,5 @@ public final class A {
         public final fun kotlin.Int.`<get-b>`(): kotlin.Int
     public final val kotlin.Int.c: kotlin.Int
         public final fun kotlin.Int.`<get-c>`(): kotlin.Int
+    /*primary*/ public constructor A()
 }

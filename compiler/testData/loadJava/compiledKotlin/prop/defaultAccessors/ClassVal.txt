@@ -1,7 +1,6 @@
 package test
 
 public final class ClassVal {
-    /*primary*/ public constructor ClassVal()
     public final val property1: kotlin.Int
         public final fun `<get-property1>`(): kotlin.Int
     internal final val property2: kotlin.Int
@@ -12,4 +11,5 @@ public final class ClassVal {
         protected final fun `<get-property4>`(): kotlin.String
     public final val property5: kotlin.Int
         public final fun `<get-property5>`(): kotlin.Int
+    /*primary*/ public constructor ClassVal()
 }

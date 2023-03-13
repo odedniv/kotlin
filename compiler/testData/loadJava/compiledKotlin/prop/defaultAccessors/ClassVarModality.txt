@@ -1,7 +1,6 @@
 package test
 
 public open class ClassVarModality {
-    /*primary*/ public constructor ClassVarModality()
     public open var property1: kotlin.Int
         public open fun `<get-property1>`(): kotlin.Int
         public open fun `<set-property1>`(/*0*/ `<set-?>`: kotlin.Int): kotlin.Unit
@@ -14,11 +13,12 @@ public open class ClassVarModality {
     internal final var property4: kotlin.Int
         internal final fun `<get-property4>`(): kotlin.Int
         private final fun `<set-property4>`(/*0*/ `<set-?>`: kotlin.Int): kotlin.Unit
+    /*primary*/ public constructor ClassVarModality()
 }
 
 public abstract class ClassVarModalityAbstract {
-    /*primary*/ public constructor ClassVarModalityAbstract()
     public abstract var property1: java.util.Date
         public abstract fun `<get-property1>`(): java.util.Date
         public abstract fun `<set-property1>`(/*0*/ `<set-?>`: java.util.Date): kotlin.Unit
+    /*primary*/ public constructor ClassVarModalityAbstract()
 }

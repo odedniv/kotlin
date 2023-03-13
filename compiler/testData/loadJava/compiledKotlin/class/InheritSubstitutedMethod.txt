@@ -6,7 +6,7 @@ public interface A</*0*/ T> {
 }
 
 public final class B : test.A<kotlin.String> {
-    /*primary*/ public constructor B()
     public open override /*1*/ fun bar(): kotlin.String
     public open override /*1*/ /*fake_override*/ fun foo(): kotlin.String
+    /*primary*/ public constructor B()
 }

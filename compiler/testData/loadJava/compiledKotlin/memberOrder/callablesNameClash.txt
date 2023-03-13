@@ -9,7 +9,6 @@ public fun b(): kotlin.Int
 public fun c(): kotlin.Int
 
 public final class A {
-    /*primary*/ public constructor A()
     public final val a: kotlin.Int
         public final fun `<get-a>`(): kotlin.Int
     public final val c: kotlin.Int
@@ -17,4 +16,5 @@ public final class A {
     public final fun a(): kotlin.Int
     public final fun b(): kotlin.Int
     public final fun c(): kotlin.Int
+    /*primary*/ public constructor A()
 }

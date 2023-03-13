@@ -60,7 +60,7 @@ class BuiltInsSerializerTest : TestCaseWithTmpdir() {
 
         RecursiveDescriptorComparatorAdaptor.validateAndCompareDescriptorWithFile(
             module.getPackage(TEST_PACKAGE_FQNAME),
-            RecursiveDescriptorComparator.DONT_INCLUDE_METHODS_OF_OBJECT.sortDescriptors(false),
+            RecursiveDescriptorComparator.DONT_INCLUDE_METHODS_OF_OBJECT.sortClassMemberDescriptors(false),
             File(source.replace(".kt", ".txt"))
         )
     }

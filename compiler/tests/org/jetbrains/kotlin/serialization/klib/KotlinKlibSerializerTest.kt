@@ -16,36 +16,11 @@
 
 package org.jetbrains.kotlin.serialization.klib
 
-import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.io.FileUtil
-import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
-import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoots
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
-import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
-import org.jetbrains.kotlin.config.CommonConfigurationKeys
-import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.config.languageVersionSettings
-import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
-import org.jetbrains.kotlin.incremental.components.LookupTracker
-import org.jetbrains.kotlin.js.analyze.TopDownAnalyzerFacadeForJS
-import org.jetbrains.kotlin.js.config.JSConfigurationKeys
-import org.jetbrains.kotlin.js.config.JsConfig
-import org.jetbrains.kotlin.js.resolve.JsPlatformAnalyzerServices
 import org.jetbrains.kotlin.jvm.compiler.LoadDescriptorUtil.TEST_PACKAGE_FQNAME
-import org.jetbrains.kotlin.resolve.CompilerEnvironment
-import org.jetbrains.kotlin.serialization.NonStableParameterNamesSerializationTest
-import org.jetbrains.kotlin.serialization.deserialization.DeserializationConfiguration
-import org.jetbrains.kotlin.serialization.js.KotlinJavascriptSerializationUtil.readModuleAsProto
-import org.jetbrains.kotlin.storage.LockBasedStorageManager
 import org.jetbrains.kotlin.test.KlibTestUtil
-import org.jetbrains.kotlin.test.KotlinTestUtils
 import org.jetbrains.kotlin.test.TestCaseWithTmpdir
 import org.jetbrains.kotlin.test.util.RecursiveDescriptorComparator
 import org.jetbrains.kotlin.test.util.RecursiveDescriptorComparatorAdaptor
-import org.jetbrains.kotlin.utils.JsMetadataVersion
-import org.jetbrains.kotlin.utils.KotlinJavascriptMetadataUtils
-import org.jetbrains.kotlin.utils.sure
 import java.io.File
 
 class KotlinKlibSerializerTest : TestCaseWithTmpdir() {
@@ -61,7 +36,7 @@ class KotlinKlibSerializerTest : TestCaseWithTmpdir() {
 
         RecursiveDescriptorComparatorAdaptor.validateAndCompareDescriptorWithFile(
             module.getPackage(TEST_PACKAGE_FQNAME),
-            RecursiveDescriptorComparator.DONT_INCLUDE_METHODS_OF_OBJECT,
+            RecursiveDescriptorComparator.DONT_INCLUDE_METHODS_OF_OBJECT.sortClassMemberDescriptors(false),
             File(source.replace(".kt", ".txt"))
         )
     }

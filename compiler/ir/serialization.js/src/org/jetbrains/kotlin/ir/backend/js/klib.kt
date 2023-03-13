@@ -494,7 +494,7 @@ class ModulesStructure(
 
     val friendDependencies = allDependencies.run {
         val friendAbsolutePaths = friendDependenciesPaths.map { File(it).canonicalPath }
-        filter {
+        compactFilter {
             it.libraryFile.absolutePath in friendAbsolutePaths
         }
     }

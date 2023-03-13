@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.fir.extensions
 
 import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.declarations.FirCallableDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirClass
 import org.jetbrains.kotlin.fir.declarations.FirDeclaration
 import org.jetbrains.kotlin.fir.scopes.impl.declaredMemberScope
@@ -24,9 +25,9 @@ fun FirClass.generatedNestedClassifiers(session: FirSession): List<FirDeclaratio
     return result
 }
 
-fun FirClass.generatedMembers(session: FirSession): List<FirDeclaration> {
+fun FirClass.generatedMembers(session: FirSession): List<FirCallableDeclaration> {
     val scope = session.declaredMemberScope(this)
-    val result = mutableListOf<FirDeclaration>()
+    val result = mutableListOf<FirCallableDeclaration>()
     for (name in scope.getCallableNames()) {
         scope.processFunctionsByName(name) {
             if (it.fir.origin.generated) {

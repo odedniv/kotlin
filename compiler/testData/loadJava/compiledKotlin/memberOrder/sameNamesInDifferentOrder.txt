@@ -1,0 +1,17 @@
+package test
+
+public final class A {
+    public final val b: kotlin.Int
+        public final fun `<get-b>`(): kotlin.Int
+    public final val a: kotlin.Int
+        public final fun `<get-a>`(): kotlin.Int
+    public final val kotlin.Int.b: kotlin.String
+        public final fun kotlin.Int.`<get-b>`(): kotlin.String
+    public final val kotlin.Int.a: kotlin.String
+        public final fun kotlin.Int.`<get-a>`(): kotlin.String
+    public final fun b(): kotlin.Unit
+    public final fun a(): kotlin.Unit
+    public final fun kotlin.String.b(): kotlin.Unit
+    public final fun kotlin.String.a(): kotlin.Unit
+    /*primary*/ public constructor A()
+}

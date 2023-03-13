@@ -7085,6 +7085,12 @@ public class BoxJsTestGenerated extends AbstractBoxJsTest {
         }
 
         @Test
+        @TestMetadata("importAndFqnAccess.kt")
+        public void testImportAndFqnAccess() throws Exception {
+            runTest("js/js.translator/testData/box/multiModule/importAndFqnAccess.kt");
+        }
+
+        @Test
         @TestMetadata("interfaceMethodWithDefaultParameter.kt")
         public void testInterfaceMethodWithDefaultParameter() throws Exception {
             runTest("js/js.translator/testData/box/multiModule/interfaceMethodWithDefaultParameter.kt");

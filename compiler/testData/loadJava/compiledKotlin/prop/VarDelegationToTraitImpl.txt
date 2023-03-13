@@ -7,8 +7,8 @@ public interface A {
 }
 
 public final class B : test.A {
-    /*primary*/ public constructor B()
     public open override /*1*/ /*fake_override*/ var v: kotlin.String
         public open override /*1*/ /*fake_override*/ fun `<get-v>`(): kotlin.String
         public open override /*1*/ /*fake_override*/ fun `<set-v>`(/*0*/ value: kotlin.String): kotlin.Unit
+    /*primary*/ public constructor B()
 }

@@ -1,7 +1,6 @@
 package test
 
 public open class PropertyComplexTypes</*0*/ T> {
-    /*primary*/ public constructor PropertyComplexTypes</*0*/ T>()
     public final var genericType: T
         public final fun `<get-genericType>`(): T
         public final fun `<set-genericType>`(/*0*/ `<set-?>`: T): kotlin.Unit
@@ -14,4 +13,5 @@ public open class PropertyComplexTypes</*0*/ T> {
     public final var listOfGenericList: java.util.ArrayList<java.util.ArrayList<T>>
         public final fun `<get-listOfGenericList>`(): java.util.ArrayList<java.util.ArrayList<T>>
         public final fun `<set-listOfGenericList>`(/*0*/ `<set-?>`: java.util.ArrayList<java.util.ArrayList<T>>): kotlin.Unit
+    /*primary*/ public constructor PropertyComplexTypes</*0*/ T>()
 }

@@ -1,7 +1,6 @@
 package test
 
 public final class ClassVar {
-    /*primary*/ public constructor ClassVar()
     public final var property1: kotlin.Int
         public final fun `<get-property1>`(): kotlin.Int
         public final fun `<set-property1>`(/*0*/ `<set-?>`: kotlin.Int): kotlin.Unit
@@ -17,4 +16,5 @@ public final class ClassVar {
     public final var property5: kotlin.Int
         public final fun `<get-property5>`(): kotlin.Int
         public final fun `<set-property5>`(/*0*/ `<set-?>`: kotlin.Int): kotlin.Unit
+    /*primary*/ public constructor ClassVar()
 }

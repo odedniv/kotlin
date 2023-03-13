@@ -1,7 +1,7 @@
 public abstract interface A : R|kotlin/Any| {
-    public open fun bar(): R|kotlin/Unit|
-
     public open fun foo(): R|kotlin/Unit|
+
+    public open fun bar(): R|kotlin/Unit|
 
 }
 

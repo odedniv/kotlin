@@ -1,7 +1,6 @@
 package test
 
 public final class O {
-    /*primary*/ public constructor O()
 
     public final class A1 {
         /*primary*/ public constructor A1()
@@ -24,4 +23,5 @@ public final class O {
 
     public interface C2 {
     }
+    /*primary*/ public constructor O()
 }

@@ -1,9 +1,9 @@
 public open class Base : R|kotlin/Any| {
-    internal open val int: R|kotlin/Int|
-        internal get(): R|kotlin/Int|
-
     protected open val prot: R|kotlin/Int|
         protected get(): R|kotlin/Int|
+
+    internal open val int: R|kotlin/Int|
+        internal get(): R|kotlin/Int|
 
     public open val pub: R|kotlin/Int|
         public get(): R|kotlin/Int|
@@ -13,11 +13,11 @@ public open class Base : R|kotlin/Any| {
 }
 
 public final class Child : R|test/Base| {
-    internal open val int: R|kotlin/Int|
-        internal get(): R|kotlin/Int|
-
     protected open val prot: R|kotlin/Int|
         protected get(): R|kotlin/Int|
+
+    internal open val int: R|kotlin/Int|
+        internal get(): R|kotlin/Int|
 
     public open val pub: R|kotlin/Int|
         public get(): R|kotlin/Int|

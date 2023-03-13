@@ -1,7 +1,6 @@
 package test
 
 public final class ClassVarParams {
-    /*primary*/ public constructor ClassVarParams(/*0*/ pr1: kotlin.String, /*1*/ pr2: kotlin.Int, /*2*/ pr3: kotlin.Long, /*3*/ pr4: java.util.Date, /*4*/ pr5: kotlin.Any, /*5*/ pr6: java.lang.Object)
     public final var pr1: kotlin.String
         public final fun `<get-pr1>`(): kotlin.String
         public final fun `<set-pr1>`(/*0*/ `<set-?>`: kotlin.String): kotlin.Unit
@@ -17,4 +16,5 @@ public final class ClassVarParams {
     public final var pr5: kotlin.Any
         public final fun `<get-pr5>`(): kotlin.Any
         public final fun `<set-pr5>`(/*0*/ `<set-?>`: kotlin.Any): kotlin.Unit
+    /*primary*/ public constructor ClassVarParams(/*0*/ pr1: kotlin.String, /*1*/ pr2: kotlin.Int, /*2*/ pr3: kotlin.Long, /*3*/ pr4: java.util.Date, /*4*/ pr5: kotlin.Any, /*5*/ pr6: java.lang.Object)
 }

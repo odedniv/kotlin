@@ -7,10 +7,7 @@ public final annotation class Anno : R|kotlin/Annotation| {
 }
 
 @R|test/Anno|(t = R|java/lang/annotation/ElementType.METHOD|) public final class Class : R|kotlin/Any| {
-    @R|test/Anno|(t = R|java/lang/annotation/ElementType.ANNOTATION_TYPE|) public final companion object Companion : R|kotlin/Any| {
-        private constructor(): R|test/Class.Companion|
-
-    }
+    public constructor(): R|test/Class|
 
     @R|test/Anno|(t = R|java/lang/annotation/ElementType.PARAMETER|) public final inner class Inner : R|kotlin/Any| {
         public test/Class.constructor(): R|test/Class.Inner|
@@ -22,6 +19,9 @@ public final annotation class Anno : R|kotlin/Annotation| {
 
     }
 
-    public constructor(): R|test/Class|
+    @R|test/Anno|(t = R|java/lang/annotation/ElementType.ANNOTATION_TYPE|) public final companion object Companion : R|kotlin/Any| {
+        private constructor(): R|test/Class.Companion|
+
+    }
 
 }

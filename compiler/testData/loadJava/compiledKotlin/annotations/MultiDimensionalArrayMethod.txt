@@ -1,9 +1,9 @@
 package test
 
 public final annotation class Anno : kotlin.Annotation {
-    /*primary*/ public constructor Anno(/*0*/ s: kotlin.String)
     public final val s: kotlin.String
         public final fun `<get-s>`(): kotlin.String
+    /*primary*/ public constructor Anno(/*0*/ s: kotlin.String)
 }
 
 public interface T {

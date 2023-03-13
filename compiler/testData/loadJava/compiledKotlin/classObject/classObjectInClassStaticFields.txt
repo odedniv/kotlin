@@ -1,12 +1,8 @@
 package test
 
 public final class Test {
-    /*primary*/ public constructor Test()
 
     public companion object Companion {
-        /*primary*/ private constructor Companion()
-        public const final val constProp8: kotlin.Int = 80
-            public final fun `<get-constProp8>`(): kotlin.Int
         public final val prop1: kotlin.Int
             public final fun `<get-prop1>`(): kotlin.Int
         public final var prop2: kotlin.Int
@@ -23,6 +19,10 @@ public final class Test {
         public final var prop7: kotlin.Int
             public final fun `<get-prop7>`(): kotlin.Int
             public final fun `<set-prop7>`(/*0*/ i: kotlin.Int): kotlin.Unit
+        public const final val constProp8: kotlin.Int = 80
+            public final fun `<get-constProp8>`(): kotlin.Int
         public final fun incProp4(): kotlin.Unit
+        /*primary*/ private constructor Companion()
     }
+    /*primary*/ public constructor Test()
 }

@@ -1,4 +1,6 @@
 public final class Outer : R|kotlin/Any| {
+    public constructor(): R|test/Outer|
+
     public open class Nested1 : R|kotlin/Any| {
         public constructor(): R|test/Outer.Nested1|
 
@@ -8,7 +10,5 @@ public final class Outer : R|kotlin/Any| {
         public constructor(): R|test/Outer.Nested2|
 
     }
-
-    public constructor(): R|test/Outer|
 
 }

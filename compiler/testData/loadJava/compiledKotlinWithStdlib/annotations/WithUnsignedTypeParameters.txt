@@ -10,20 +10,20 @@ public const val ushortConst: kotlin.UShort = 20.toUShort()
     public fun `<get-ushortConst>`(): kotlin.UShort
 
 public final class A {
-    /*primary*/ public constructor A()
-    public final fun </*0*/ @test.Ann(ubyte = -1.toUByte(), uint = -1.toUInt(), ulong = -1.toULong(), ushort = -1.toUShort()) T> typeParam(): kotlin.Unit
     public final fun unsigned(/*0*/ s: @test.Ann(ubyte = 1.toUByte(), uint = 3.toUInt(), ulong = 4.toULong(), ushort = 2.toUShort()) kotlin.String): kotlin.Unit
+    public final fun </*0*/ @test.Ann(ubyte = -1.toUByte(), uint = -1.toUInt(), ulong = -1.toULong(), ushort = -1.toUShort()) T> typeParam(): kotlin.Unit
     public final fun unsignedConsts(/*0*/ s: @test.Ann(ubyte = 10.toUByte(), uint = 30.toUInt(), ulong = 40.toULong(), ushort = 20.toUShort()) kotlin.String): kotlin.Unit
+    /*primary*/ public constructor A()
 }
 
 @kotlin.annotation.Target(allowedTargets = {AnnotationTarget.TYPE, AnnotationTarget.TYPE_PARAMETER}) public final annotation class Ann : kotlin.Annotation {
-    /*primary*/ public constructor Ann(/*0*/ ubyte: kotlin.UByte, /*1*/ ushort: kotlin.UShort, /*2*/ uint: kotlin.UInt, /*3*/ ulong: kotlin.ULong)
     public final val ubyte: kotlin.UByte
         public final fun `<get-ubyte>`(): kotlin.UByte
+    public final val ushort: kotlin.UShort
+        public final fun `<get-ushort>`(): kotlin.UShort
     public final val uint: kotlin.UInt
         public final fun `<get-uint>`(): kotlin.UInt
     public final val ulong: kotlin.ULong
         public final fun `<get-ulong>`(): kotlin.ULong
-    public final val ushort: kotlin.UShort
-        public final fun `<get-ushort>`(): kotlin.UShort
+    /*primary*/ public constructor Ann(/*0*/ ubyte: kotlin.UByte, /*1*/ ushort: kotlin.UShort, /*2*/ uint: kotlin.UInt, /*3*/ ulong: kotlin.ULong)
 }

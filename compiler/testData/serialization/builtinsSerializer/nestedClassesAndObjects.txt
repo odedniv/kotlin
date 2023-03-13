@@ -2,21 +2,6 @@ package test
 
 public final class ClassA {
 
-    public companion object Companion {
-        public final val stat: kotlin.Int = 250
-
-        public final class D {
-            public final val memberFromD: kotlin.Int = 275
-            public constructor D()
-        }
-        private constructor Companion()
-    }
-
-    public object ObjA {
-        public final val memberFromObjA: kotlin.Int = 300
-        private constructor ObjA()
-    }
-
     public final class classB {
         public final fun memberFromB(): kotlin.Int
 
@@ -35,6 +20,21 @@ public final class ClassA {
     public final inner class classC {
         public final val memberFromC: kotlin.Int = 200
         public constructor classC()
+    }
+
+    public companion object Companion {
+        public final val stat: kotlin.Int = 250
+
+        public final class D {
+            public final val memberFromD: kotlin.Int = 275
+            public constructor D()
+        }
+        private constructor Companion()
+    }
+
+    public object ObjA {
+        public final val memberFromObjA: kotlin.Int = 300
+        private constructor ObjA()
     }
     public constructor ClassA()
 }

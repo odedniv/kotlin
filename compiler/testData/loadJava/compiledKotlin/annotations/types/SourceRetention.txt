@@ -7,7 +7,7 @@ public fun typeAnnotation(): kotlin.Unit
 }
 
 public final class TypeParameterAnnotation {
-    /*primary*/ public constructor TypeParameterAnnotation()
     public final fun </*0*/ T> foo(/*0*/ x: T): kotlin.Unit
+    /*primary*/ public constructor TypeParameterAnnotation()
 }
 public typealias TypeAliasAnnotation</*0*/ X> = kotlin.collections.List<X>

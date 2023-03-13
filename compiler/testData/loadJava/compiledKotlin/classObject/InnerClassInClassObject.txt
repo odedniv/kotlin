@@ -1,12 +1,11 @@
 package test
 
 public final class TestFirst {
-    /*primary*/ public constructor TestFirst()
 
     public companion object Companion {
-        /*primary*/ private constructor Companion()
         public final fun testing(/*0*/ a: test.TestFirst.InnerClass): kotlin.Int
         public final fun testing(/*0*/ a: test.TestFirst.NotInnerClass): kotlin.Int
+        /*primary*/ private constructor Companion()
     }
 
     public final inner class InnerClass {
@@ -16,4 +15,5 @@ public final class TestFirst {
     public final inner class NotInnerClass {
         /*primary*/ public constructor NotInnerClass()
     }
+    /*primary*/ public constructor TestFirst()
 }

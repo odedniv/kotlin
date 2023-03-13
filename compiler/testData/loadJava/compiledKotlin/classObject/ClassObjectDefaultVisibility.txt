@@ -1,61 +1,61 @@
 package test
 
 public final class Int {
-    /*primary*/ public constructor Int()
 
     public companion object Companion {
         /*primary*/ private constructor Companion()
     }
+    /*primary*/ public constructor Int()
 }
 
 public final class Outer {
-    /*primary*/ public constructor Outer()
 
-    public final class Int {
-        /*primary*/ public constructor Int()
+    public final class Pub {
 
         public companion object Companion {
             /*primary*/ private constructor Companion()
         }
+        /*primary*/ public constructor Pub()
     }
 
     private final class Pri {
-        /*primary*/ public constructor Pri()
 
         public companion object Companion {
             /*primary*/ private constructor Companion()
         }
+        /*primary*/ public constructor Pri()
+    }
+
+    public final class Int {
+
+        public companion object Companion {
+            /*primary*/ private constructor Companion()
+        }
+        /*primary*/ public constructor Int()
     }
 
     protected final class Pro {
+
+        public companion object Companion {
+            /*primary*/ private constructor Companion()
+        }
         /*primary*/ public constructor Pro()
-
-        public companion object Companion {
-            /*primary*/ private constructor Companion()
-        }
     }
-
-    public final class Pub {
-        /*primary*/ public constructor Pub()
-
-        public companion object Companion {
-            /*primary*/ private constructor Companion()
-        }
-    }
+    /*primary*/ public constructor Outer()
 }
 
 private final class Pri {
-    /*primary*/ public constructor Pri()
 
     public companion object Companion {
         /*primary*/ private constructor Companion()
     }
+    /*primary*/ public constructor Pri()
 }
 
 public final class Pub {
-    /*primary*/ public constructor Pub()
 
     public companion object Companion {
         /*primary*/ private constructor Companion()
     }
+    /*primary*/ public constructor Pub()
 }

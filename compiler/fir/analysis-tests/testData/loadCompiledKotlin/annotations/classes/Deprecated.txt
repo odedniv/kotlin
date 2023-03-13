@@ -1,6 +1,8 @@
 @R|kotlin/Deprecated|(message = String(Class)) public final class Class : R|kotlin/Any| {
-    @R|kotlin/Deprecated|(message = String(companion object)) public final companion object Companion : R|kotlin/Any| {
-        private constructor(): R|test/Class.Companion|
+    public constructor(): R|test/Class|
+
+    @R|kotlin/Deprecated|(message = String(Nested)) public final class Nested : R|kotlin/Any| {
+        public constructor(): R|test/Class.Nested|
 
     }
 
@@ -9,11 +11,9 @@
 
     }
 
-    @R|kotlin/Deprecated|(message = String(Nested)) public final class Nested : R|kotlin/Any| {
-        public constructor(): R|test/Class.Nested|
+    @R|kotlin/Deprecated|(message = String(companion object)) public final companion object Companion : R|kotlin/Any| {
+        private constructor(): R|test/Class.Companion|
 
     }
-
-    public constructor(): R|test/Class|
 
 }

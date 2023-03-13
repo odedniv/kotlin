@@ -181,7 +181,7 @@ class EqualityAndComparisonCallsTransformer(context: JsIrBackendContext) : Calls
         return klass.declarations.asSequence()
             .filterIsInstance<IrSimpleFunction>()
             .filter { it.isEqualsInheritedFromAny() && !it.isFakeOverriddenFromAny() }
-            .singleOrNullStrict()
+            .atMostOne()
     }
 
     private fun IrFunction.isMethodOfPrimitiveJSType() =

@@ -199,7 +199,7 @@ private fun KotlinCompilationDependencyConfigurationsContainer(
         isVisible = false
         isCanBeConsumed = false
         attributes.attribute(Usage.USAGE_ATTRIBUTE, KotlinUsages.consumerApiUsage(target))
-        if (target.platformType == KotlinPlatformType.js) {
+        if (target.platformType == KotlinPlatformType.js && target is KotlinJsIrTarget) {
             attributes.attribute(
                 BaseKotlinCompileConfig.ARTIFACT_TYPE_ATTRIBUTE,
                 Kotlin2JsCompileConfig.UNPACKED_KLIB_ARTIFACT_TYPE
@@ -219,7 +219,7 @@ private fun KotlinCompilationDependencyConfigurationsContainer(
             isVisible = false
             isCanBeConsumed = false
             isCanBeResolved = true
-            if (target.platformType == KotlinPlatformType.js) {
+            if (target.platformType == KotlinPlatformType.js && target is KotlinJsIrTarget) {
                 attributes.attribute(
                     BaseKotlinCompileConfig.ARTIFACT_TYPE_ATTRIBUTE,
                     Kotlin2JsCompileConfig.UNPACKED_KLIB_ARTIFACT_TYPE

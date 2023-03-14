@@ -51,6 +51,7 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.jvm.modules.JavaModuleResolver
 import org.jetbrains.kotlin.resolve.jvm.platform.JvmPlatformAnalyzerServices
 import java.util.concurrent.ConcurrentMap
+import org.jetbrains.kotlin.analysis.providers.KotlinDeclarationProvider
 import org.jetbrains.kotlin.utils.addToStdlib.partitionIsInstance
 
 @OptIn(PrivateSessionConstructor::class, SessionConfiguration::class)
@@ -537,16 +538,26 @@ internal class LLFirSessionCache(private val project: Project) {
      *
      * [session] should be the session of the dependent module. Because all symbol providers are tied to a session, we need a session to
      * create a combined symbol provider.
+     *
+     * The order of adding merged symbol providers currently follows their original order.
      */
-    @Suppress("UNUSED_PARAMETER")
     private fun List<FirSymbolProvider>.mergeDependencySymbolProvidersInto(
         session: FirSession,
         destination: MutableList<FirSymbolProvider>,
     ) {
-        val (syntheticFunctionSymbolProviders, remainingSymbolProviders1) =
-            partitionIsInstance<_, FirExtensionSyntheticFunctionInterfaceProvider>()
+        val (kotlinSymbolProviders, remainingSymbolProviders1) = partitionIsInstance<_, LLFirProvider.SymbolProvider>()
+        if (kotlinSymbolProviders.size > 1) {
+            val combinedScope = GlobalSearchScope.union(kotlinSymbolProviders.map { it.contentScope })
+            val declarationProvider = project.createDeclarationProvider(combinedScope)
+            destination.add(LLFirCombinedKotlinSymbolProvider(session, project, kotlinSymbolProviders, declarationProvider))
+        } else {
+            destination.addAll(kotlinSymbolProviders)
+        }
 
-        destination.addAll(remainingSymbolProviders1)
+        val (syntheticFunctionSymbolProviders, remainingSymbolProviders2) =
+            remainingSymbolProviders1.partitionIsInstance<_, FirExtensionSyntheticFunctionInterfaceProvider>()
+
+        destination.addAll(remainingSymbolProviders2)
 
         // Unfortunately, the functions that an extension synthetic function symbol provider might provide differ between sessions because
         // they depend on compiler plugins. However, only extension providers that are affected by compiler plugins are added in

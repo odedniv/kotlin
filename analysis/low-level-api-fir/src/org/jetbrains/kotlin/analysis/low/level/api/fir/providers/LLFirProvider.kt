@@ -5,7 +5,9 @@
 
 package org.jetbrains.kotlin.analysis.low.level.api.fir.providers
 
+import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.kotlin.analysis.low.level.api.fir.LLFirModuleResolveComponents
+import org.jetbrains.kotlin.analysis.low.level.api.fir.project.structure.llFirModuleData
 import org.jetbrains.kotlin.analysis.low.level.api.fir.transformers.SyntheticFirClassProvider
 import org.jetbrains.kotlin.analysis.providers.KotlinDeclarationProvider
 import org.jetbrains.kotlin.analysis.providers.KotlinPackageProvider
@@ -21,10 +23,12 @@ import org.jetbrains.kotlin.fir.resolve.providers.FirSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.providers.FirSymbolProviderInternals
 import org.jetbrains.kotlin.fir.resolve.providers.firProvider
 import org.jetbrains.kotlin.fir.symbols.impl.*
+import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtClassLikeDeclaration
+import org.jetbrains.kotlin.psi.KtFile
 
 @ThreadSafeMutableState
 internal class LLFirProvider(
@@ -54,7 +58,7 @@ internal class LLFirProvider(
         return getFirClassifierByFqNameAndDeclaration(classId, classLikeDeclaration)
     }
 
-    private fun getFirClassifierByFqNameAndDeclaration(
+    fun getFirClassifierByFqNameAndDeclaration(
         classId: ClassId,
         classLikeDeclaration: KtClassLikeDeclaration?,
     ): FirClassLikeDeclaration? = SyntheticFirClassProvider.getInstance(session).getFirClassifierByFqName(classId)
@@ -107,10 +111,17 @@ internal class LLFirProvider(
         declarationProvider.getTopLevelKotlinClassLikeDeclarationNamesInPackage(fqName)
 
     @NoMutableState
-    private inner class SymbolProvider : FirSymbolProvider(session) {
+    internal inner class SymbolProvider : FirSymbolProvider(session) {
         override fun getClassLikeSymbolByClassId(classId: ClassId): FirClassLikeSymbol<*>? {
             if (!providerHelper.symbolNameCache.mayHaveTopLevelClassifier(classId, mayHaveFunctionClass = false)) return null
             return getFirClassifierByFqName(classId)?.symbol
+        }
+
+        /**
+         * This function is optimized for a known [classLikeDeclaration].
+         */
+        fun getClassLikeSymbolByClassId(classId: ClassId, classLikeDeclaration: KtClassLikeDeclaration): FirClassLikeSymbol<*>? {
+            return getFirClassifierByFqNameAndDeclaration(classId, classLikeDeclaration)?.symbol
         }
 
         override fun getTopLevelCallableSymbols(packageFqName: FqName, name: Name): List<FirCallableSymbol<*>> {
@@ -124,6 +135,17 @@ internal class LLFirProvider(
             destination += providerHelper.getTopLevelCallableSymbols(packageFqName, name)
         }
 
+        /**
+         * This function is optimized for known [callableFiles], which should be the list of all [KtFile]s that contain the callables.
+         */
+        fun getTopLevelCallableSymbolsTo(
+            destination: MutableList<FirCallableSymbol<*>>,
+            callableId: CallableId,
+            callableFiles: Collection<KtFile>,
+        ) {
+            destination += providerHelper.getTopLevelCallableSymbols(callableId, callableFiles)
+        }
+
         override fun getTopLevelFunctionSymbols(packageFqName: FqName, name: Name): List<FirNamedFunctionSymbol> {
             if (!providerHelper.symbolNameCache.mayHaveTopLevelCallable(packageFqName, name)) return emptyList()
             return providerHelper.getTopLevelFunctionSymbols(packageFqName, name)
@@ -133,6 +155,17 @@ internal class LLFirProvider(
         override fun getTopLevelFunctionSymbolsTo(destination: MutableList<FirNamedFunctionSymbol>, packageFqName: FqName, name: Name) {
             if (!providerHelper.symbolNameCache.mayHaveTopLevelCallable(packageFqName, name)) return
             destination += providerHelper.getTopLevelFunctionSymbols(packageFqName, name)
+        }
+
+        /**
+         * This function is optimized for known [callableFiles], which should be the list of all [KtFile]s that contain the functions.
+         */
+        fun getTopLevelFunctionSymbolsTo(
+            destination: MutableList<FirNamedFunctionSymbol>,
+            callableId: CallableId,
+            callableFiles: Collection<KtFile>,
+        ) {
+            destination += providerHelper.getTopLevelFunctionSymbols(callableId, callableFiles)
         }
 
         override fun getTopLevelPropertySymbols(packageFqName: FqName, name: Name): List<FirPropertySymbol> {
@@ -146,8 +179,22 @@ internal class LLFirProvider(
             destination += providerHelper.getTopLevelPropertySymbols(packageFqName, name)
         }
 
+        /**
+         * This function is optimized for known [callableFiles], which should be the list of all [KtFile]s that contain the properties.
+         */
+        fun getTopLevelPropertySymbolsTo(
+            destination: MutableList<FirPropertySymbol>,
+            callableId: CallableId,
+            callableFiles: Collection<KtFile>,
+        ) {
+            destination += providerHelper.getTopLevelPropertySymbols(callableId, callableFiles)
+        }
+
         override fun getPackage(fqName: FqName): FqName? =
             providerHelper.getPackage(fqName)
+
+        val contentScope: GlobalSearchScope
+            get() = session.llFirModuleData.ktModule.contentScope
 
         // Computing the set of such package names is expensive and would require a new index. For now, it is not worth the marginal gains.
         override fun computePackageSetWithTopLevelCallables(): Set<String>? = null

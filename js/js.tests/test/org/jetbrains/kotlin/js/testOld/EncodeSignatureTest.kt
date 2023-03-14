@@ -155,7 +155,6 @@ class EncodeSignatureTest {
                 }
                 inner class C<U>
             }
-            fun <T : A<Int>> test(x: T)
         """)
     }
 

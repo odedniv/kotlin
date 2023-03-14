@@ -277,7 +277,7 @@ class DeserializedClassDescriptor(
         private val classDescriptor: DeserializedClassDescriptor get() = this@DeserializedClassDescriptor
 
         private val allDescriptors = c.storageManager.createLazyValue {
-            computeDescriptors(DescriptorKindFilter.ALL, MemberScope.ALL_NAME_FILTER, NoLookupLocation.WHEN_GET_ALL_DESCRIPTORS)
+            computeDescriptors(DescriptorKindFilter.ALL, MemberScope.ALL_NAME_FILTER)
         }
 
         private val refinedSupertypes = c.storageManager.createLazyValue {

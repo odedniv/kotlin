@@ -849,7 +849,7 @@ class IrBuiltInsOverFir(
                         it.valueParameters.count() == fn.valueParameters.count() &&
                         it.valueParameters.zip(fn.valueParameters).all { (l, r) -> l.type == r.type }
             }?.let {
-                fn.overriddenSymbols += it.symbol
+                fn.overriddenSymbols = fn.overriddenSymbols compactPlus it.symbol
             }
         }
 
@@ -876,10 +876,10 @@ class IrBuiltInsOverFir(
             superType.ensureLazyContentsCreated()
         }
         if (!defaultAny || superTypes.contains(any) || this.superTypes.contains(anyType)) {
-            this.superTypes = this.superTypes compactPlus superTypes.compactMap { it.type }
+            this.superTypes = this.superTypes compactPlus superTypes.map { it.type }
         } else {
             any.ensureLazyContentsCreated()
-            this.superTypes = this.superTypes compactPlus (superTypes.map { it.type } + anyType)
+            this.superTypes = this.superTypes compactPlus (superTypes.map { it.type } compactPlus anyType)
         }
     }
 
@@ -923,7 +923,7 @@ class IrBuiltInsOverFir(
             fn.typeParameters = typeParameters
             typeParameters.forEach { it.parent = fn }
             if (isIntrinsicConst) {
-                fn.annotations += intrinsicConstAnnotation
+                fn.annotations = fn.annotations compactPlus intrinsicConstAnnotation
             }
             fn.parent = this@createFunction
             fn.postBuild()
@@ -965,12 +965,12 @@ class IrBuiltInsOverFir(
             // TODO: replace with correct logic or explicit specification if cases become more complex
             forEachSuperClass {
                 properties.find { it.name == property.name }?.let {
-                    property.overriddenSymbols += it.symbol
+                    property.overriddenSymbols = property.overriddenSymbols compactPlus it.symbol
                 }
             }
 
             if (isIntrinsicConst) {
-                property.annotations += intrinsicConstAnnotation
+                property.annotations = property.annotations compactPlus intrinsicConstAnnotation
             }
 
             if (withGetter) {

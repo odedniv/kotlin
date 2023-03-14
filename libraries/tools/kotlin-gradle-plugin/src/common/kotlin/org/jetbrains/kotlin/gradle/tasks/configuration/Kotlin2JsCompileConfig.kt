@@ -34,8 +34,6 @@ internal open class BaseKotlin2JsCompileConfig<TASK : Kotlin2JsCompile>(
         val libraryFilterCachingService = LibraryFilterCachingService.registerIfAbsent(project)
 
         configureTask { task ->
-
-            registerTransformsOnce(project)
             task.incremental = propertiesProvider.incrementalJs ?: true
             task.incrementalJsKlib = propertiesProvider.incrementalJsKlib ?: true
 

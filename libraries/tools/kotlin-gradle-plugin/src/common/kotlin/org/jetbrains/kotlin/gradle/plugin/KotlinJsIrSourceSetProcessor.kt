@@ -41,8 +41,10 @@ internal class KotlinJsIrSourceSetProcessor(
 
         val compilation = compilationInfo.tcsOrNull?.compilation as KotlinJsIrCompilation
 
-        kotlinTask.configure {
-            it.libraries.from(compilation.compileDirectoryFiles)
+        if (compilation.target.platformType == KotlinPlatformType.js) {
+            kotlinTask.configure {
+                it.libraries.from(compilation.compileDirectoryFiles)
+            }
         }
 
         compilation.binaries
@@ -51,7 +53,10 @@ internal class KotlinJsIrSourceSetProcessor(
                 val configAction = KotlinJsIrLinkConfig(binary)
                 configAction.configureTask {
                     it.description = taskDescription
-                    it.libraries.from(compilation.runtimeDirectoryFiles)
+                    when (compilation.target.platformType) {
+                        KotlinPlatformType.js -> it.libraries.from(compilation.runtimeDirectoryFiles)
+                        KotlinPlatformType.wasm -> it.libraries.from(compilation.runtimeDependencyFiles)
+                    }
                 }
                 configAction.configureTask { task ->
                     task.modeProperty.set(binary.mode)

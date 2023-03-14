@@ -212,7 +212,7 @@ fun translateCall(
             JsNameRef(Namer.CALL_FUNCTION, qPrototype)
         }
 
-        return JsInvocation(callRef, jsDispatchReceiver?.let { receiver -> listOf(receiver) + arguments } ?: arguments)
+        return JsInvocation(callRef, jsDispatchReceiver?.let { receiver -> listOf(receiver) compactPlus arguments } ?: arguments)
     }
 
     val varargParameterIndex = function.varargParameterIndex()
@@ -291,7 +291,7 @@ fun translateCall(
             }
         }
     } else {
-        JsInvocation(ref, listOfNotNull(jsExtensionReceiver) + arguments).pureIfPossible(function, context)
+        JsInvocation(ref, listOfNotNull(jsExtensionReceiver) compactPlus arguments).pureIfPossible(function, context)
     }
 }
 

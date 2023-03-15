@@ -41,6 +41,7 @@ data class BuildOptions(
     val statisticsForceValidation: Boolean = true,
     val usePreciseOutputsBackup: Boolean? = null,
     val keepIncrementalCompilationCachesInMemory: Boolean? = null,
+    val verboseDiagnostics: Boolean = true,
 ) {
     val safeAndroidVersion: String
         get() = androidVersion ?: error("AGP version is expected to be set")
@@ -162,6 +163,10 @@ data class BuildOptions(
             arguments.add("-Pkotlin.compiler.keepIncrementalCompilationCachesInMemory=$keepIncrementalCompilationCachesInMemory")
         }
 
+        if (verboseDiagnostics) {
+            arguments.add("-Pkotlin.internal.verboseDiagnostics=$verboseDiagnostics")
+        }
+
         arguments.addAll(freeArgs)
 
         return arguments.toList()
@@ -184,4 +189,3 @@ fun BuildOptions.suppressDeprecationWarningsSinceGradleVersion(
 ) = suppressDeprecationWarningsOn(reason) {
     currentGradleVersion >= GradleVersion.version(gradleVersion)
 }
-

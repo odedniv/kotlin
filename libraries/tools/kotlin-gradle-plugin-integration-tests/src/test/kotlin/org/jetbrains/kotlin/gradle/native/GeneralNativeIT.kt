@@ -11,10 +11,11 @@ import org.jdom.input.SAXBuilder
 import org.jetbrains.kotlin.gradle.*
 import org.jetbrains.kotlin.gradle.internals.DISABLED_NATIVE_TARGETS_REPORTER_DISABLE_WARNING_PROPERTY_NAME
 import org.jetbrains.kotlin.gradle.internals.DISABLED_NATIVE_TARGETS_REPORTER_WARNING_PREFIX
-import org.jetbrains.kotlin.gradle.internals.NO_NATIVE_STDLIB_PROPERTY_WARNING
-import org.jetbrains.kotlin.gradle.internals.NO_NATIVE_STDLIB_WARNING
+import org.jetbrains.kotlin.gradle.plugin.diagnostics.KotlinToolingDiagnostics
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeOutputKind
 import org.jetbrains.kotlin.gradle.testbase.TestVersions
+import org.jetbrains.kotlin.gradle.testbase.assertHasDiagnostic
+import org.jetbrains.kotlin.gradle.testbase.assertNoDiagnostic
 import org.jetbrains.kotlin.gradle.transformProjectWithPluginsDsl
 import org.jetbrains.kotlin.gradle.util.modify
 import org.jetbrains.kotlin.gradle.util.runProcess
@@ -935,8 +936,7 @@ class GeneralNativeIT : BaseGradleIT() {
                 assertSuccessful()
                 assertContains("User-provided Kotlin/Native distribution: $currentDir")
                 assertNotContains("Project property 'org.jetbrains.kotlin.native.home' is deprecated")
-                assertContains(NO_NATIVE_STDLIB_WARNING)
-                assertContains(NO_NATIVE_STDLIB_PROPERTY_WARNING)
+                assertHasDiagnostic(KotlinToolingDiagnostics.NativeStdlibIsMissingDiagnostic, withSubstring = "kotlin.native.home")
             }
 
             // Deprecated property.
@@ -944,8 +944,7 @@ class GeneralNativeIT : BaseGradleIT() {
                 assertSuccessful()
                 assertContains("User-provided Kotlin/Native distribution: $currentDir")
                 assertContains("Project property 'org.jetbrains.kotlin.native.home' is deprecated")
-                assertNotContains(NO_NATIVE_STDLIB_WARNING)
-                assertNotContains(NO_NATIVE_STDLIB_PROPERTY_WARNING)
+                assertNoDiagnostic(KotlinToolingDiagnostics.NativeStdlibIsMissingDiagnostic)
             }
 
             build("tasks", "-Pkotlin.native.version=1.5.20") {

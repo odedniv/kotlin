@@ -31,14 +31,13 @@ import org.jetbrains.kotlin.gradle.internal.KOTLIN_COMPILER_EMBEDDABLE
 import org.jetbrains.kotlin.gradle.internal.KOTLIN_MODULE_GROUP
 import org.jetbrains.kotlin.gradle.logging.kotlinDebug
 import org.jetbrains.kotlin.gradle.plugin.KotlinMultiplatformAndroidGradlePluginCompatibilityHealthCheck.runMultiplatformAndroidGradlePluginCompatibilityHealthCheckWhenAndroidIsApplied
+import org.jetbrains.kotlin.gradle.plugin.diagnostics.kotlinToolingDiagnosticsReporter
+import org.jetbrains.kotlin.gradle.plugin.diagnostics.kotlinGradleProjectCheckersRunner
 import org.jetbrains.kotlin.gradle.plugin.internal.*
-import org.jetbrains.kotlin.gradle.plugin.internal.BasePluginConfiguration
-import org.jetbrains.kotlin.gradle.plugin.internal.DefaultJavaSourceSetsAccessorVariantFactory
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMultiplatformPlugin
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinUsages
 import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.KotlinPm20GradlePlugin
 import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.KotlinPm20ProjectExtension
-import org.jetbrains.kotlin.gradle.utils.markResolvable
 import org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSetFactory
 import org.jetbrains.kotlin.gradle.plugin.statistics.KotlinBuildStatsService
 import org.jetbrains.kotlin.gradle.report.BuildMetricsService
@@ -52,10 +51,6 @@ import org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompileTool
 import org.jetbrains.kotlin.gradle.testing.internal.KotlinTestsRegistry
 import org.jetbrains.kotlin.gradle.tooling.registerBuildKotlinToolingMetadataTask
 import org.jetbrains.kotlin.gradle.utils.*
-import org.jetbrains.kotlin.gradle.utils.addGradlePluginMetadataAttributes
-import org.jetbrains.kotlin.gradle.utils.checkGradleCompatibility
-import org.jetbrains.kotlin.gradle.utils.getOrPut
-import org.jetbrains.kotlin.gradle.utils.runProjectConfigurationHealthCheck
 import org.jetbrains.kotlin.statistics.metrics.StringMetrics
 import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
 import kotlin.reflect.KClass
@@ -231,6 +226,15 @@ abstract class KotlinBasePluginWrapper : DefaultKotlinBasePlugin() {
         project.addNpmDependencyExtension()
 
         project.registerBuildKotlinToolingMetadataTask()
+
+        project.runProjectConfigurationHealthCheckWhenEvaluated {
+            // Second whenEvaluated allows us to pick up settings made in user script in trivial afterEvaluate
+            // which is unfortunately popular enough case
+            afterEvaluate {
+                project.kotlinGradleProjectCheckersRunner.runChecks()
+                project.kotlinToolingDiagnosticsReporter.reportDiagnostics()
+            }
+        }
     }
 
     internal open fun createTestRegistry(project: Project) = KotlinTestsRegistry(project)

@@ -78,7 +78,7 @@ internal class ClassGenerator(
         }.buildWithScope { irClass ->
             declarationGenerator.generateGlobalTypeParametersDeclarations(irClass, classDescriptor.declaredTypeParameters)
 
-            irClass.superTypes = classDescriptor.typeConstructor.supertypes.compactMap {
+            irClass.superTypes = classDescriptor.typeConstructor.supertypes.memoryOptimizedMap {
                 it.toIrType()
             }
 
@@ -123,7 +123,7 @@ internal class ClassGenerator(
                 generateAdditionalMembersForEnumClass(irClass)
             }
 
-            irClass.sealedSubclasses = classDescriptor.sealedSubclasses.compactMap { context.symbolTable.referenceClass(it) }
+            irClass.sealedSubclasses = classDescriptor.sealedSubclasses.memoryOptimizedMap { context.symbolTable.referenceClass(it) }
         }
     }
 
@@ -295,7 +295,7 @@ internal class ClassGenerator(
 
     private fun IrProperty.generateOverrides(propertyDescriptor: PropertyDescriptor) {
         overriddenSymbols =
-            propertyDescriptor.overriddenDescriptors.compactMap { overriddenPropertyDescriptor ->
+            propertyDescriptor.overriddenDescriptors.memoryOptimizedMap { overriddenPropertyDescriptor ->
                 context.symbolTable.referenceProperty(overriddenPropertyDescriptor.original)
             }
     }

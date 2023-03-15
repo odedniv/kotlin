@@ -1585,37 +1585,6 @@ open class NewMultiplatformIT : BaseGradleIT() {
     }
 
     @Test
-    fun testUnusedSourceSetsReport() = with(Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")) {
-        setupWorkingDir()
-
-        gradleBuildScript().appendText("\nkotlin { sourceSets { foo { } } }")
-
-        build {
-            assertSuccessful()
-            assertContains(UnusedSourceSetsChecker.WARNING_PREFIX_ONE, UnusedSourceSetsChecker.WARNING_INTRO)
-        }
-
-        gradleBuildScript().appendText("\nkotlin { sourceSets { bar { dependsOn foo } } }")
-
-        build {
-            assertSuccessful()
-            assertContains(UnusedSourceSetsChecker.WARNING_PREFIX_MANY, UnusedSourceSetsChecker.WARNING_INTRO)
-        }
-
-        gradleBuildScript().appendText("\nkotlin { sourceSets { jvm6Main { dependsOn bar } } }")
-
-        build {
-            assertSuccessful()
-            assertNotContains(
-                UnusedSourceSetsChecker.WARNING_PREFIX_ONE,
-                UnusedSourceSetsChecker.WARNING_PREFIX_MANY,
-                UnusedSourceSetsChecker.WARNING_INTRO
-            )
-        }
-    }
-
-    // https://youtrack.jetbrains.com/issue/KT-48436
-    @Test
     fun testUnusedSourceSetsReportAndroid() = with(Project("new-mpp-android", gradleVersion)) {
         setupWorkingDir()
 
@@ -1632,11 +1601,7 @@ open class NewMultiplatformIT : BaseGradleIT() {
             }
         ) {
             assertSuccessful()
-            assertNotContains(
-                UnusedSourceSetsChecker.WARNING_PREFIX_ONE,
-                UnusedSourceSetsChecker.WARNING_PREFIX_MANY,
-                UnusedSourceSetsChecker.WARNING_INTRO
-            )
+            assertNoDiagnostic(KotlinToolingDiagnostics.UnusedSourceSetsWarning)
         }
     }
 

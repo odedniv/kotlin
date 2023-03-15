@@ -39,7 +39,7 @@ class VariantAwareDependenciesMppIT : BaseGradleIT() {
             gradleBuildScript(innerProject.projectName).appendText("\ndependencies { implementation rootProject }")
 
             testResolveAllConfigurations(subproject = innerProject.projectName) {
-                assertContains(">> :${innerProject.projectName}:runtimeClasspath --> sample-lib-nodejs-1.0.klib")
+                assertContains(">> :${innerProject.projectName}:runtimeClasspath --> main")
             }
 
             @Suppress("DEPRECATION")

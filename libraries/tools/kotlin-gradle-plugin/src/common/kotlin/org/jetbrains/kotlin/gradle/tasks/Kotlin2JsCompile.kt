@@ -236,12 +236,15 @@ abstract class Kotlin2JsCompile @Inject constructor(
             JsLibraryUtils::isKotlinJavascriptLibrary
         }
 
+    @get:Internal
+    abstract override val libraries: ConfigurableFileCollection
+
     @get:InputFiles
     @get:IgnoreEmptyDirectories
     @get:NormalizeLineEndings
     @get:PathSensitive(PathSensitivity.RELATIVE)
     @get:Incremental
-    override abstract val libraries: ConfigurableFileCollection
+    val realLibraries: FileCollection = libraries + friendDependencies
 
     @get:Input
     internal val jsLegacyNoWarn: Provider<Boolean> = objectFactory.property(

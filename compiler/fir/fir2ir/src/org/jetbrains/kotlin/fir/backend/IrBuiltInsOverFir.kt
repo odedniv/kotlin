@@ -849,7 +849,7 @@ class IrBuiltInsOverFir(
                         it.valueParameters.count() == fn.valueParameters.count() &&
                         it.valueParameters.zip(fn.valueParameters).all { (l, r) -> l.type == r.type }
             }?.let {
-                fn.overriddenSymbols = fn.overriddenSymbols memoryOptimizedPlus it.symbol
+                fn.overriddenSymbols += it.symbol
             }
         }
 
@@ -876,10 +876,10 @@ class IrBuiltInsOverFir(
             superType.ensureLazyContentsCreated()
         }
         if (!defaultAny || superTypes.contains(any) || this.superTypes.contains(anyType)) {
-            this.superTypes = this.superTypes memoryOptimizedPlus superTypes.map { it.type }
+            this.superTypes += superTypes.map { it.type }
         } else {
             any.ensureLazyContentsCreated()
-            this.superTypes = this.superTypes memoryOptimizedPlus (superTypes.map { it.type } memoryOptimizedPlus anyType)
+            this.superTypes += superTypes.map { it.type } + anyType
         }
     }
 
@@ -923,7 +923,7 @@ class IrBuiltInsOverFir(
             fn.typeParameters = typeParameters
             typeParameters.forEach { it.parent = fn }
             if (isIntrinsicConst) {
-                fn.annotations = fn.annotations memoryOptimizedPlus intrinsicConstAnnotation
+                fn.annotations += intrinsicConstAnnotation
             }
             fn.parent = this@createFunction
             fn.postBuild()
@@ -965,12 +965,12 @@ class IrBuiltInsOverFir(
             // TODO: replace with correct logic or explicit specification if cases become more complex
             forEachSuperClass {
                 properties.find { it.name == property.name }?.let {
-                    property.overriddenSymbols = property.overriddenSymbols memoryOptimizedPlus it.symbol
+                    property.overriddenSymbols += it.symbol
                 }
             }
 
             if (isIntrinsicConst) {
-                property.annotations = property.annotations memoryOptimizedPlus intrinsicConstAnnotation
+                property.annotations += intrinsicConstAnnotation
             }
 
             if (withGetter) {
@@ -980,7 +980,7 @@ class IrBuiltInsOverFir(
                     this.isOperator = false
                 }.also { getter ->
                     getter.addDispatchReceiver { type = this@createProperty.defaultType }
-                    getter.overriddenSymbols = property.overriddenSymbols.memoryOptimizedMapNotNull { it.owner.getter?.symbol }
+                    getter.overriddenSymbols = property.overriddenSymbols.mapNotNull { it.owner.getter?.symbol }
                 }
             }
             if (withField || fieldInit != null) {

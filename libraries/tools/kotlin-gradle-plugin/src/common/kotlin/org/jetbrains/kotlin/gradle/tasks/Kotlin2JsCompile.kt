@@ -258,7 +258,11 @@ abstract class Kotlin2JsCompile @Inject constructor(
         }
 
     override val incrementalProps: List<FileCollection>
-        get() = super.incrementalProps + listOf(friendDependencies)
+        get() = listOfNotNull(
+            sources,
+            realLibraries,
+            commonSourceSet
+        ) + listOf(friendDependencies)
 
     open fun processArgs(
         args: K2JSCompilerArguments
@@ -280,9 +284,7 @@ abstract class Kotlin2JsCompile @Inject constructor(
             logger.info(USING_JS_IR_BACKEND_MESSAGE)
         }
 
-        val friendFiles = friendDependencies.files
-
-        val dependencies = (libraries + friendFiles)
+        val dependencies = realLibraries
             .filter { it.exists() && libraryFilter(it) }
             .map { it.normalize().absolutePath }
 
@@ -292,7 +294,7 @@ abstract class Kotlin2JsCompile @Inject constructor(
                 null
         }
 
-        args.friendModules = friendFiles.joinToString(File.pathSeparator) { it.absolutePath }
+        args.friendModules = friendDependencies.files.joinToString(File.pathSeparator) { it.absolutePath }
         if (!isIrBackendEnabled()) {
             args.forceDeprecatedLegacyCompilerUsage = true
         }

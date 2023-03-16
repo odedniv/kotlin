@@ -892,7 +892,7 @@ abstract class AbstractKotlin2JsGradlePluginIT(protected val irBackend: Boolean)
             build("compileKotlinJs", "compileTestKotlinJs") {
                 checkIrCompilationMessage()
                 assertOutputContains(USING_JS_INCREMENTAL_COMPILATION_MESSAGE)
-                val affectedFiles = listOf("A.kt", "useAInLibMain.kt", "useAInAppMain.kt", "useAInAppTest.kt").mapNotNull {
+                val affectedFiles = listOf("A.kt", "useAInLibMain.kt", "useAInAppMain.kt", "useAInAppTest.kt", "useAInLibTest.kt").mapNotNull {
                     projectPath.findInPath(it)
                 }
                 assertCompiledKotlinSources(affectedFiles.relativizeTo(projectPath), output)

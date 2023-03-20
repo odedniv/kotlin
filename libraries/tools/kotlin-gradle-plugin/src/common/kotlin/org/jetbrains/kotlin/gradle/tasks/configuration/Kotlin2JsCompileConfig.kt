@@ -175,13 +175,6 @@ abstract class Unzip : TransformAction<TransformParameters.None> {
     override
     fun transform(outputs: TransformOutputs) {
         val input = inputArtifact.get().asFile
-
-        if (!input.exists()) {
-            outputs.file(inputArtifact)
-
-            return
-        }
-
         val unzipDir = outputs.dir(input.name)
         unzipTo(input, unzipDir)
     }

@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.daemon.client
 
+import org.jetbrains.kotlin.buildtools.api.compilation.TargetPlatform
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.common.repl.*
 import org.jetbrains.kotlin.daemon.common.*
@@ -25,14 +26,14 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 // TODO: reduce number of ports used then SOCKET_ANY_FREE_PORT is passed (same problem with other calls)
 
 open class KotlinRemoteReplCompilerClient(
-        protected val compileService: CompileService,
-        clientAliveFlagFile: File?,
-        targetPlatform: CompileService.TargetPlatform,
-        args: Array<out String>,
-        messageCollector: MessageCollector,
-        templateClasspath: List<File>,
-        templateClassName: String,
-        port: Int = SOCKET_ANY_FREE_PORT
+    protected val compileService: CompileService,
+    clientAliveFlagFile: File?,
+    targetPlatform: TargetPlatform,
+    args: Array<out String>,
+    messageCollector: MessageCollector,
+    templateClasspath: List<File>,
+    templateClassName: String,
+    port: Int = SOCKET_ANY_FREE_PORT
 ) : ReplCompiler {
     val services = BasicCompilerServicesWithResultsFacadeServer(messageCollector, null, port)
 

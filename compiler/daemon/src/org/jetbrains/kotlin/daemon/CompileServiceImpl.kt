@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.build.report.RemoteBuildReporter
 import org.jetbrains.kotlin.build.report.info
 import org.jetbrains.kotlin.build.report.metrics.endMeasureGc
 import org.jetbrains.kotlin.build.report.metrics.startMeasureGc
+import org.jetbrains.kotlin.buildtools.api.compilation.TargetPlatform
 import org.jetbrains.kotlin.cli.common.CLICompiler
 import org.jetbrains.kotlin.cli.common.CompilerSystemProperties
 import org.jetbrains.kotlin.cli.common.ExitCode
@@ -79,7 +80,7 @@ const val REMOTE_STREAM_BUFFER_SIZE = 4096
 fun nowSeconds() = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime())
 
 interface CompilerSelector {
-    operator fun get(targetPlatform: CompileService.TargetPlatform): CLICompiler<*>
+    operator fun get(targetPlatform: TargetPlatform): CLICompiler<*>
 }
 
 interface EventManager {
@@ -303,9 +304,9 @@ abstract class CompileServiceImplBase(
 
         @Suppress("UNCHECKED_CAST")
         val compiler = when (targetPlatform) {
-            CompileService.TargetPlatform.JVM -> K2JVMCompiler()
-            CompileService.TargetPlatform.JS -> K2JSCompiler()
-            CompileService.TargetPlatform.METADATA -> K2MetadataCompiler()
+            TargetPlatform.JVM -> K2JVMCompiler()
+            TargetPlatform.JS -> K2JSCompiler()
+            TargetPlatform.METADATA -> K2MetadataCompiler()
         } as CLICompiler<CommonCompilerArguments>
 
         val k2PlatformArgs = compiler.createArguments()
@@ -346,7 +347,7 @@ abstract class CompileServiceImplBase(
                 val gradleIncrementalServicesFacade = servicesFacade
 
                 when (targetPlatform) {
-                    CompileService.TargetPlatform.JVM -> withIC(k2PlatformArgs) {
+                    TargetPlatform.JVM -> withIC(k2PlatformArgs) {
                         doCompile(sessionId, daemonReporter, tracer = null) { _, _ ->
                             execIncrementalCompiler(
                                 k2PlatformArgs as K2JVMCompilerArguments,
@@ -360,7 +361,7 @@ abstract class CompileServiceImplBase(
                             )
                         }
                     }
-                    CompileService.TargetPlatform.JS -> withJsIC(k2PlatformArgs) {
+                    TargetPlatform.JS -> withJsIC(k2PlatformArgs) {
                         doCompile(sessionId, daemonReporter, tracer = null) { _, _ ->
                             execJsIncrementalCompiler(
                                 k2PlatformArgs as K2JSCompilerArguments,
@@ -827,7 +828,7 @@ class CompileServiceImpl(
         templateClasspath: List<File>,
         templateClassName: String
     ): CompileService.CallResult<Int> = ifAlive(minAliveness = Aliveness.Alive) {
-        if (compilationOptions.targetPlatform != CompileService.TargetPlatform.JVM)
+        if (compilationOptions.targetPlatform != TargetPlatform.JVM)
             CompileService.CallResult.Error("Sorry, only JVM target platform is supported now")
         else {
             val disposable = Disposer.newDisposable()

@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.daemon.common
 
 import org.jetbrains.kotlin.buildtools.api.compilation.ClasspathChanges
+import org.jetbrains.kotlin.buildtools.api.compilation.TargetPlatform
 import org.jetbrains.kotlin.incremental.IncrementalModuleInfo
 import java.io.File
 import java.io.Serializable
@@ -24,7 +25,7 @@ import java.util.*
 
 open class CompilationOptions(
         val compilerMode: CompilerMode,
-        val targetPlatform: CompileService.TargetPlatform,
+        val targetPlatform: TargetPlatform,
         /** @See [ReportCategory] */
         val reportCategories: Array<Int>,
         /** @See [ReportSeverity] */
@@ -56,7 +57,7 @@ class IncrementalCompilationOptions(
     val classpathChanges: ClasspathChanges,
     val workingDir: File,
     compilerMode: CompilerMode,
-    targetPlatform: CompileService.TargetPlatform,
+    targetPlatform: TargetPlatform,
     /** @See [ReportCategory] */
         reportCategories: Array<Int>,
     /** @See [ReportSeverity] */

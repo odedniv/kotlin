@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.daemon
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtilRt
 import junit.framework.TestCase
+import org.jetbrains.kotlin.buildtools.api.compilation.TargetPlatform
 import org.jetbrains.kotlin.cli.AbstractCliTest
 import org.jetbrains.kotlin.cli.common.CompilerSystemProperties
 import org.jetbrains.kotlin.cli.common.messages.MessageRenderer
@@ -71,7 +72,7 @@ class CompilerDaemonTest : KotlinIntegrationTestBase() {
         assertNotNull("failed to connect daemon", daemon)
         daemon?.registerClient(clientAliveFile.absolutePath)
         val strm = ByteArrayOutputStream()
-        val code = KotlinCompilerClient.compile(daemon!!, CompileService.NO_SESSION, CompileService.TargetPlatform.JVM,
+        val code = KotlinCompilerClient.compile(daemon!!, CompileService.NO_SESSION, TargetPlatform.JVM,
                                                 args, PrintingMessageCollector(PrintStream(strm), MessageRenderer.WITHOUT_PATHS, true),
                                                 reportSeverity = ReportSeverity.DEBUG)
         return CompilerResults(code, strm.toString())
@@ -351,7 +352,7 @@ class CompilerDaemonTest : KotlinIntegrationTestBase() {
                 daemon?.registerClient(flagFile.absolutePath)
                 val jar = testTempDir.absolutePath + File.separator + "hello1.jar"
                 val strm = ByteArrayOutputStream()
-                val code = KotlinCompilerClient.compile(daemon!!, CompileService.NO_SESSION, CompileService.TargetPlatform.JVM,
+                val code = KotlinCompilerClient.compile(daemon!!, CompileService.NO_SESSION, TargetPlatform.JVM,
                                                         arrayOf("-include-runtime", File(getHelloAppBaseDir(), "hello.kt").absolutePath, "-d", jar),
                                                         PrintingMessageCollector(PrintStream(strm), MessageRenderer.WITHOUT_PATHS, true),
                                                         reportSeverity = ReportSeverity.DEBUG)
@@ -567,7 +568,7 @@ class CompilerDaemonTest : KotlinIntegrationTestBase() {
                             val res = KotlinCompilerClient.compile(
                                     daemon!!,
                                     CompileService.NO_SESSION,
-                                    CompileService.TargetPlatform.JVM,
+                                    TargetPlatform.JVM,
                                     arrayOf("-include-runtime", File(getHelloAppBaseDir(), "hello.kt").absolutePath, "-d", jar),
                                     PrintingMessageCollector(PrintStream(outStreams[threadNo]), MessageRenderer.WITHOUT_PATHS, true),
                                     port = port)
@@ -627,7 +628,7 @@ class CompilerDaemonTest : KotlinIntegrationTestBase() {
                                 KotlinCompilerClient.compile(
                                     compileServiceSession.compileService,
                                     compileServiceSession.sessionId,
-                                    CompileService.TargetPlatform.JVM,
+                                    TargetPlatform.JVM,
                                     arrayOf(File(getHelloAppBaseDir(), "hello.kt").absolutePath, "-d", jar),
                                     PrintingMessageCollector(PrintStream(outStreams[threadNo]), MessageRenderer.WITHOUT_PATHS, true))
                             }
@@ -729,7 +730,7 @@ class CompilerDaemonTest : KotlinIntegrationTestBase() {
             var isErrorThrown = false
             try {
                 repl = KotlinRemoteReplCompilerClient(
-                    daemon, null, CompileService.TargetPlatform.JVM, emptyArray(), TestMessageCollector(),
+                    daemon, null, TargetPlatform.JVM, emptyArray(), TestMessageCollector(),
                     classpathFromClassloader(), ScriptWithNoParam::class.qualifiedName!!
                 )
                 repl.createState()
@@ -748,7 +749,7 @@ class CompilerDaemonTest : KotlinIntegrationTestBase() {
 
     fun testDaemonReplLocalEvalNoParams() {
         withDaemon(compilerWithScriptingId) { daemon ->
-            val repl = KotlinRemoteReplCompilerClient(daemon, null, CompileService.TargetPlatform.JVM,
+            val repl = KotlinRemoteReplCompilerClient(daemon, null, TargetPlatform.JVM,
                                                       emptyArray(),
                                                       TestMessageCollector(),
                                                       classpathFromClassloader(),
@@ -763,7 +764,7 @@ class CompilerDaemonTest : KotlinIntegrationTestBase() {
 
     fun testDaemonReplLocalEvalStandardTemplate() {
         withDaemon(compilerWithScriptingId) { daemon ->
-            val repl = KotlinRemoteReplCompilerClient(daemon, null, CompileService.TargetPlatform.JVM, emptyArray(),
+            val repl = KotlinRemoteReplCompilerClient(daemon, null, TargetPlatform.JVM, emptyArray(),
                                                       TestMessageCollector(),
                                                       classpathFromClassloader(),
                                                       "kotlin.script.templates.standard.ScriptTemplateWithArgs")
@@ -814,7 +815,7 @@ class CompilerDaemonTest : KotlinIntegrationTestBase() {
                 val daemon = KotlinCompilerClient.connectToCompileService(compilerWithScriptingId, flagFile, daemonJVMOptions, daemonOptions, DaemonReportingTargets(out = System.err), autostart = true)
                 assertNotNull("failed to connect daemon", daemon)
 
-                val replCompiler = KotlinRemoteReplCompilerClient(daemon!!, null, CompileService.TargetPlatform.JVM,
+                val replCompiler = KotlinRemoteReplCompilerClient(daemon!!, null, TargetPlatform.JVM,
                                                                   emptyArray(),
                                                                   TestMessageCollector(),
                                                                   classpathFromClassloader(),

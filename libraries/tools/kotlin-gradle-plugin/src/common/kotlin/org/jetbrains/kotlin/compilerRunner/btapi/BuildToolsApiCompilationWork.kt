@@ -56,17 +56,11 @@ internal abstract class BuildToolsApiCompilationWork : WorkAction<BuildToolsApiC
     }
 
     private fun prepareCompilationOptions(): CompilationOptions {
-        val targetPlatform = when (val compilerClassName = workArguments.compilerClassName) {
-            KotlinCompilerClass.JVM -> TargetPlatform.JVM
-            KotlinCompilerClass.JS -> TargetPlatform.JS
-            KotlinCompilerClass.METADATA -> TargetPlatform.METADATA
-            else -> error("Unknown compiler type: $compilerClassName")
-        }
         val icEnv = workArguments.incrementalCompilationEnvironment
         return if (icEnv != null) {
             TODO("Incremental compilation is not yet supported for running via build-tools-api")
         } else {
-            NonIncrementalCompilationOptions(targetPlatform, workArguments.kotlinScriptExtensions.toList())
+            NonIncrementalCompilationOptions(workArguments.targetPlatform, workArguments.kotlinScriptExtensions.toList())
         }
     }
 }

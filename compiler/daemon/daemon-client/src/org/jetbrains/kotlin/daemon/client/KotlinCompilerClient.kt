@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.daemon.client
 
+import org.jetbrains.kotlin.buildtools.api.compilation.TargetPlatform
 import org.jetbrains.kotlin.cli.common.CompilerSystemProperties
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
@@ -147,7 +148,7 @@ object KotlinCompilerClient {
 
     fun compile(compilerService: CompileService,
                 sessionId: Int,
-                targetPlatform: CompileService.TargetPlatform,
+                targetPlatform: TargetPlatform,
                 args: Array<out String>,
                 messageCollector: MessageCollector,
                 outputsCollector: ((File, List<File>) -> Unit)? = null,
@@ -255,7 +256,7 @@ object KotlinCompilerClient {
 
                     val compilationOptions = CompilationOptions(
                         CompilerMode.NON_INCREMENTAL_COMPILER,
-                        CompileService.TargetPlatform.JVM,
+                        TargetPlatform.JVM,
                         arrayOf(ReportCategory.COMPILER_MESSAGE.code, ReportCategory.DAEMON_MESSAGE.code, ReportCategory.EXCEPTION.code, ReportCategory.OUTPUT_MESSAGE.code),
                         ReportSeverity.INFO.code,
                         emptyArray()

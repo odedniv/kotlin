@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.gradle.tasks.throwExceptionIfCompilationFailed
 import org.jetbrains.kotlin.gradle.utils.stackTraceAsString
 import org.jetbrains.kotlin.incremental.ChangedFiles
 import org.jetbrains.kotlin.buildtools.api.compilation.ClasspathChanges
+import org.jetbrains.kotlin.buildtools.api.compilation.TargetPlatform
 import org.jetbrains.kotlin.incremental.IncrementalModuleInfo
 import org.jetbrains.kotlin.incremental.util.ExceptionLocation
 import org.jetbrains.kotlin.incremental.util.reportException
@@ -56,7 +57,7 @@ internal class ProjectFilesForCompilation(
 internal class GradleKotlinCompilerWorkArguments(
     val projectFiles: ProjectFilesForCompilation,
     val compilerFullClasspath: List<File>,
-    val compilerClassName: String,
+    val targetPlatform: TargetPlatform,
     val compilerArgs: Array<String>,
     val isVerbose: Boolean,
     val incrementalCompilationEnvironment: IncrementalCompilationEnvironment?,
@@ -90,7 +91,14 @@ internal class GradleKotlinCompilerWork @Inject constructor(
     private val clientIsAliveFlagFile = config.projectFiles.clientIsAliveFlagFile
     private val sessionFlagFile = config.projectFiles.sessionFlagFile
     private val compilerFullClasspath = config.compilerFullClasspath
-    private val compilerClassName = config.compilerClassName
+    private val targetPlatform = config.targetPlatform
+    private val compilerClassName
+        get() = when (targetPlatform) {
+            TargetPlatform.JVM -> KotlinCompilerClass.JVM
+            TargetPlatform.JS -> KotlinCompilerClass.JS
+            TargetPlatform.METADATA -> KotlinCompilerClass.METADATA
+            else -> throw IllegalArgumentException("Unknown compiler type $targetPlatform")
+        }
     private val compilerArgs = config.compilerArgs
     private val isVerbose = config.isVerbose
     private val incrementalCompilationEnvironment = config.incrementalCompilationEnvironment
@@ -215,12 +223,6 @@ internal class GradleKotlinCompilerWork @Inject constructor(
 
         val memoryUsageBeforeBuild = daemon.getUsedMemory(withGC = false).takeIf { it.isGood }?.get()
 
-        val targetPlatform = when (compilerClassName) {
-            KotlinCompilerClass.JVM -> CompileService.TargetPlatform.JVM
-            KotlinCompilerClass.JS -> CompileService.TargetPlatform.JS
-            KotlinCompilerClass.METADATA -> CompileService.TargetPlatform.METADATA
-            else -> throw IllegalArgumentException("Unknown compiler type $compilerClassName")
-        }
         val bufferingMessageCollector = GradleBufferingMessageCollector()
         val exitCode = try {
             val res = if (isIncremental) {
@@ -262,7 +264,7 @@ internal class GradleKotlinCompilerWork @Inject constructor(
     private fun nonIncrementalCompilationWithDaemon(
         daemon: CompileService,
         sessionId: Int,
-        targetPlatform: CompileService.TargetPlatform,
+        targetPlatform: TargetPlatform,
         bufferingMessageCollector: GradleBufferingMessageCollector
     ): CompileService.CallResult<Int> {
         metrics.addAttribute(BuildAttribute.IC_IS_NOT_ENABLED)
@@ -287,7 +289,7 @@ internal class GradleKotlinCompilerWork @Inject constructor(
     private fun incrementalCompilationWithDaemon(
         daemon: CompileService,
         sessionId: Int,
-        targetPlatform: CompileService.TargetPlatform,
+        targetPlatform: TargetPlatform,
         bufferingMessageCollector: GradleBufferingMessageCollector
     ): CompileService.CallResult<Int> {
         val icEnv = incrementalCompilationEnvironment ?: error("incrementalCompilationEnvironment is null!")

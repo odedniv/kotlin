@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.daemon
 
+import org.jetbrains.kotlin.buildtools.api.compilation.TargetPlatform
 import org.jetbrains.kotlin.cli.common.CLICompiler
 import org.jetbrains.kotlin.cli.common.CompilerSystemProperties
 import org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback
@@ -147,10 +148,10 @@ abstract class KotlinCompileDaemonBase {
                     private val jvm by lazy { K2JVMCompiler() }
                     private val js by lazy { K2JSCompiler() }
                     private val metadata by lazy { K2MetadataCompiler() }
-                    override fun get(targetPlatform: CompileService.TargetPlatform): CLICompiler<*> = when (targetPlatform) {
-                        CompileService.TargetPlatform.JVM -> jvm
-                        CompileService.TargetPlatform.JS -> js
-                        CompileService.TargetPlatform.METADATA -> metadata
+                    override fun get(targetPlatform: TargetPlatform): CLICompiler<*> = when (targetPlatform) {
+                        TargetPlatform.JVM -> jvm
+                        TargetPlatform.JS -> js
+                        TargetPlatform.METADATA -> metadata
                     }
                 }
                 // timer with a daemon thread, meaning it should not prevent JVM to exit normally

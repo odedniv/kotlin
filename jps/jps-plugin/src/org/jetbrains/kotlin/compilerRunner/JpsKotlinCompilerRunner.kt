@@ -19,6 +19,7 @@ package org.jetbrains.kotlin.compilerRunner
 import com.intellij.util.xmlb.XmlSerializerUtil
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.jps.api.GlobalOptions
+import org.jetbrains.kotlin.buildtools.api.compilation.TargetPlatform
 import org.jetbrains.kotlin.cli.common.CompilerSystemProperties
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.arguments.*
@@ -123,7 +124,7 @@ class JpsKotlinCompilerRunner {
         arguments.destination = arguments.destination ?: destination
 
         withCompilerSettings(compilerSettings) {
-            runCompiler(KotlinCompilerClass.METADATA, arguments, environment)
+            runCompiler(TargetPlatform.METADATA, arguments, environment)
         }
     }
 
@@ -137,7 +138,7 @@ class JpsKotlinCompilerRunner {
         val arguments = mergeBeans(commonArguments, XmlSerializerUtil.createCopy(k2jvmArguments))
         setupK2JvmArguments(moduleFile, arguments)
         withCompilerSettings(compilerSettings) {
-            runCompiler(KotlinCompilerClass.JVM, arguments, environment)
+            runCompiler(TargetPlatform.JVM, arguments, environment)
         }
     }
 
@@ -167,26 +168,26 @@ class JpsKotlinCompilerRunner {
         log.debug("K2JS: arguments after setup" + ArgumentUtils.convertArgumentsToStringList(arguments))
 
         withCompilerSettings(compilerSettings) {
-            runCompiler(KotlinCompilerClass.JS, arguments, environment)
+            runCompiler(TargetPlatform.JS, arguments, environment)
         }
     }
 
     private fun compileWithDaemonOrFallback(
-        compilerClassName: String,
+        targetPlatform: TargetPlatform,
         compilerArgs: CommonCompilerArguments,
         environment: JpsCompilerEnvironment
     ) {
         log.debug("Using kotlin-home = " + environment.kotlinPaths.homePath)
 
         withDaemonOrFallback(
-            withDaemon = { compileWithDaemon(compilerClassName, compilerArgs, environment) },
-            fallback = { fallbackCompileStrategy(compilerArgs, compilerClassName, environment) }
+            withDaemon = { compileWithDaemon(targetPlatform, compilerArgs, environment) },
+            fallback = { fallbackCompileStrategy(compilerArgs, targetPlatform, environment) }
         )
     }
 
-    private fun runCompiler(compilerClassName: String, compilerArgs: CommonCompilerArguments, environment: JpsCompilerEnvironment) {
+    private fun runCompiler(targetPlatform: TargetPlatform, compilerArgs: CommonCompilerArguments, environment: JpsCompilerEnvironment) {
         try {
-            compileWithDaemonOrFallback(compilerClassName, compilerArgs, environment)
+            compileWithDaemonOrFallback(targetPlatform, compilerArgs, environment)
         } catch (e: Throwable) {
             MessageCollectorUtil.reportException(environment.messageCollector, e)
             reportInternalCompilerError(environment.messageCollector)
@@ -194,16 +195,10 @@ class JpsKotlinCompilerRunner {
     }
 
     private fun compileWithDaemon(
-        compilerClassName: String,
+        targetPlatform: TargetPlatform,
         compilerArgs: CommonCompilerArguments,
         environment: JpsCompilerEnvironment
     ): Int? {
-        val targetPlatform = when (compilerClassName) {
-            KotlinCompilerClass.JVM -> CompileService.TargetPlatform.JVM
-            KotlinCompilerClass.JS -> CompileService.TargetPlatform.JS
-            KotlinCompilerClass.METADATA -> CompileService.TargetPlatform.METADATA
-            else -> throw IllegalArgumentException("Unknown compiler type $compilerClassName")
-        }
         val compilerMode = CompilerMode.JPS_COMPILER
         val verbose = compilerArgs.verbose
         val options = CompilationOptions(
@@ -278,7 +273,7 @@ class JpsKotlinCompilerRunner {
 
     private fun fallbackCompileStrategy(
         compilerArgs: CommonCompilerArguments,
-        compilerClassName: String,
+        targetPlatform: TargetPlatform,
         environment: JpsCompilerEnvironment
     ) {
         if ("true" == System.getProperty("kotlin.jps.tests") && "true" == System.getProperty(FAIL_ON_FALLBACK_PROPERTY)) {
@@ -296,6 +291,13 @@ class JpsKotlinCompilerRunner {
         // since there is no reliable way so far to detect running under tests, switching it on only for parallel builds
         if (System.getProperty(GlobalOptions.COMPILE_PARALLEL_OPTION, "false").toBoolean())
             CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY.value = "true"
+
+        val compilerClassName = when (targetPlatform) {
+            TargetPlatform.JVM -> KotlinCompilerClass.JVM
+            TargetPlatform.JS -> KotlinCompilerClass.JS
+            TargetPlatform.METADATA -> KotlinCompilerClass.METADATA
+            else -> throw IllegalArgumentException("Unknown compiler type $targetPlatform")
+        }
 
         val rc = environment.withProgressReporter { progress ->
             progress.compilationStarted()

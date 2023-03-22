@@ -32,12 +32,6 @@ interface CompileService : Remote {
         XML
     }
 
-    enum class TargetPlatform : Serializable {
-        JVM,
-        JS,
-        METADATA
-    }
-
     companion object {
         val NO_SESSION: Int = 0
     }

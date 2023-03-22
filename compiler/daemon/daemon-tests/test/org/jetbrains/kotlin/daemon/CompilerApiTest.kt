@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.daemon
 
 import com.intellij.openapi.application.ApplicationManager
+import org.jetbrains.kotlin.buildtools.api.compilation.TargetPlatform
 import org.jetbrains.kotlin.cli.common.CompilerSystemProperties
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
@@ -81,7 +82,7 @@ class CompilerApiTest : KotlinIntegrationTestBase() {
 
         val outputs = arrayListOf<OutputMessageUtil.Output>()
 
-        val code = KotlinCompilerClient.compile(daemon!!, CompileService.NO_SESSION, CompileService.TargetPlatform.JVM, args, messageCollector,
+        val code = KotlinCompilerClient.compile(daemon!!, CompileService.NO_SESSION, TargetPlatform.JVM, args, messageCollector,
                                                 { outFile, srcFiles -> outputs.add(OutputMessageUtil.Output(srcFiles, outFile)) },
                                                 reportSeverity = ReportSeverity.DEBUG)
         return code to outputs

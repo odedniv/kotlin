@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.build.report.metrics.BuildMetricsReporter
 import org.jetbrains.kotlin.build.report.metrics.BuildPerformanceMetric
 import org.jetbrains.kotlin.build.report.metrics.BuildTime
 import org.jetbrains.kotlin.build.report.metrics.measure
+import org.jetbrains.kotlin.buildtools.api.compilation.TargetPlatform
 import org.jetbrains.kotlin.cli.common.arguments.*
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.compilerRunner.btapi.GradleBuildToolsApiCompilerRunner
@@ -121,7 +122,7 @@ internal open class GradleCompilerRunner(
         args.javaPackagePrefix = javaPackagePrefix
         if (args.jdkHome == null && !args.noJdk) args.jdkHome = jdkHome.absolutePath
         loggerProvider.kotlinInfo("Kotlin compilation 'jdkHome' argument: ${args.jdkHome}")
-        return runCompilerAsync(KotlinCompilerClass.JVM, args, environment, taskOutputsBackup)
+        return runCompilerAsync(TargetPlatform.JVM, args, environment, taskOutputsBackup)
     }
 
     /**
@@ -135,7 +136,7 @@ internal open class GradleCompilerRunner(
         taskOutputsBackup: TaskOutputsBackup?
     ): WorkQueue? {
         args.freeArgs += kotlinSources.map { it.absolutePath }
-        return runCompilerAsync(KotlinCompilerClass.JS, args, environment, taskOutputsBackup)
+        return runCompilerAsync(TargetPlatform.JS, args, environment, taskOutputsBackup)
     }
 
     /**
@@ -150,11 +151,11 @@ internal open class GradleCompilerRunner(
     ): WorkQueue? {
         args.freeArgs += kotlinSources.map { it.absolutePath }
         args.commonSources = kotlinCommonSources.map { it.absolutePath }.toTypedArray()
-        return runCompilerAsync(KotlinCompilerClass.METADATA, args, environment)
+        return runCompilerAsync(TargetPlatform.METADATA, args, environment)
     }
 
     private fun runCompilerAsync(
-        compilerClassName: String,
+        targetPlatform: TargetPlatform,
         compilerArgs: CommonCompilerArguments,
         environment: GradleCompilerEnvironment,
         taskOutputsBackup: TaskOutputsBackup? = null
@@ -225,7 +226,7 @@ internal open class GradleCompilerRunner(
                 sessionDirProvider
             ),
             compilerFullClasspath = environment.compilerFullClasspath(jdkToolsJar),
-            compilerClassName = compilerClassName,
+            targetPlatform = targetPlatform,
             compilerArgs = argsArray,
             isVerbose = compilerArgs.verbose,
             incrementalCompilationEnvironment = incrementalCompilationEnvironment,

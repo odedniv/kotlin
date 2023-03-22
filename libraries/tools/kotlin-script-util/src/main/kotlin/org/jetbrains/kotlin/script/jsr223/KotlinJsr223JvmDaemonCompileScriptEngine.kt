@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.script.jsr223
 
+import org.jetbrains.kotlin.buildtools.api.compilation.TargetPlatform
 import org.jetbrains.kotlin.cli.common.messages.MessageRenderer
 import org.jetbrains.kotlin.cli.common.messages.PrintingMessageCollector
 import org.jetbrains.kotlin.cli.common.repl.*
@@ -50,13 +51,13 @@ class KotlinJsr223JvmDaemonCompileScriptEngine(
     override val replCompiler by lazy {
         daemon.let {
             KotlinRemoteReplCompilerClient(
-                    it,
-                    makeAutodeletingFlagFile("jsr223-repl-session"),
-                    CompileService.TargetPlatform.JVM,
-                    emptyArray(),
-                    PrintingMessageCollector(PrintStream(compilerOut), MessageRenderer.WITHOUT_PATHS, false),
-                    templateClasspath,
-                    templateClassName)
+                it,
+                makeAutodeletingFlagFile("jsr223-repl-session"),
+                TargetPlatform.JVM,
+                emptyArray(),
+                PrintingMessageCollector(PrintStream(compilerOut), MessageRenderer.WITHOUT_PATHS, false),
+                templateClasspath,
+                templateClassName)
         }
     }
 

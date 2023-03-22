@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.gradle.tasks.throwExceptionIfCompilationFailed
 import org.jetbrains.kotlin.gradle.utils.stackTraceAsString
 import org.jetbrains.kotlin.incremental.ChangedFiles
 import org.jetbrains.kotlin.buildtools.api.compilation.ClasspathChanges
+import org.jetbrains.kotlin.buildtools.api.compilation.SourcesChanges
 import org.jetbrains.kotlin.buildtools.api.compilation.TargetPlatform
 import org.jetbrains.kotlin.incremental.IncrementalModuleInfo
 import org.jetbrains.kotlin.incremental.util.ExceptionLocation
@@ -293,12 +294,12 @@ internal class GradleKotlinCompilerWork @Inject constructor(
         bufferingMessageCollector: GradleBufferingMessageCollector
     ): CompileService.CallResult<Int> {
         val icEnv = incrementalCompilationEnvironment ?: error("incrementalCompilationEnvironment is null!")
-        val knownChangedFiles = icEnv.changedFiles as? ChangedFiles.Known
+        val knownChangedFiles = icEnv.changedFiles as? SourcesChanges.Known
         val requestedCompilationResults = requestedCompilationResults()
         val compilationOptions = IncrementalCompilationOptions(
             areFileChangesKnown = knownChangedFiles != null,
-            modifiedFiles = knownChangedFiles?.modified,
-            deletedFiles = knownChangedFiles?.removed,
+            modifiedFiles = knownChangedFiles?.modifiedFiles,
+            deletedFiles = knownChangedFiles?.removedFiles,
             classpathChanges = icEnv.classpathChanges,
             workingDir = icEnv.workingDir,
             reportCategories = reportCategories(isVerbose),

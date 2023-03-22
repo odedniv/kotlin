@@ -3,14 +3,13 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
-@file:Suppress("UNUSED_PARAMETER")
-
 package org.jetbrains.kotlin.buildtools.api.compilation
 
 import java.io.File
+import java.io.Serializable
 
-sealed class SourcesChanges {
-    object NotKnown : SourcesChanges()
+sealed class SourcesChanges : Serializable {
+    object Unknown : SourcesChanges()
 
-    class Known(modifiedFiles: List<File>, removedFiles: List<File>)
+    class Known(val modifiedFiles: List<File>, val removedFiles: List<File>) : SourcesChanges()
 }

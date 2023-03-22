@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.gradle.report
 
 import org.jetbrains.kotlin.build.report.metrics.BuildMetrics
+import org.jetbrains.kotlin.buildtools.api.compilation.SourcesChanges
 import org.jetbrains.kotlin.incremental.ChangedFiles
 
 internal class TaskExecutionResult(
@@ -15,7 +16,7 @@ internal class TaskExecutionResult(
 )
 
 internal class TaskExecutionInfo(
-    val changedFiles: ChangedFiles? = null,
+    val changedFiles: SourcesChanges? = null,
     val compilerArguments: Array<String> = emptyArray(),
     val withArtifactTransform: Boolean? = false,
     val withAbiSnapshot: Boolean? = false

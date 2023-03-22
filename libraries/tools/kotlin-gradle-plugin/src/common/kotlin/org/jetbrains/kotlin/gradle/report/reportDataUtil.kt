@@ -10,11 +10,11 @@ import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskSkippedResult
 import org.gradle.tooling.events.task.TaskSuccessResult
 import org.jetbrains.kotlin.build.report.metrics.*
+import org.jetbrains.kotlin.buildtools.api.compilation.SourcesChanges
 import org.jetbrains.kotlin.gradle.plugin.internal.state.TaskExecutionResults
 import org.jetbrains.kotlin.gradle.plugin.stat.CompileStatisticsData
 import org.jetbrains.kotlin.gradle.plugin.stat.StatTag
 import org.jetbrains.kotlin.gradle.report.data.BuildOperationRecord
-import org.jetbrains.kotlin.incremental.ChangedFiles
 import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 import java.lang.management.ManagementFactory
 import java.util.ArrayList
@@ -63,7 +63,7 @@ internal fun prepareData(
     )
     val buildAttributes = collectBuildAttributes(taskExecutionResult, buildMetrics)
     val changes = when (val changedFiles = taskExecutionResult?.taskInfo?.changedFiles) {
-        is ChangedFiles.Known -> changedFiles.modified.map { it.absolutePath } + changedFiles.removed.map { it.absolutePath }
+        is SourcesChanges.Known -> changedFiles.modifiedFiles.map { it.absolutePath } + changedFiles.removedFiles.map { it.absolutePath }
         else -> emptyList<String>()
     }
     return CompileStatisticsData(

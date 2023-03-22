@@ -13,17 +13,12 @@ import org.gradle.workers.WorkParameters
 import org.jetbrains.kotlin.build.report.metrics.BuildMetricsReporter
 import org.jetbrains.kotlin.buildtools.api.CompilationService
 import org.jetbrains.kotlin.buildtools.api.SharedApiClassesClassLoader
-import org.jetbrains.kotlin.buildtools.api.compilation.CompilationOptions
-import org.jetbrains.kotlin.buildtools.api.compilation.CompilerOptions
-import org.jetbrains.kotlin.buildtools.api.compilation.NonIncrementalCompilationOptions
-import org.jetbrains.kotlin.buildtools.api.compilation.TargetPlatform
+import org.jetbrains.kotlin.buildtools.api.compilation.*
 import org.jetbrains.kotlin.compilerRunner.GradleKotlinCompilerWorkArguments
-import org.jetbrains.kotlin.compilerRunner.KotlinCompilerClass
 import org.jetbrains.kotlin.gradle.internal.ClassLoadersCachingBuildService
 import org.jetbrains.kotlin.gradle.internal.ParentClassLoaderProvider
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilerExecutionStrategy
 import java.io.File
-import java.util.*
 
 internal abstract class BuildToolsApiCompilationWork : WorkAction<BuildToolsApiCompilationWork.BuildToolsApiCompilationParameters> {
     internal interface BuildToolsApiCompilationParameters : WorkParameters {
@@ -56,11 +51,28 @@ internal abstract class BuildToolsApiCompilationWork : WorkAction<BuildToolsApiC
     }
 
     private fun prepareCompilationOptions(): CompilationOptions {
+        val kotlinScriptExtensions = workArguments.kotlinScriptExtensions.toList()
         val icEnv = workArguments.incrementalCompilationEnvironment
-        return if (icEnv != null) {
-            TODO("Incremental compilation is not yet supported for running via build-tools-api")
-        } else {
-            NonIncrementalCompilationOptions(workArguments.targetPlatform, workArguments.kotlinScriptExtensions.toList())
+        return when {
+            icEnv == null -> NonIncrementalCompilationOptions(workArguments.targetPlatform, kotlinScriptExtensions)
+            icEnv.disableMultiModuleIC -> IntraModuleIncrementalCompilationOptions(
+                workArguments.targetPlatform,
+                kotlinScriptExtensions,
+                icEnv.changedFiles
+            )
+            icEnv.classpathChanges is ClasspathChanges.ClasspathSnapshotEnabled -> ClasspathSnapshotBasedIncrementalCompilationOptions(
+                workArguments.targetPlatform,
+                kotlinScriptExtensions,
+                icEnv.changedFiles,
+                icEnv.classpathChanges,
+            )
+            else -> HistoryFilesBasedIncrementalCompilationOptions(
+                workArguments.targetPlatform,
+                kotlinScriptExtensions,
+                icEnv.changedFiles,
+                icEnv.multiModuleICSettings.buildHistoryFile,
+                icEnv.multiModuleICSettings.useModuleDetection,
+            )
         }
     }
 }

@@ -268,7 +268,7 @@ internal class ClassMemberGenerator(
             }
             declarationStorage.leaveScope(this@initializeBackingField)
         }
-        annotationGenerator.generate(irField, property)
+        property.backingField?.let { annotationGenerator.generate(irField, it) }
     }
 
     private fun IrSimpleFunction.setPropertyAccessorContent(
@@ -315,7 +315,6 @@ internal class ClassMemberGenerator(
             }
 
         }
-        annotationGenerator.generate(this, property)
     }
 
     private fun IrFieldAccessExpression.setReceiver(declaration: IrDeclaration): IrFieldAccessExpression {

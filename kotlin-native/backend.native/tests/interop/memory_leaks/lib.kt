@@ -3,6 +3,8 @@
  * that can be found in the LICENSE file.
  */
 
+@file:OptIn(ExperimentalStdlibApi::class)
+
 import kotlinx.cinterop.*
 import kotlin.native.Platform
 

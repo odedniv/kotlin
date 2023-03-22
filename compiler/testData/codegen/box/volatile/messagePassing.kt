@@ -1,11 +1,12 @@
 // TARGET_BACKEND: NATIVE
 
+@file:OptIn(kotlin.ExperimentalStdlibApi::class)
+
 import kotlin.native.concurrent.*
 import kotlin.concurrent.*
 
 
 
-@OptIn(kotlin.ExperimentalStdlibApi::class)
 @Volatile var x = 0
 var y = -1
 

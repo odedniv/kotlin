@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.native.runtime.NativeRuntimeApi::class)
+@file:OptIn(kotlin.native.runtime.NativeRuntimeApi::class, ExperimentalStdlibApi::class)
 
 import leakMemory.*
 import kotlin.native.concurrent.*

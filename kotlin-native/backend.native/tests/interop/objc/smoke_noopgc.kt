@@ -4,6 +4,8 @@
  */
 @file:OptIn(kotlin.native.runtime.NativeRuntimeApi::class)
 
+@file:OptIn(ExperimentalStdlibApi::class)
+
 import kotlinx.cinterop.*
 import objcSmoke.*
 import kotlin.native.concurrent.*

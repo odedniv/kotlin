@@ -13,6 +13,7 @@ class B {
     }
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 fun enableMemoryChecker() {
     Platform.isMemoryLeakCheckerActive = true
 }

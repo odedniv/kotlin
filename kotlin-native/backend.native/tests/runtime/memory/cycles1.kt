@@ -3,7 +3,7 @@
  * that can be found in the LICENSE file.
  */
 
-@file:OptIn(kotlin.experimental.ExperimentalNativeApi::class)
+@file:OptIn(kotlin.experimental.ExperimentalNativeApi::class, ExperimentalStdlibApi::class)
 
 package runtime.memory.cycles1
 

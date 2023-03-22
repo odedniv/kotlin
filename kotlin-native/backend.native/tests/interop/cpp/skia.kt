@@ -1,4 +1,5 @@
 @file:Suppress("OPT_IN_USAGE_ERROR")
+@file:OptIn(ExperimentalStdlibApi::class)
 
 import kotlinx.cinterop.*
 import kotlin.test.*

@@ -5,7 +5,7 @@
 
 // All classes and methods should be used in tests
 @file:Suppress("UNUSED")
-@file:OptIn(FreezingIsDeprecated::class, kotlin.native.runtime.NativeRuntimeApi::class)
+@file:OptIn(FreezingIsDeprecated::class, kotlin.native.runtime.NativeRuntimeApi::class, ExperimentalStdlibApi::class)
 
 package conversions
 

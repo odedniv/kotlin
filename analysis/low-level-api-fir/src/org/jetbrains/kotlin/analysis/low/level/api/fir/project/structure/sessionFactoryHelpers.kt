@@ -80,7 +80,6 @@ internal fun LLFirSourcesSession.registerCompilerPluginServices(
         FirPredicateBasedProvider::class,
         LLFirIdePredicateBasedProvider(this, annotationsResolver, project.createDeclarationProvider(projectWithDependenciesScope))
     )
-
 }
 
 internal fun createJavaSymbolProvider(

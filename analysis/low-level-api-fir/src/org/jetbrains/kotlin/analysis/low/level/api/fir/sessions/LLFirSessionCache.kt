@@ -50,6 +50,8 @@ import org.jetbrains.kotlin.resolve.jvm.modules.JavaModuleResolver
 import org.jetbrains.kotlin.resolve.jvm.platform.JvmPlatformAnalyzerServices
 import org.jetbrains.kotlin.utils.addToStdlib.partitionIsInstance
 import java.util.concurrent.ConcurrentMap
+import org.jetbrains.kotlin.analysis.low.level.api.fir.scopes.LLFirGlobalSearchScopeFactory
+import org.jetbrains.kotlin.utils.addIfNotNull
 
 @OptIn(PrivateSessionConstructor::class, SessionConfiguration::class)
 internal class LLFirSessionCache(private val project: Project) {
@@ -536,15 +538,19 @@ internal class LLFirSessionCache(private val project: Project) {
         session: FirSession,
         destination: MutableList<FirSymbolProvider>,
     ) {
-        val (syntheticFunctionSymbolProviders, remainingSymbolProviders1) =
-            partitionIsInstance<_, FirExtensionSyntheticFunctionInterfaceProvider>()
+        val (javaSymbolProviders, remainingSymbolProviders1) = partitionIsInstance<_, JavaSymbolProvider>()
 
-        destination.addAll(remainingSymbolProviders1)
+        destination.addIfNotNull(LLFirCombinedJavaSymbolProvider.merge(session, project, javaSymbolProviders))
+
+        val (syntheticFunctionSymbolProviders, remainingSymbolProviders2) =
+            remainingSymbolProviders1.partitionIsInstance<_, FirExtensionSyntheticFunctionInterfaceProvider>()
+
+        destination.addAll(remainingSymbolProviders2)
 
         // Unfortunately, the functions that an extension synthetic function symbol provider might provide differ between sessions because
         // they depend on compiler plugins. However, only extension providers that are affected by compiler plugins are added in
         // `createSourcesSession`. We can still combine these, because the `ClassId` heuristics only need to be checked once.
-        destination.add(LLFirCombinedSyntheticFunctionSymbolProvider.merge(session, syntheticFunctionSymbolProviders))
+        destination.addIfNotNull(LLFirCombinedSyntheticFunctionSymbolProvider.merge(session, syntheticFunctionSymbolProviders))
     }
 }
 

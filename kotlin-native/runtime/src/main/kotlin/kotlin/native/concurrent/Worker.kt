@@ -128,6 +128,7 @@ public value class Worker @PublishedApi internal constructor(val id: Int) {
      * @throws [IllegalArgumentException] on negative values of [afterMicroseconds].
      * @throws [IllegalStateException] if [operation] parameter is not frozen and worker is not current.
      */
+    @OptIn(ExperimentalStdlibApi::class)
     public fun executeAfter(afterMicroseconds: Long = 0, operation: () -> Unit): Unit {
         val current = currentInternal()
         if (Platform.memoryModel != MemoryModel.EXPERIMENTAL && current != id && !operation.isFrozen) throw IllegalStateException("Job for another worker must be frozen")

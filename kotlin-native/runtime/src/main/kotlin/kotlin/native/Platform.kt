@@ -11,6 +11,7 @@ import kotlin.native.internal.IntrinsicType
 /**
  * Operating system family.
  */
+@ExperimentalStdlibApi
 public enum class OsFamily {
     UNKNOWN,
     MACOSX,
@@ -26,6 +27,7 @@ public enum class OsFamily {
 /**
  * Central Processor Unit architecture.
  */
+@ExperimentalStdlibApi
 public enum class CpuArchitecture(val bitness: Int) {
     UNKNOWN(-1),
     ARM32(32),
@@ -41,6 +43,7 @@ public enum class CpuArchitecture(val bitness: Int) {
  * Memory model.
  */
 // NOTE: Must match `MemoryModel` in `Memory.h`
+@ExperimentalStdlibApi
 public enum class MemoryModel {
     STRICT,
     RELAXED,
@@ -50,6 +53,7 @@ public enum class MemoryModel {
 /**
  * Object describing the current platform program executes upon.
  */
+@ExperimentalStdlibApi
 public object Platform {
     /**
      * Check if current architecture allows unaligned access to wider than byte locations.

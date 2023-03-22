@@ -15,6 +15,9 @@ import org.jetbrains.kotlin.analysis.project.structure.getKtModule
 import org.jetbrains.kotlin.analysis.providers.KotlinDeclarationProvider
 import org.jetbrains.kotlin.analysis.providers.createDeclarationProvider
 import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.caches.createCache
+import org.jetbrains.kotlin.fir.caches.firCachesFactory
+import org.jetbrains.kotlin.fir.caches.getValue
 import org.jetbrains.kotlin.fir.resolve.providers.FirSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.providers.FirSymbolProviderInternals
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
@@ -74,10 +77,12 @@ internal class LLFirCombinedKotlinSymbolProvider(
         }
     }
 
-    @OptIn(FirSymbolProviderInternals::class)
-    override fun getClassLikeSymbolByClassId(classId: ClassId): FirClassLikeSymbol<*>? {
-        if (!symbolNameCache.mayHaveTopLevelClassifier(classId, mayHaveFunctionClass = false)) return null
+    private val classifierCache = session.firCachesFactory.createCache<ClassId, FirClassLikeSymbol<*>?> { classId ->
+        computeClassLikeSymbolByClassId(classId)
+    }
 
+    @OptIn(FirSymbolProviderInternals::class)
+    private fun computeClassLikeSymbolByClassId(classId: ClassId): FirClassLikeSymbol<*>? {
         val candidates = declarationProvider.getAllClassesByClassId(classId) + declarationProvider.getAllTypeAliasesByClassId(classId)
         if (candidates.isEmpty()) return null
 
@@ -107,6 +112,11 @@ internal class LLFirCombinedKotlinSymbolProvider(
         // The provider will always be found at this point, because `modulePrecedenceMap` contains the same keys as `providersByKtModule`
         // and a precedence for `ktModule` must have been found in the previous step.
         return providersByKtModule[ktModule]!!.getClassLikeSymbolByClassId(classId, ktClass)
+    }
+
+    override fun getClassLikeSymbolByClassId(classId: ClassId): FirClassLikeSymbol<*>? {
+        if (!symbolNameCache.mayHaveTopLevelClassifier(classId, mayHaveFunctionClass = false)) return null
+        return classifierCache.getValue(classId)
     }
 
     @FirSymbolProviderInternals

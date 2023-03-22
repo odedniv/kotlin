@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.build.GeneratedFile
 import org.jetbrains.kotlin.build.GeneratedJvmClass
 import org.jetbrains.kotlin.build.report.*
 import org.jetbrains.kotlin.build.report.metrics.*
+import org.jetbrains.kotlin.buildtools.api.compilation.ClasspathChanges
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
@@ -39,12 +40,12 @@ import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.cli.jvm.config.configureJdkClasspathRoots
 import org.jetbrains.kotlin.config.*
-import org.jetbrains.kotlin.incremental.ClasspathChanges.ClasspathSnapshotDisabled
-import org.jetbrains.kotlin.incremental.ClasspathChanges.ClasspathSnapshotEnabled.IncrementalRun.NoChanges
-import org.jetbrains.kotlin.incremental.ClasspathChanges.ClasspathSnapshotEnabled.IncrementalRun.ToBeComputedByIncrementalCompiler
-import org.jetbrains.kotlin.incremental.ClasspathChanges.ClasspathSnapshotEnabled.NotAvailableDueToMissingClasspathSnapshot
-import org.jetbrains.kotlin.incremental.ClasspathChanges.ClasspathSnapshotEnabled.NotAvailableForNonIncrementalRun
-import org.jetbrains.kotlin.incremental.ClasspathChanges.NotAvailableForJSCompiler
+import org.jetbrains.kotlin.buildtools.api.compilation.ClasspathChanges.ClasspathSnapshotDisabled
+import org.jetbrains.kotlin.buildtools.api.compilation.ClasspathChanges.ClasspathSnapshotEnabled.IncrementalRun.NoChanges
+import org.jetbrains.kotlin.buildtools.api.compilation.ClasspathChanges.ClasspathSnapshotEnabled.IncrementalRun.ToBeComputedByIncrementalCompiler
+import org.jetbrains.kotlin.buildtools.api.compilation.ClasspathChanges.ClasspathSnapshotEnabled.NotAvailableDueToMissingClasspathSnapshot
+import org.jetbrains.kotlin.buildtools.api.compilation.ClasspathChanges.ClasspathSnapshotEnabled.NotAvailableForNonIncrementalRun
+import org.jetbrains.kotlin.buildtools.api.compilation.ClasspathChanges.NotAvailableForJSCompiler
 import org.jetbrains.kotlin.incremental.classpathDiff.*
 import org.jetbrains.kotlin.incremental.classpathDiff.ClasspathChangesComputer.computeClasspathChanges
 import org.jetbrains.kotlin.incremental.components.ExpectActualTracker

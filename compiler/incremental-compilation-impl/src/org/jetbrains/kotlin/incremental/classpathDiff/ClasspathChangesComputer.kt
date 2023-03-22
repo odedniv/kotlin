@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.build.report.debug
 import org.jetbrains.kotlin.build.report.metrics.BuildMetricsReporter
 import org.jetbrains.kotlin.build.report.metrics.BuildTime
 import org.jetbrains.kotlin.build.report.metrics.measure
+import org.jetbrains.kotlin.buildtools.api.compilation.ClasspathSnapshotFiles
 import org.jetbrains.kotlin.incremental.*
 import org.jetbrains.kotlin.incremental.classpathDiff.BreadthFirstSearch.findReachableNodes
 import org.jetbrains.kotlin.incremental.classpathDiff.ClasspathSnapshotShrinker.shrinkClasspath

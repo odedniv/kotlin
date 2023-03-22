@@ -16,7 +16,7 @@
 
 package org.jetbrains.kotlin.daemon.common
 
-import org.jetbrains.kotlin.incremental.ClasspathChanges
+import org.jetbrains.kotlin.buildtools.api.compilation.ClasspathChanges
 import org.jetbrains.kotlin.incremental.IncrementalModuleInfo
 import java.io.File
 import java.io.Serializable

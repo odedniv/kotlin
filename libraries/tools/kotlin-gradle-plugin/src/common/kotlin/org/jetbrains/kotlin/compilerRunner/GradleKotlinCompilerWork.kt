@@ -20,7 +20,7 @@ import org.jetbrains.kotlin.gradle.tasks.cleanOutputsAndLocalState
 import org.jetbrains.kotlin.gradle.tasks.throwExceptionIfCompilationFailed
 import org.jetbrains.kotlin.gradle.utils.stackTraceAsString
 import org.jetbrains.kotlin.incremental.ChangedFiles
-import org.jetbrains.kotlin.incremental.ClasspathChanges
+import org.jetbrains.kotlin.buildtools.api.compilation.ClasspathChanges
 import org.jetbrains.kotlin.incremental.IncrementalModuleInfo
 import org.jetbrains.kotlin.incremental.util.ExceptionLocation
 import org.jetbrains.kotlin.incremental.util.reportException

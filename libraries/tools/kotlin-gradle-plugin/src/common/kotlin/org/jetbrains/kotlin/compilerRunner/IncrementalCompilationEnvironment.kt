@@ -7,7 +7,7 @@ package org.jetbrains.kotlin.compilerRunner
 
 import org.jetbrains.kotlin.daemon.common.MultiModuleICSettings
 import org.jetbrains.kotlin.incremental.ChangedFiles
-import org.jetbrains.kotlin.incremental.ClasspathChanges
+import org.jetbrains.kotlin.buildtools.api.compilation.ClasspathChanges
 import java.io.File
 import java.io.Serializable
 

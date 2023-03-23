@@ -25,9 +25,14 @@ internal class LLFirModuleWithDependenciesSymbolProvider(
     val providers: List<FirSymbolProvider>,
     val dependencyProvider: LLFirDependenciesSymbolProvider,
 ) : FirSymbolProvider(session) {
-    override fun getClassLikeSymbolByClassId(classId: ClassId): FirClassLikeSymbol<*>? =
-        getClassLikeSymbolByFqNameWithoutDependencies(classId)
-            ?: dependencyProvider.getClassLikeSymbolByClassId(classId)
+    @OptIn(FirSymbolProviderInternals::class)
+    override fun getClassLikeSymbolByClassId(classId: ClassId): FirClassLikeSymbol<*>? {
+        // Should be fast due to interning...
+        if (classId.relativeClassName.asString() == "<error>") return null
+
+        return getClassLikeSymbolByFqNameWithoutDependencies(classId)
+            ?: dependencyProvider.getClassLikeSymbolByClassIdWithoutNameChecks(classId)
+    }
 
     fun getClassLikeSymbolByFqNameWithoutDependencies(classId: ClassId): FirClassLikeSymbol<*>? =
         providers.firstNotNullOfOrNull { it.getClassLikeSymbolByClassId(classId) }
@@ -97,8 +102,18 @@ internal class LLFirDependenciesSymbolProvider(
         }
     }
 
-    override fun getClassLikeSymbolByClassId(classId: ClassId): FirClassLikeSymbol<*>? =
-        providers.firstNotNullOfOrNull { it.getClassLikeSymbolByClassId(classId) }
+    @OptIn(FirSymbolProviderInternals::class)
+    override fun getClassLikeSymbolByClassId(classId: ClassId): FirClassLikeSymbol<*>? {
+        // Should be fast due to interning...
+        if (classId.relativeClassName.asString() == "<error>") return null
+
+        return getClassLikeSymbolByClassIdWithoutNameChecks(classId)
+    }
+
+    @FirSymbolProviderInternals
+    fun getClassLikeSymbolByClassIdWithoutNameChecks(classId: ClassId): FirClassLikeSymbol<*>? {
+        return providers.firstNotNullOfOrNull { it.getClassLikeSymbolByClassId(classId) }
+    }
 
     @FirSymbolProviderInternals
     override fun getTopLevelCallableSymbolsTo(destination: MutableList<FirCallableSymbol<*>>, packageFqName: FqName, name: Name) {

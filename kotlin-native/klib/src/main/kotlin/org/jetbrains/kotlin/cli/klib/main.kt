@@ -64,7 +64,7 @@ fun printUsage() {
     println("and the options are:")
     println("\t-repository <path>\twork with the specified repository")
     println("\t-target <name>\tinspect specifics of the given target")
-    println("\t-print-signatures [true|false]\tprint ID signature for every declaration (only for \"contents\" command)")
+    println("\t-print-signatures [true|false]\tprint ID signature for every declaration (only for \"contents\" and \"ir\" commands)")
 }
 
 private fun parseArgs(args: Array<String>): Map<String, List<String>> {
@@ -204,7 +204,7 @@ class Library(val libraryNameOrPath: String, val requestedRepository: String?, v
             get() = TODO("Not needed for ir dumping")
 
         override fun createModuleDeserializer(moduleDescriptor: ModuleDescriptor, klib: KotlinLibrary?, strategyResolver: (String) -> DeserializationStrategy): IrModuleDeserializer {
-            return KlibToolModuleDeserializer(moduleDescriptor, klib ?: error("Expecting kotlin library for $moduleDescriptor"))
+            return KlibToolModuleDeserializer(moduleDescriptor, klib ?: error("Expecting kotlin library for $moduleDescriptor"), strategyResolver)
         }
 
         override fun isBuiltInModule(moduleDescriptor: ModuleDescriptor): Boolean {
@@ -213,12 +213,13 @@ class Library(val libraryNameOrPath: String, val requestedRepository: String?, v
 
         inner class KlibToolModuleDeserializer(
                 module: ModuleDescriptor,
-                klib: KotlinLibrary
+                klib: KotlinLibrary,
+                strategyResolver: (String) -> DeserializationStrategy
         ) : BasicIrModuleDeserializer(
                 this,
                 module,
                 klib,
-                { DeserializationStrategy.ALL },
+                strategyResolver,
                 klib.versions.abiVersion ?: KotlinAbiVersion.CURRENT
         )
     }
@@ -233,13 +234,13 @@ class Library(val libraryNameOrPath: String, val requestedRepository: String?, v
         val typeTranslator = TypeTranslatorImpl(symbolTable, versionSpec, module)
         val irBuiltIns = IrBuiltInsOverDescriptors(module.builtIns, typeTranslator, symbolTable)
         val linker = KlibToolLinker(module, irBuiltIns, symbolTable)
-        (module.allDependencyModules + module).forEach {
-            linker.deserializeFullModule(it, it.kotlinLibrary)
+        module.allDependencyModules.forEach {
+            linker.deserializeOnlyHeaderModule(it, it.kotlinLibrary)
             linker.resolveModuleDeserializer(it, null).init()
         }
+        val irFragment = linker.deserializeFullModule(module, module.kotlinLibrary)
+        linker.resolveModuleDeserializer(module, null).init()
         linker.modulesWithReachableTopLevels.forEach(IrModuleDeserializer::deserializeReachableDeclarations)
-        val deserializer = linker.resolveModuleDeserializer(module, null)
-        val irFragment = deserializer.moduleFragment
         output.append(irFragment.dump(printSignatures = printSignatures))
     }
 

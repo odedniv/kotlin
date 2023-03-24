@@ -367,3 +367,11 @@ task runMocha(type: NodeTask, dependsOn: [testClasses, installMocha, ':kotlin-te
 }
 
 test.dependsOn runMocha
+
+if (BuildPropertiesExtKt.getKotlinStdlibMpp(project.kotlinBuildProperties)) {
+    afterEvaluate {
+        tasks.withType(AbstractPublishToMaven).configureEach {
+            enabled = false
+        }
+    }
+}

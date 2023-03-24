@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.comparators.FirCallableDeclarationComparator
 import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertyAccessor
+import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertyGetter
 import org.jetbrains.kotlin.fir.declarations.utils.*
 import org.jetbrains.kotlin.fir.deserialization.projection
 import org.jetbrains.kotlin.fir.expressions.*
@@ -335,7 +336,6 @@ class FirElementSerializer private constructor(
 
         val local = createChildSerializer(property)
 
-        var hasGetter = false
         var hasSetter = false
 
         val hasAnnotations = property.nonSourceAnnotations(session).isNotEmpty()
@@ -349,13 +349,13 @@ class FirElementSerializer private constructor(
             false, false, false
         )
 
-        val getter = property.getter
-        if (getter != null) {
-            hasGetter = true
-            val accessorFlags = getAccessorFlags(getter, property)
-            if (accessorFlags != defaultAccessorFlags) {
-                builder.getterFlags = accessorFlags
-            }
+        val getter = property.getter ?: with(property) {
+            // since we generate the default accessor on fir2ir anyway (Fir2IrDeclarationStorage.createIrProperty), we have to serialize it accordingly
+            FirDefaultPropertyGetter(source = null, moduleData, origin, returnTypeRef, visibility, symbol)
+        }
+        val getterAccessorFlags = getAccessorFlags(getter, property)
+        if (getterAccessorFlags != defaultAccessorFlags) {
+            builder.getterFlags = getterAccessorFlags
         }
 
         val setter = property.setter
@@ -382,7 +382,7 @@ class FirElementSerializer private constructor(
             ProtoEnumFlags.visibility(normalizeVisibility(property)),
             ProtoEnumFlags.modality(modality),
             ProtoBuf.MemberKind.DECLARATION,
-            property.isVar, hasGetter, hasSetter, hasConstant, property.isConst, property.isLateInit,
+            property.isVar, true, hasSetter, hasConstant, property.isConst, property.isLateInit,
             property.isExternal, property.delegateFieldSymbol != null, property.isExpect
         )
         if (flags != builder.flags) {

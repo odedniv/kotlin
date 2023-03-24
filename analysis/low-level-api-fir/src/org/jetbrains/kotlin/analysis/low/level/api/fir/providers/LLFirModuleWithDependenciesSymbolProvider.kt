@@ -26,12 +26,16 @@ internal class LLFirModuleWithDependenciesSymbolProvider(
     val providers: List<FirSymbolProvider>,
     val dependencyProvider: LLFirDependenciesSymbolProvider,
 ) : FirSymbolProvider(session) {
+    private val classifierCache = ThreadSafeSlruCache<ClassId, FirClassLikeSymbol<*>?>(100, 100)
+
     override fun getClassLikeSymbolByClassId(classId: ClassId): FirClassLikeSymbol<*>? =
         getClassLikeSymbolByFqNameWithoutDependencies(classId)
             ?: dependencyProvider.getClassLikeSymbolByClassId(classId)
 
     fun getClassLikeSymbolByFqNameWithoutDependencies(classId: ClassId): FirClassLikeSymbol<*>? =
-        providers.firstNotNullOfOrNull { it.getClassLikeSymbolByClassId(classId) }
+        classifierCache.getOrCompute(classId) {
+            providers.firstNotNullOfOrNull { it.getClassLikeSymbolByClassId(classId) }
+        }
 
     @FirSymbolProviderInternals
     override fun getTopLevelCallableSymbolsTo(destination: MutableList<FirCallableSymbol<*>>, packageFqName: FqName, name: Name) {

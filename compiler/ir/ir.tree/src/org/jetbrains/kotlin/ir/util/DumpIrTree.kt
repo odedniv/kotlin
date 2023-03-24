@@ -27,10 +27,10 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.utils.Printer
 
-fun IrElement.dump(normalizeNames: Boolean = false, stableOrder: Boolean = false): String =
+fun IrElement.dump(normalizeNames: Boolean = false, stableOrder: Boolean = false, printSignatures: Boolean = false): String =
     try {
         StringBuilder().also { sb ->
-            accept(DumpIrTreeVisitor(sb, normalizeNames, stableOrder), "")
+            accept(DumpIrTreeVisitor(sb, normalizeNames, stableOrder, printSignatures), "")
         }.toString()
     } catch (e: Exception) {
         "(Full dump is not available: ${e.message})\n" + render()
@@ -51,11 +51,12 @@ private fun IrFile.shouldSkipDump(): Boolean {
 class DumpIrTreeVisitor(
     out: Appendable,
     normalizeNames: Boolean = false,
-    private val stableOrder: Boolean = false
+    private val stableOrder: Boolean = false,
+    printSignatures: Boolean = false
 ) : IrElementVisitor<Unit, String> {
 
     private val printer = Printer(out, "  ")
-    private val elementRenderer = RenderIrElementVisitor(normalizeNames, !stableOrder)
+    private val elementRenderer = RenderIrElementVisitor(normalizeNames, !stableOrder, printSignatures)
     private fun IrType.render() = elementRenderer.renderType(this)
 
     private fun List<IrDeclaration>.ordered(): List<IrDeclaration> {

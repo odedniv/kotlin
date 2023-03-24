@@ -26,7 +26,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
 fun IrElement.render() =
     accept(RenderIrElementVisitor(), null)
 
-class RenderIrElementVisitor(normalizeNames: Boolean = false, private val verboseErrorTypes: Boolean = true) :
+class RenderIrElementVisitor(normalizeNames: Boolean = false, private val verboseErrorTypes: Boolean = true, private val printSignatures: Boolean = false) :
     IrElementVisitor<String, Nothing?> {
 
     private val variableNameData = VariableNameData(normalizeNames)
@@ -43,13 +43,14 @@ class RenderIrElementVisitor(normalizeNames: Boolean = false, private val verbos
 
     private fun IrSymbol.renderReference() =
         if (isBound)
-            owner.accept(BoundSymbolReferenceRenderer(variableNameData, verboseErrorTypes), null)
+            owner.accept(BoundSymbolReferenceRenderer(variableNameData, verboseErrorTypes, printSignatures), null)
         else
             "UNBOUND ${javaClass.simpleName}"
 
     private class BoundSymbolReferenceRenderer(
         private val variableNameData: VariableNameData,
         private val verboseErrorTypes: Boolean,
+        private val printSignatures: Boolean,
     ) : IrElementVisitor<String, Nothing?> {
 
         override fun visitElement(element: IrElement, data: Nothing?) = buildTrimEnd {
@@ -69,13 +70,13 @@ class RenderIrElementVisitor(normalizeNames: Boolean = false, private val verbos
             renderTypeParameter(declaration, null, verboseErrorTypes)
 
         override fun visitClass(declaration: IrClass, data: Nothing?) =
-            renderClassWithRenderer(declaration, null, verboseErrorTypes)
+            renderClassWithRenderer(declaration, null, verboseErrorTypes, printSignatures)
 
         override fun visitEnumEntry(declaration: IrEnumEntry, data: Nothing?) =
             renderEnumEntry(declaration)
 
         override fun visitField(declaration: IrField, data: Nothing?) =
-            renderField(declaration, null, verboseErrorTypes)
+            renderField(declaration, null, verboseErrorTypes, printSignatures)
 
         override fun visitVariable(declaration: IrVariable, data: Nothing?) =
             buildTrimEnd {
@@ -255,7 +256,9 @@ class RenderIrElementVisitor(normalizeNames: Boolean = false, private val verbos
     override fun visitSimpleFunction(declaration: IrSimpleFunction, data: Nothing?): String =
         declaration.runTrimEnd {
             "FUN ${renderOriginIfNonTrivial()}" +
-                    "name:$name visibility:$visibility modality:$modality " +
+                    "name:$name " +
+                    renderSignatureIfEnabled(printSignatures) +
+                    "visibility:$visibility modality:$modality " +
                     renderTypeParameters() + " " +
                     renderValueParameterTypes() + " " +
                     "returnType:${renderReturnType(this@RenderIrElementVisitor, verboseErrorTypes)} " +
@@ -282,15 +285,17 @@ class RenderIrElementVisitor(normalizeNames: Boolean = false, private val verbos
     override fun visitProperty(declaration: IrProperty, data: Nothing?): String =
         declaration.runTrimEnd {
             "PROPERTY ${renderOriginIfNonTrivial()}" +
-                    "name:$name visibility:$visibility modality:$modality " +
+                    "name:$name " +
+                    renderSignatureIfEnabled(printSignatures) +
+                    "visibility:$visibility modality:$modality " +
                     renderPropertyFlags()
         }
 
     override fun visitField(declaration: IrField, data: Nothing?): String =
-        renderField(declaration, this, verboseErrorTypes)
+        renderField(declaration, this, verboseErrorTypes, printSignatures)
 
     override fun visitClass(declaration: IrClass, data: Nothing?): String =
-        renderClassWithRenderer(declaration, this, verboseErrorTypes)
+        renderClassWithRenderer(declaration, this, verboseErrorTypes, printSignatures)
 
     override fun visitVariable(declaration: IrVariable, data: Nothing?): String =
         declaration.runTrimEnd {
@@ -528,6 +533,9 @@ internal fun DescriptorRenderer.renderDescriptor(descriptor: DeclarationDescript
         "this@${descriptor.containingDeclaration.name}: ${descriptor.type}"
     else
         render(descriptor)
+
+internal fun IrDeclarationWithName.renderSignatureIfEnabled(printSignatures: Boolean): String =
+    if (printSignatures) "signature:${symbol.signature?.render()} " else ""
 
 internal fun IrDeclaration.renderOriginIfNonTrivial(): String =
     if (origin != IrDeclarationOrigin.DEFINED) "$origin " else ""
@@ -845,10 +853,12 @@ private fun StringBuilder.renderAsAnnotationArgument(irElement: IrElement?, rend
     }
 }
 
-private fun renderClassWithRenderer(declaration: IrClass, renderer: RenderIrElementVisitor?, verboseErrorTypes: Boolean) =
+private fun renderClassWithRenderer(declaration: IrClass, renderer: RenderIrElementVisitor?, verboseErrorTypes: Boolean, printSignatures: Boolean) =
     declaration.runTrimEnd {
         "CLASS ${renderOriginIfNonTrivial()}" +
-                "$kind name:$name modality:$modality visibility:$visibility " +
+                "$kind name:$name " +
+                renderSignatureIfEnabled(printSignatures) +
+                "modality:$modality visibility:$visibility " +
                 renderClassFlags() +
                 "superTypes:[${superTypes.joinToString(separator = "; ") { it.renderTypeWithRenderer(renderer, verboseErrorTypes) }}]"
     }
@@ -857,8 +867,8 @@ private fun renderEnumEntry(declaration: IrEnumEntry) = declaration.runTrimEnd {
     "ENUM_ENTRY ${renderOriginIfNonTrivial()}name:$name"
 }
 
-private fun renderField(declaration: IrField, renderer: RenderIrElementVisitor?, verboseErrorTypes: Boolean) = declaration.runTrimEnd {
-    "FIELD ${renderOriginIfNonTrivial()}name:$name type:${
+private fun renderField(declaration: IrField, renderer: RenderIrElementVisitor?, verboseErrorTypes: Boolean, printSignatures: Boolean) = declaration.runTrimEnd {
+    "FIELD ${renderOriginIfNonTrivial()}name:$name ${renderSignatureIfEnabled(printSignatures)} type:${
         type.renderTypeWithRenderer(
             renderer,
             verboseErrorTypes

@@ -12,9 +12,9 @@ import org.jetbrains.kotlin.backend.common.serialization.DeserializationStrategy
 import org.jetbrains.kotlin.backend.common.serialization.IrModuleDeserializer
 import org.jetbrains.kotlin.backend.common.serialization.KotlinIrLinker
 import org.jetbrains.kotlin.backend.common.serialization.metadata.DynamicTypeDeserializer
-import org.jetbrains.kotlin.backend.konan.serialization.AbstractKonanIrMangler
 import org.jetbrains.kotlin.backend.konan.serialization.KonanIdSignaturer
 import org.jetbrains.kotlin.backend.konan.serialization.KonanManglerDesc
+import org.jetbrains.kotlin.backend.konan.serialization.KonanManglerIr
 import org.jetbrains.kotlin.builtins.konan.KonanBuiltIns
 import org.jetbrains.kotlin.config.ApiVersion
 import org.jetbrains.kotlin.config.LanguageVersion
@@ -195,7 +195,7 @@ class Library(val libraryNameOrPath: String, val requestedRepository: String?, v
         override val fakeOverrideBuilder = FakeOverrideBuilder(
                 linker = this,
                 symbolTable = symbolTable,
-                mangler = object : AbstractKonanIrMangler(false) {},
+                mangler = KonanManglerIr,
                 typeSystem = IrTypeSystemContextImpl(builtIns),
                 friendModules = emptyMap(),
                 partialLinkageEnabled = true
@@ -224,7 +224,7 @@ class Library(val libraryNameOrPath: String, val requestedRepository: String?, v
     }
 
     @OptIn(ObsoleteDescriptorBasedAPI::class)
-    fun ir(output: Appendable) {
+    fun ir(output: Appendable, printSignatures: Boolean) {
         val module = loadModule()
         if (module.kotlinLibrary.isInterop) error("Cannot deserialize interop library")
         val versionSpec = LanguageVersionSettingsImpl(currentLanguageVersion, currentApiVersion)
@@ -240,7 +240,7 @@ class Library(val libraryNameOrPath: String, val requestedRepository: String?, v
         linker.modulesWithReachableTopLevels.forEach(IrModuleDeserializer::deserializeReachableDeclarations)
         val deserializer = linker.resolveModuleDeserializer(module, null)
         val irFragment = deserializer.moduleFragment
-        output.append(irFragment.dump())
+        output.append(irFragment.dump(printSignatures = printSignatures))
     }
 
     fun contents(output: Appendable, printSignatures: Boolean) {
@@ -309,7 +309,7 @@ fun main(args: Array<String>) {
     val library = Library(command.library, repository, target)
 
     when (command.verb) {
-        "ir" -> library.ir(System.out)
+        "ir" -> library.ir(System.out, printSignatures)
         "contents" -> library.contents(System.out, printSignatures)
         "signatures" -> library.signatures(System.out)
         "info" -> library.info()

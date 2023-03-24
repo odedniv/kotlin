@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.analysis.low.level.api.fir.providers
 
+import org.jetbrains.kotlin.analysis.low.level.api.fir.caches.ThreadSafeSlruCache
 import org.jetbrains.kotlin.analysis.utils.collections.buildSmartList
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.resolve.providers.FirSymbolProvider
@@ -97,8 +98,12 @@ internal class LLFirDependenciesSymbolProvider(
         }
     }
 
+    private val classifierCache = ThreadSafeSlruCache<ClassId, FirClassLikeSymbol<*>?>(250, 250)
+
     override fun getClassLikeSymbolByClassId(classId: ClassId): FirClassLikeSymbol<*>? =
-        providers.firstNotNullOfOrNull { it.getClassLikeSymbolByClassId(classId) }
+        classifierCache.getOrCompute(classId) {
+            providers.firstNotNullOfOrNull { it.getClassLikeSymbolByClassId(classId) }
+        }
 
     @FirSymbolProviderInternals
     override fun getTopLevelCallableSymbolsTo(destination: MutableList<FirCallableSymbol<*>>, packageFqName: FqName, name: Name) {

@@ -167,7 +167,7 @@ class IrBuiltInsOverDescriptors(
                 0, SourceElement.NO_SOURCE, LockBasedStorageManager.NO_LOCKS
             ).apply {
                 addUpperBound(any)
-                setInitialized()
+                setTypeInitialized()
             }
 
             valueKotlinType = typeParameterDescriptor.typeConstructor.makeNullableType()

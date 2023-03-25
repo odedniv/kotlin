@@ -68,6 +68,7 @@ class LazyTypeAliasDescriptor(
         this.expandedTypeImpl = lazyExpandedType
         this.defaultTypeImpl = storageManager.createLazyValue { computeDefaultType() }
         this.classDescriptorImpl = storageManager.createRecursionTolerantNullableLazyValue({ computeClassDescriptor() }, null)
+        initialize()
     }
 
     private fun computeClassDescriptor(): ClassDescriptor? {

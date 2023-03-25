@@ -83,7 +83,7 @@ fun CallableMemberDescriptor.createTypeParameterWithNewName(
     descriptor.upperBounds.forEach {
         newDescriptor.addUpperBound(it)
     }
-    newDescriptor.setInitialized()
+    newDescriptor.setTypeInitialized()
     return newDescriptor
 }
 

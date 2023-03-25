@@ -38,7 +38,7 @@ open class AbstractAccessorForFunctionDescriptor(
         for (upperBound in it.upperBounds) {
             copy.addUpperBound(upperBound)
         }
-        copy.setInitialized()
+        copy.setTypeInitialized()
         copy
     }
 

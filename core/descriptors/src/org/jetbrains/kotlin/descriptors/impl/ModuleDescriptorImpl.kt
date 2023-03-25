@@ -105,8 +105,9 @@ class ModuleDescriptorImpl @JvmOverloads constructor(
         )
     }
 
-    private val isInitialized: Boolean
-        get() = packageFragmentProviderForModuleContent != null
+    override fun isInitialized(): Boolean {
+        return packageFragmentProviderForModuleContent != null
+    }
 
     fun setDependencies(dependencies: ModuleDependencies) {
         assert(this.dependencies == null) { "Dependencies of $id were already set" }

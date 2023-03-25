@@ -6,7 +6,6 @@
 package org.jetbrains.kotlin.types.expressions
 
 import com.google.common.collect.Lists
-import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.builtins.*
 import org.jetbrains.kotlin.config.LanguageFeature
@@ -22,8 +21,11 @@ import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.checkReservedPrefixWord
 import org.jetbrains.kotlin.psi.psiUtil.checkReservedYieldBeforeLambda
 import org.jetbrains.kotlin.psi.psiUtil.getAnnotationEntries
-import org.jetbrains.kotlin.resolve.*
+import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingContext.EXPECTED_RETURN_TYPE
+import org.jetbrains.kotlin.resolve.BindingContextUtils
+import org.jetbrains.kotlin.resolve.BindingTrace
+import org.jetbrains.kotlin.resolve.FunctionDescriptorUtil
 import org.jetbrains.kotlin.resolve.calls.context.ContextDependency
 import org.jetbrains.kotlin.resolve.calls.inference.BuilderInferenceSession
 import org.jetbrains.kotlin.resolve.calls.inference.model.TypeVariableTypeConstructor
@@ -42,7 +44,6 @@ import org.jetbrains.kotlin.types.expressions.typeInfoFactory.createTypeInfo
 import org.jetbrains.kotlin.types.typeUtil.contains
 import org.jetbrains.kotlin.types.typeUtil.isUnit
 import org.jetbrains.kotlin.utils.addIfNotNull
-import java.util.*
 
 internal class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : ExpressionTypingVisitor(facade) {
 
@@ -215,25 +216,23 @@ internal class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : Expre
             expression.getAnnotationEntries(),
             context.trace
         )
-        return ProgressManager.getInstance().computeInNonCancelableSection<AnonymousFunctionDescriptor, Exception> {
-            val functionDescriptor = AnonymousFunctionDescriptor(
-                context.scope.ownerDescriptor,
-                annotations,
-                CallableMemberDescriptor.Kind.DECLARATION, functionLiteral.toSourceElement(),
-                context.expectedType.isSuspendFunctionType()
-            ).let {
-                facade.components.typeResolutionInterceptor.interceptFunctionLiteralDescriptor(expression, context, it)
-            }
-            components.functionDescriptorResolver.initializeFunctionDescriptorAndExplicitReturnType(
-                context.scope.ownerDescriptor, context.scope, functionLiteral,
-                functionDescriptor, context.trace, context.expectedType, context.dataFlowInfo, context.inferenceSession
-            )
-            for (parameterDescriptor in functionDescriptor.valueParameters) {
-                ForceResolveUtil.forceResolveAllContents(parameterDescriptor.annotations)
-            }
-            BindingContextUtils.recordFunctionDeclarationToDescriptor(context.trace, functionLiteral, functionDescriptor)
-            functionDescriptor
+        val functionDescriptor = AnonymousFunctionDescriptor(
+            context.scope.ownerDescriptor,
+            annotations,
+            CallableMemberDescriptor.Kind.DECLARATION, functionLiteral.toSourceElement(),
+            context.expectedType.isSuspendFunctionType()
+        ).let {
+            facade.components.typeResolutionInterceptor.interceptFunctionLiteralDescriptor(expression, context, it)
         }
+        components.functionDescriptorResolver.initializeFunctionDescriptorAndExplicitReturnType(
+            context.scope.ownerDescriptor, context.scope, functionLiteral,
+            functionDescriptor, context.trace, context.expectedType, context.dataFlowInfo, context.inferenceSession
+        )
+        for (parameterDescriptor in functionDescriptor.valueParameters) {
+            ForceResolveUtil.forceResolveAllContents(parameterDescriptor.annotations)
+        }
+        BindingContextUtils.recordFunctionDeclarationToDescriptor(context.trace, functionLiteral, functionDescriptor)
+        return functionDescriptor
     }
 
     private fun KotlinType.isBuiltinFunctionalType() =

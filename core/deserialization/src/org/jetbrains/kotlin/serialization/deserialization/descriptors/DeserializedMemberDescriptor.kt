@@ -183,6 +183,7 @@ class DeserializedTypeAliasDescriptor(
         this.expandedType = expandedType
         typeConstructorParameters = computeConstructorTypeParameters()
         defaultTypeImpl = computeDefaultType()
+        initialize()
     }
 
     override val classDescriptor: ClassDescriptor?

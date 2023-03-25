@@ -54,7 +54,7 @@ public class TypeParameterDescriptorImpl extends AbstractTypeParameterDescriptor
                 containingDeclaration, annotations, reified, variance, name, index, SourceElement.NO_SOURCE, storageManager
         );
         typeParameterDescriptor.addUpperBound(getBuiltIns(containingDeclaration).getDefaultBound());
-        typeParameterDescriptor.setInitialized();
+        typeParameterDescriptor.setTypeInitialized();
         return typeParameterDescriptor;
     }
 
@@ -93,7 +93,7 @@ public class TypeParameterDescriptorImpl extends AbstractTypeParameterDescriptor
     }
 
     private final List<KotlinType> upperBounds = new ArrayList<KotlinType>(1);
-    private boolean initialized = false;
+    private boolean typeInitialized = false;
 
     private TypeParameterDescriptorImpl(
             @NotNull DeclarationDescriptor containingDeclaration,
@@ -111,14 +111,14 @@ public class TypeParameterDescriptorImpl extends AbstractTypeParameterDescriptor
         this.reportCycleError = reportCycleError;
     }
 
-    private void checkInitialized() {
-        if (!initialized) {
+    private void checkTypeInitialized() {
+        if (!typeInitialized) {
             throw new IllegalStateException("Type parameter descriptor is not initialized: " + nameForAssertions());
         }
     }
 
-    private void checkUninitialized() {
-        if (initialized) {
+    private void checkTypeUninitialized() {
+        if (typeInitialized) {
             throw new IllegalStateException("Type parameter descriptor is already initialized: " + nameForAssertions());
         }
     }
@@ -127,13 +127,13 @@ public class TypeParameterDescriptorImpl extends AbstractTypeParameterDescriptor
         return getName() + " declared in " + DescriptorUtils.getFqName(getContainingDeclaration());
     }
 
-    public void setInitialized() {
+    public void setTypeInitialized() {
         checkUninitialized();
-        initialized = true;
+        typeInitialized = true;
     }
 
-    public boolean isInitialized() {
-        return initialized;
+    public boolean isTypeInitialized() {
+        return typeInitialized;
     }
 
     public void addUpperBound(@NotNull KotlinType bound) {
@@ -163,7 +163,7 @@ public class TypeParameterDescriptorImpl extends AbstractTypeParameterDescriptor
     @NotNull
     @Override
     protected List<KotlinType> resolveUpperBounds() {
-        checkInitialized();
+        checkTypeInitialized();
         return upperBounds;
     }
 }

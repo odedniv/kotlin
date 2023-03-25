@@ -56,9 +56,9 @@ import org.jetbrains.kotlin.resolve.source.getPsi
 import org.jetbrains.kotlin.resolve.source.toSourceElement
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.Variance.*
+import org.jetbrains.kotlin.types.error.ErrorScope
 import org.jetbrains.kotlin.types.error.ErrorTypeKind
 import org.jetbrains.kotlin.types.error.ErrorUtils
-import org.jetbrains.kotlin.types.error.ErrorScope
 import org.jetbrains.kotlin.types.error.ThrowingScope
 import org.jetbrains.kotlin.types.extensions.TypeAttributeTranslators
 import org.jetbrains.kotlin.types.typeUtil.*
@@ -273,7 +273,9 @@ class TypeResolver(
                 if (!languageVersionSettings.supportsFeature(LanguageFeature.YieldIsNoMoreReserved)) {
                     checkReservedYield(referenceExpression, c.trace)
                 }
-                c.trace.record(BindingContext.REFERENCE_TARGET, referenceExpression, classifier)
+                InitializableDescriptor.addPostInitAction(classifier) {
+                    c.trace.record(BindingContext.REFERENCE_TARGET, referenceExpression, classifier)
+                }
 
                 result = resolveTypeForClassifier(c, classifier, qualifierResolutionResult, type, annotations)
             }
@@ -366,7 +368,7 @@ class TypeResolver(
             }
 
             private fun KotlinType.isNullableOrUninitializedTypeParameter(): Boolean {
-                if ((constructor.declarationDescriptor as? TypeParameterDescriptorImpl)?.isInitialized == false) {
+                if ((constructor.declarationDescriptor as? TypeParameterDescriptorImpl)?.isTypeInitialized == false) {
                     return true
                 }
 
@@ -429,6 +431,12 @@ class TypeResolver(
                     type: KotlinType,
                     source: SourceElement
                 ) : VariableDescriptorImpl(containingDeclaration, annotations, name, type, source) {
+                    init {
+                        InitializableDescriptor.addPostInitAction(containingDeclaration) {
+                            initialize()
+                        }
+                    }
+
                     override fun getVisibility() = DescriptorVisibilities.LOCAL
 
                     override fun substitute(substitutor: TypeSubstitutor): VariableDescriptor? {
@@ -461,7 +469,9 @@ class TypeResolver(
                         parameterType,
                         parameter.toSourceElement()
                     )
-                    c.trace.record(BindingContext.VALUE_PARAMETER, parameter, descriptor)
+                    InitializableDescriptor.addPostInitAction(c.scope.ownerDescriptor) {
+                        c.trace.record(BindingContext.VALUE_PARAMETER, parameter, descriptor)
+                    }
                     descriptor
                 }
             }

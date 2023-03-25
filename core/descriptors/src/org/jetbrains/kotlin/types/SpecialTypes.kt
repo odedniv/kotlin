@@ -134,7 +134,7 @@ class DefinitelyNotNullType private constructor(
 
             if (type is StubTypeForBuilderInference) return TypeUtils.isNullableType(type)
 
-            if ((type.constructor.declarationDescriptor as? TypeParameterDescriptorImpl)?.isInitialized == false) {
+            if ((type.constructor.declarationDescriptor as? TypeParameterDescriptorImpl)?.isTypeInitialized == false) {
                 return true
             }
 

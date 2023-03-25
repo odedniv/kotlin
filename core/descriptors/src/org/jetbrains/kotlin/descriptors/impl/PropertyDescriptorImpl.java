@@ -145,6 +145,8 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
         this.extensionReceiverParameter = extensionReceiverParameter;
         this.dispatchReceiverParameter = dispatchReceiverParameter;
         this.contextReceiverParameters = contextReceiverParameters;
+
+        initialize();
     }
 
     public void initialize(
@@ -183,11 +185,6 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
             throw new IllegalStateException("typeParameters == null for " + this);
         }
         return parameters;
-    }
-
-    @Override
-    public void validate() {
-        getTypeParameters();
     }
 
     @Override

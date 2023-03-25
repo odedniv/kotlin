@@ -13,7 +13,6 @@ import org.jetbrains.kotlin.descriptors.impl.ValueParameterDescriptorImpl
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
-import java.util.*
 
 fun createSamConstructorFunction(
     owner: DeclarationDescriptor,
@@ -122,7 +121,7 @@ fun recreateAndInitializeTypeParameters(
                     ?: error("couldn't substitute type: $upperBound, substitutor = $typeParametersSubstitutor")
             funTypeParameter.addUpperBound(upperBoundSubstituted)
         }
-        funTypeParameter.setInitialized()
+        funTypeParameter.setTypeInitialized()
     }
     return SamConstructorTypeParameters(interfaceToFunTypeParameters.values.toList(), typeParametersSubstitutor)
 }

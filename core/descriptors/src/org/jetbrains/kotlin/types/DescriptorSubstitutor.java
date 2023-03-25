@@ -101,7 +101,7 @@ public class DescriptorSubstitutor {
 
                 substituted.addUpperBound(substitutedBound);
             }
-            substituted.setInitialized();
+            substituted.setTypeInitialized();
         }
 
         return substitutor;

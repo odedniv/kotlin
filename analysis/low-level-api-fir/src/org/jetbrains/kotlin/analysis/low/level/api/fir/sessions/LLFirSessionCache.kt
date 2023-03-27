@@ -13,7 +13,6 @@ import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
-import com.intellij.util.containers.CollectionFactory
 import org.jetbrains.kotlin.analysis.low.level.api.fir.LLFirGlobalResolveComponents
 import org.jetbrains.kotlin.analysis.low.level.api.fir.LLFirLazyDeclarationResolver
 import org.jetbrains.kotlin.analysis.low.level.api.fir.LLFirModuleResolveComponents
@@ -50,6 +49,7 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.jvm.modules.JavaModuleResolver
 import org.jetbrains.kotlin.resolve.jvm.platform.JvmPlatformAnalyzerServices
 import org.jetbrains.kotlin.utils.addToStdlib.partitionIsInstance
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 
 @OptIn(PrivateSessionConstructor::class, SessionConfiguration::class)
@@ -65,8 +65,8 @@ internal class LLFirSessionCache(private val project: Project) {
     private val globalResolveComponents: LLFirGlobalResolveComponents
         get() = LLFirGlobalResolveComponents.getInstance(project)
 
-    private val sourceCache: ConcurrentMap<KtModule, CachedValue<LLFirSession>> = CollectionFactory.createConcurrentSoftValueMap()
-    private val binaryCache: ConcurrentMap<KtModule, CachedValue<LLFirSession>> = CollectionFactory.createConcurrentSoftValueMap()
+    private val sourceCache: ConcurrentMap<KtModule, CachedValue<LLFirSession>> = ConcurrentHashMap()
+    private val binaryCache: ConcurrentMap<KtModule, CachedValue<LLFirSession>> = ConcurrentHashMap()
 
     /**
      * Returns the existing session if found, or creates a new session and caches it.

@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.analysis.low.level.api.fir.sessions
 
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.search.GlobalSearchScope
@@ -57,6 +58,8 @@ internal class LLFirSessionCache(private val project: Project) {
         fun getInstance(project: Project): LLFirSessionCache {
             return project.getService(LLFirSessionCache::class.java)
         }
+
+        private val LOG: Logger = Logger.getInstance(LLFirSessionCache::class.java)
     }
 
     private val globalResolveComponents: LLFirGlobalResolveComponents
@@ -283,6 +286,8 @@ internal class LLFirSessionCache(private val project: Project) {
     }
 
     private fun createBinaryLibrarySession(module: KtBinaryModule): LLFirLibrarySession {
+        LOG.warn("Create binary library session for: $module")
+
         val platform = module.platform
         val builtinsSession = LLFirBuiltinsSessionFactory.getInstance(project).getBuiltinsSession(platform)
 

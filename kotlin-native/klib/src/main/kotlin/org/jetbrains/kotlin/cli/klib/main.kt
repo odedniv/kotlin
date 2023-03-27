@@ -190,15 +190,15 @@ class Library(val libraryNameOrPath: String, val requestedRepository: String?, v
         library?.libraryFile?.deleteRecursively()
     }
 
-    class KlibToolLinker(module: ModuleDescriptor, irBuiltIns: IrBuiltIns, symbolTable: SymbolTable
-    ) : KotlinIrLinker(module, KlibToolLogger, irBuiltIns, symbolTable, emptyList(), partialLinkageEnabled = true) {
+    class KlibToolLinker(module: ModuleDescriptor, irBuiltIns: IrBuiltIns, symbolTable: SymbolTable, partialLinkageEnabled: Boolean
+    ) : KotlinIrLinker(module, KlibToolLogger, irBuiltIns, symbolTable, emptyList(), partialLinkageEnabled = partialLinkageEnabled) {
         override val fakeOverrideBuilder = FakeOverrideBuilder(
                 linker = this,
                 symbolTable = symbolTable,
                 mangler = KonanManglerIr,
                 typeSystem = IrTypeSystemContextImpl(builtIns),
                 friendModules = emptyMap(),
-                partialLinkageEnabled = true
+                partialLinkageEnabled = partialLinkageEnabled
         )
         override val translationPluginContext: TranslationPluginContext
             get() = TODO("Not needed for ir dumping")
@@ -225,15 +225,15 @@ class Library(val libraryNameOrPath: String, val requestedRepository: String?, v
     }
 
     @OptIn(ObsoleteDescriptorBasedAPI::class)
-    fun ir(output: Appendable, printSignatures: Boolean) {
+    fun ir(output: Appendable, printSignatures: Boolean, partialLinkageEnabled: Boolean) {
         val module = loadModule()
-        if (module.kotlinLibrary.isInterop) error("Cannot deserialize interop library")
+        if (module.kotlinLibrary.isInterop) error("Deserializing IR from IR-less libraries is not supported yet")
         val versionSpec = LanguageVersionSettingsImpl(currentLanguageVersion, currentApiVersion)
         val idSignaturer = KonanIdSignaturer(KonanManglerDesc)
         val symbolTable = SymbolTable(idSignaturer, IrFactoryImpl)
         val typeTranslator = TypeTranslatorImpl(symbolTable, versionSpec, module)
         val irBuiltIns = IrBuiltInsOverDescriptors(module.builtIns, typeTranslator, symbolTable)
-        val linker = KlibToolLinker(module, irBuiltIns, symbolTable)
+        val linker = KlibToolLinker(module, irBuiltIns, symbolTable, partialLinkageEnabled)
         module.allDependencyModules.forEach {
             linker.deserializeOnlyHeaderModule(it, it.kotlinLibrary)
             linker.resolveModuleDeserializer(it, null).init()
@@ -306,11 +306,12 @@ fun main(args: Array<String>) {
 
     val repository = command.options["-repository"]?.last()
     val printSignatures = command.options["-print-signatures"]?.last()?.toBoolean() == true
+    val partialLinkageEnabled = command.options["-partial-linkage"]?.last()?.toBoolean() == true
 
     val library = Library(command.library, repository, target)
 
     when (command.verb) {
-        "ir" -> library.ir(System.out, printSignatures)
+        "ir" -> library.ir(System.out, printSignatures, partialLinkageEnabled)
         "contents" -> library.contents(System.out, printSignatures)
         "signatures" -> library.signatures(System.out)
         "info" -> library.info()

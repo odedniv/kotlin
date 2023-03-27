@@ -56,7 +56,7 @@ abstract class IncrementalCompilerRunner<
     private val workingDir: File,
     cacheDirName: String,
     protected val reporter: BuildReporter,
-    protected val buildHistoryFile: File,
+    protected val buildHistoryFile: File?,
 
     /**
      * Output directories of the compilation. These include:
@@ -418,7 +418,7 @@ abstract class IncrementalCompilerRunner<
         reporter.measure(BuildTime.CALCULATE_OUTPUT_SIZE) {
             reporter.addMetric(
                 BuildPerformanceMetric.SNAPSHOT_SIZE,
-                buildHistoryFile.length() + lastBuildInfoFile.length() + abiSnapshotFile.length()
+                (buildHistoryFile?.length() ?: 0) + lastBuildInfoFile.length() + abiSnapshotFile.length()
             )
             reporter.addMetric(BuildPerformanceMetric.CACHE_DIRECTORY_SIZE, cacheDirectory.walk().sumOf { it.length() })
         }
@@ -608,16 +608,19 @@ abstract class IncrementalCompilerRunner<
         compilationMode: CompilationMode,
         currentBuildInfo: BuildInfo,
         dirtyData: DirtyData,
-    ) = reporter.measure(BuildTime.IC_WRITE_HISTORY_FILE) {
-        val prevDiffs = BuildDiffsStorage.readFromFile(buildHistoryFile, reporter)?.buildDiffs ?: emptyList()
-        val newDiff = if (compilationMode is CompilationMode.Incremental) {
-            BuildDifference(currentBuildInfo.startTS, true, dirtyData)
-        } else {
-            val emptyDirtyData = DirtyData()
-            BuildDifference(currentBuildInfo.startTS, false, emptyDirtyData)
-        }
+    ) {
+        if (buildHistoryFile == null) return
+        reporter.measure(BuildTime.IC_WRITE_HISTORY_FILE) {
+            val prevDiffs = BuildDiffsStorage.readFromFile(buildHistoryFile, reporter)?.buildDiffs ?: emptyList()
+            val newDiff = if (compilationMode is CompilationMode.Incremental) {
+                BuildDifference(currentBuildInfo.startTS, true, dirtyData)
+            } else {
+                val emptyDirtyData = DirtyData()
+                BuildDifference(currentBuildInfo.startTS, false, emptyDirtyData)
+            }
 
-        BuildDiffsStorage.writeToFile(icContext, buildHistoryFile, BuildDiffsStorage(prevDiffs + newDiff))
+            BuildDiffsStorage.writeToFile(icContext, buildHistoryFile, BuildDiffsStorage(prevDiffs + newDiff))
+        }
     }
 
     companion object {

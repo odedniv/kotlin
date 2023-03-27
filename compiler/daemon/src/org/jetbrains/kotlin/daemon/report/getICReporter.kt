@@ -28,7 +28,7 @@ fun getBuildReporter(
     compilationResults: CompilationResults,
     compilationOptions: IncrementalCompilationOptions
 ): RemoteBuildReporter {
-    val root = compilationOptions.modulesInfo.projectRoot
+    val root = compilationOptions.rootProjectDir
     val reporters = ArrayList<RemoteICReporter>()
 
     if (ReportCategory.IC_MESSAGE.code in compilationOptions.reportCategories) {

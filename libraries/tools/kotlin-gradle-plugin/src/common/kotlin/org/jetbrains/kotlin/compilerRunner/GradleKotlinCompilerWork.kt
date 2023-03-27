@@ -311,6 +311,7 @@ internal class GradleKotlinCompilerWork @Inject constructor(
             outputFiles = outputFiles,
             multiModuleICSettings = icEnv.multiModuleICSettings,
             modulesInfo = incrementalModuleInfo!!,
+            rootProjectDir = icEnv.rootProjectDir,
             kotlinScriptExtensions = kotlinScriptExtensions,
             withAbiSnapshot = icEnv.withAbiSnapshot,
             preciseCompilationResultsBackup = icEnv.preciseCompilationResultsBackup,

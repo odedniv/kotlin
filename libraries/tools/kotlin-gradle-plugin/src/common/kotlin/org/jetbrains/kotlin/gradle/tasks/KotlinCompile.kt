@@ -250,6 +250,8 @@ abstract class KotlinCompile @Inject constructor(
         KotlinJvmCompilerArgumentsContributor(KotlinJvmCompilerArgumentsProvider(this))
     }
 
+    private val projectRootDir = project.rootDir
+
     override fun callCompilerAsync(
         args: K2JVMCompilerArguments,
         kotlinSources: Set<File>,
@@ -271,6 +273,7 @@ abstract class KotlinCompile @Inject constructor(
                 changedFiles = getChangedFiles(inputChanges, incrementalProps),
                 classpathChanges = getClasspathChanges(inputChanges),
                 workingDir = taskBuildCacheableOutputDirectory.get().asFile,
+                rootProjectDir = projectRootDir,
                 usePreciseJavaTracking = usePreciseJavaTracking,
                 disableMultiModuleIC = disableMultiModuleIC,
                 multiModuleICSettings = multiModuleICSettings,

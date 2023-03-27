@@ -95,7 +95,7 @@ abstract class AbstractIncrementalMultiModuleJsCompilerRunnerTest :
         return artifactFile
     }
 
-    override val modulesApiHistory: ModulesApiHistoryJs by lazy { ModulesApiHistoryJs(incrementalModuleInfo) }
+    override val modulesApiHistory: ModulesApiHistoryJs by lazy { ModulesApiHistoryJs(workingDir, incrementalModuleInfo) }
 
     override fun String.asOutputFileName(): String = "$this.js"
     override fun String.asArtifactFileName(): String = "$this.jar"

@@ -6,6 +6,8 @@
 package org.jetbrains.kotlin.incremental
 
 import org.jetbrains.kotlin.build.report.ICReporter
+import org.jetbrains.kotlin.buildtools.api.compilation.IncrementalModuleEntry
+import org.jetbrains.kotlin.buildtools.api.compilation.IncrementalModuleInfo
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.incremental.multiproject.ModulesApiHistory

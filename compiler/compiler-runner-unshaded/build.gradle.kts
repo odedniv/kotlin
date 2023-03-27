@@ -9,6 +9,7 @@ dependencies {
     implementation(project(":kotlin-daemon-client"))
 
     compileOnly(project(":compiler:cli-common"))
+    compileOnly(project(":build-tools-api"))
     compileOnly(project(":kotlin-preloader"))
     compileOnly(project(":compiler:frontend.java"))
     compileOnly(project(":daemon-common"))

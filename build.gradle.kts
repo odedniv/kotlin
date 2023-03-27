@@ -262,7 +262,8 @@ extra["kotlinJpsPluginMavenDependencies"] = listOf(
     ":kotlin-util-io",
     ":kotlin-util-klib",
     ":kotlin-util-klib-metadata",
-    ":native:kotlin-native-utils"
+    ":native:kotlin-native-utils",
+    ":build-tools-api",
 )
 
 extra["kotlinJpsPluginMavenDependenciesNonTransitiveLibs"] = listOf(

@@ -12,12 +12,19 @@ import org.gradle.workers.WorkAction
 import org.gradle.workers.WorkParameters
 import org.jetbrains.kotlin.build.report.metrics.BuildMetricsReporter
 import org.jetbrains.kotlin.buildtools.api.CompilationService
+import org.jetbrains.kotlin.buildtools.api.KotlinLogger
 import org.jetbrains.kotlin.buildtools.api.SharedApiClassesClassLoader
 import org.jetbrains.kotlin.buildtools.api.compilation.*
+import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.compilerRunner.GradleKotlinCompilerWorkArguments
 import org.jetbrains.kotlin.gradle.internal.ClassLoadersCachingBuildService
 import org.jetbrains.kotlin.gradle.internal.ParentClassLoaderProvider
+import org.jetbrains.kotlin.gradle.logging.GradleKotlinLogger
+import org.jetbrains.kotlin.gradle.logging.SL4JKotlinLogger
+import org.jetbrains.kotlin.gradle.plugin.internal.state.TaskLoggers
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilerExecutionStrategy
+import org.jetbrains.kotlin.gradle.tasks.throwExceptionIfCompilationFailed
+import org.slf4j.LoggerFactory
 import java.io.File
 
 internal abstract class BuildToolsApiCompilationWork : WorkAction<BuildToolsApiCompilationWork.BuildToolsApiCompilationParameters> {
@@ -33,6 +40,23 @@ internal abstract class BuildToolsApiCompilationWork : WorkAction<BuildToolsApiC
     private val workArguments
         get() = parameters.compilerWorkArguments.get()
 
+    private val taskPath
+        get() = workArguments.taskPath
+
+    private val log: KotlinLogger by lazy(LazyThreadSafetyMode.NONE) {
+        TaskLoggers.get(taskPath)?.let { GradleKotlinLogger(it).apply { debug("Using '$taskPath' logger") } }
+            ?: run {
+                val logger = LoggerFactory.getLogger("GradleKotlinCompilerWork")
+                val kotlinLogger = if (logger is org.gradle.api.logging.Logger) {
+                    GradleKotlinLogger(logger)
+                } else SL4JKotlinLogger(logger)
+
+                kotlinLogger.apply {
+                    debug("Could not get logger for '$taskPath'. Falling back to sl4j logger")
+                }
+            }
+    }
+
     override fun execute() {
         val classLoader = parameters.classLoadersCachingService.get()
             .getClassLoader(workArguments.compilerFullClasspath, SharedApiClassesClassLoaderProvider)
@@ -47,12 +71,23 @@ internal abstract class BuildToolsApiCompilationWork : WorkAction<BuildToolsApiC
             else -> error("`$strategy` is an unsupported strategy for running via build-tools-api")
         }
         val compilationOptions = prepareCompilationOptions()
-        compilationService.compile(
+        val result = compilationService.compile(
             compilerOptions,
             workArguments.compilerArgs.toList(),
             compilationOptions,
         )
+        throwExceptionIfCompilationFailed(result.asExitCode, workArguments.compilerExecutionSettings.strategy)
+        log.debug("Compilation of $taskPath via the build tools API has finished successfully")
     }
+
+    // temporary adapter property
+    private val CompilationResult.asExitCode
+        get() = when (this) {
+            CompilationResult.COMPILATION_ERROR -> ExitCode.COMPILATION_ERROR
+            CompilationResult.INTERNAL_ERROR -> ExitCode.INTERNAL_ERROR
+            CompilationResult.OOM_ERROR -> ExitCode.OOM_ERROR
+            else -> ExitCode.OK
+        }
 
     private fun prepareCompilationOptions(): CompilationOptions {
         val kotlinScriptExtensions = workArguments.kotlinScriptExtensions.toList()

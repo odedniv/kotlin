@@ -34,7 +34,7 @@ private val ExitCode.asCompilationResult
         else -> error("Unexpected exit code: $this")
     }
 
-val CompilationOptions.asDaemonCompilationOptions: DaemonCompilationOptions
+private val CompilationOptions.asDaemonCompilationOptions: DaemonCompilationOptions
     get() {
         val ktsExtensionsAsArray = if (kotlinScriptExtensions.isEmpty()) null else kotlinScriptExtensions.toTypedArray()
         val reportCategories = arrayOf(ReportCategory.COMPILER_MESSAGE.code, ReportCategory.IC_MESSAGE.code) // TODO: automagically compute the value, related to BasicCompilerServicesWithResultsFacadeServer
@@ -79,7 +79,7 @@ val CompilationOptions.asDaemonCompilationOptions: DaemonCompilationOptions
         }
     }
 
-internal class CompilationServiceImpl : CompilationService {
+private object CompilationServiceImpl : CompilationService {
     override fun compile(compilerOptions: CompilerOptions, arguments: List<String>, compilationOptions: CompilationOptions) =
         when (compilerOptions) {
             is CompilerOptions.Daemon -> compileWithinDaemon(compilerOptions, arguments, compilationOptions)
@@ -96,7 +96,6 @@ internal class CompilationServiceImpl : CompilationService {
         val clientIsAliveFlagFile = compilerOptions.sessionDir.resolve("1") // TODO add managing of the file
         val sessionIsAliveFlagFile = compilerOptions.sessionDir.resolve("2") // TODO add managing of the file
         val messageCollector = DefaultMessageCollectorLoggingAdapter() // TODO: add a logger which will return the messages to the caller via callbacks
-
         val jvmOptions = configureDaemonJVMOptions(
             inheritMemoryLimits = true,
             inheritOtherJvmOptions = false,
@@ -155,6 +154,8 @@ internal class CompilationServiceImpl : CompilationService {
         }
     }
 }
+
+internal class CompilationServiceProxy : CompilationService by CompilationServiceImpl
 
 private class DaemonCompilationResults : CompilationResults,
     UnicastRemoteObject(

@@ -9,7 +9,18 @@ import java.io.File
 
 sealed class CompilerOptions {
     class Daemon(
+        /**
+         * Kotlin daemon classpath
+         */
         val classpath: List<File>,
+        /**
+         * A directory for storing some state of Kotlin daemon
+         */
+        val sessionDir: File,
+        /**
+         * A list of JVM arguments used at the daemon startup
+         */
+        val jvmArguments: List<String>,
     ) : CompilerOptions()
 
     class InProcess : CompilerOptions()

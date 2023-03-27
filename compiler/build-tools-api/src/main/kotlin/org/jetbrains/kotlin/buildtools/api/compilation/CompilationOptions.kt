@@ -21,35 +21,61 @@ abstract class IncrementalCompilationOptions(
     targetPlatform: TargetPlatform,
     kotlinScriptExtensions: List<String>,
     val sourcesChanges: SourcesChanges,
-    // val outputFiles: List<File>,
-    // val workingDir: File,
+    /**
+     * The directories that compiler will clean in the case of fallback to non-incremental compilation.
+     *
+     * If the value is set to `null`, then the default value is calculated as a list of [workingDir] and the classes output directory from the compiler arguments.
+     *
+     * If the value is set explicitly, it must contain the mentioned above default directories.
+     */
+    val outputDirs: List<File>?,
+    /**
+     * A compiler working dir for caches
+     */
+    val workingDir: File,
+    /**
+     * The root project directory, used to resolve relative paths
+     */
+    val rootProjectDir: File,
     // TODO: the following options are not stable
     // val usePreciseJavaTracking: Boolean,
     // val preciseCompilationResultsBackup: Boolean = false,
     // val keepIncrementalCompilationCachesInMemory: Boolean = false,
-    // TODO: probably do not pass the following args directly, automatically determine their values depending on callbacks
-    // reportCategories: Array<Int>,
-    // reportSeverity: Int,
-    // requestedCompilationResults: Array<Int>,
 ) : CompilationOptions(targetPlatform, kotlinScriptExtensions)
 
 class IntraModuleIncrementalCompilationOptions(
     targetPlatform: TargetPlatform,
     kotlinScriptExtensions: List<String>,
     sourcesChanges: SourcesChanges,
-) : IncrementalCompilationOptions(targetPlatform, kotlinScriptExtensions, sourcesChanges)
+    outputDirs: List<File>? = null,
+    workingDir: File,
+    rootProjectDir: File,
+) : IncrementalCompilationOptions(targetPlatform, kotlinScriptExtensions, sourcesChanges, outputDirs, workingDir, rootProjectDir)
 
 class HistoryFilesBasedIncrementalCompilationOptions(
     targetPlatform: TargetPlatform,
     kotlinScriptExtensions: List<String>,
     sourcesChanges: SourcesChanges,
+    outputDirs: List<File>? = null,
+    workingDir: File,
+    rootProjectDir: File,
+    /**
+     * A path where build history of the module will be located
+     */
     val buildHistoryFile: File,
     val useModuleDetection: Boolean, // TODO rename it, the name isn't clear
-) : IncrementalCompilationOptions(targetPlatform, kotlinScriptExtensions, sourcesChanges)
+    /**
+     * Modules meta information required to find their build-history files.
+     */
+    val modulesInfo: IncrementalModuleInfo,
+) : IncrementalCompilationOptions(targetPlatform, kotlinScriptExtensions, sourcesChanges, outputDirs, workingDir, rootProjectDir)
 
 class ClasspathSnapshotBasedIncrementalCompilationOptions(
     targetPlatform: TargetPlatform,
     kotlinScriptExtensions: List<String>,
     sourcesChanges: SourcesChanges,
+    outputDirs: List<File>? = null,
+    workingDir: File,
+    rootProjectDir: File,
     val classpathChanges: ClasspathChanges,
-) : IncrementalCompilationOptions(targetPlatform, kotlinScriptExtensions, sourcesChanges)
+) : IncrementalCompilationOptions(targetPlatform, kotlinScriptExtensions, sourcesChanges, outputDirs, workingDir, rootProjectDir)

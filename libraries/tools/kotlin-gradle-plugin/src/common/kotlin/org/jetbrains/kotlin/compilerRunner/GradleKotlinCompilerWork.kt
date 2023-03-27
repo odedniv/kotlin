@@ -40,14 +40,22 @@ internal class ProjectFilesForCompilation(
     val projectRootFile: File,
     val clientIsAliveFlagFile: File,
     val sessionFlagFile: File,
-    val buildDir: File
+    val buildDir: File,
+    val sessionDir: File,
 ) : Serializable {
-    //TODO
-    constructor(logger: Logger, projectDir:File, buildDir: File, prjectName: String, projectCacheDirProvider: File, sessionDir: File) : this(
+    constructor(
+        logger: Logger,
+        projectDir: File,
+        buildDir: File,
+        projectName: String,
+        projectCacheDirProvider: File,
+        sessionDir: File
+    ) : this(
         projectRootFile = projectDir,
-        clientIsAliveFlagFile = GradleCompilerRunner.getOrCreateClientFlagFile(logger, prjectName),
+        clientIsAliveFlagFile = GradleCompilerRunner.getOrCreateClientFlagFile(logger, projectName),
         sessionFlagFile = GradleCompilerRunner.getOrCreateSessionFlagFile(logger, sessionDir, projectCacheDirProvider),
-        buildDir = buildDir
+        buildDir = buildDir,
+        sessionDir = sessionDir,
     )
 
     companion object {

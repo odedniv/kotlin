@@ -68,7 +68,7 @@ class IncrementalCompilationOptions(
     /**
      * Directories that should be cleared when IC decides to rebuild
      */
-    val outputFiles: List<File>,
+    val outputFiles: List<File>?,
     val multiModuleICSettings: MultiModuleICSettings? = null,
     val modulesInfo: IncrementalModuleInfo? = null,
     /**

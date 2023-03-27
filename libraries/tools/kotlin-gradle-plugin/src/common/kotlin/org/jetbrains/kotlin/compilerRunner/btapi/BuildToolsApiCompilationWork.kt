@@ -38,7 +38,11 @@ internal abstract class BuildToolsApiCompilationWork : WorkAction<BuildToolsApiC
             .getClassLoader(workArguments.compilerFullClasspath, SharedApiClassesClassLoaderProvider)
         val compilationService = CompilationService.loadImplementation(classLoader)
         val compilerOptions = when (val strategy = workArguments.compilerExecutionSettings.strategy) {
-            KotlinCompilerExecutionStrategy.DAEMON -> CompilerOptions.Daemon(workArguments.compilerFullClasspath)
+            KotlinCompilerExecutionStrategy.DAEMON -> CompilerOptions.Daemon(
+                workArguments.compilerFullClasspath,
+                workArguments.projectFiles.sessionDir,
+                workArguments.compilerExecutionSettings.daemonJvmArgs ?: emptyList()
+            )
             KotlinCompilerExecutionStrategy.IN_PROCESS -> CompilerOptions.InProcess()
             else -> error("`$strategy` is an unsupported strategy for running via build-tools-api")
         }
@@ -58,20 +62,31 @@ internal abstract class BuildToolsApiCompilationWork : WorkAction<BuildToolsApiC
             icEnv.disableMultiModuleIC -> IntraModuleIncrementalCompilationOptions(
                 workArguments.targetPlatform,
                 kotlinScriptExtensions,
-                icEnv.changedFiles
+                icEnv.changedFiles,
+                workArguments.outputFiles,
+                icEnv.workingDir,
+                icEnv.rootProjectDir,
             )
             icEnv.classpathChanges is ClasspathChanges.ClasspathSnapshotEnabled -> ClasspathSnapshotBasedIncrementalCompilationOptions(
                 workArguments.targetPlatform,
                 kotlinScriptExtensions,
                 icEnv.changedFiles,
+                workArguments.outputFiles,
+                icEnv.workingDir,
+                icEnv.rootProjectDir,
                 icEnv.classpathChanges,
             )
             else -> HistoryFilesBasedIncrementalCompilationOptions(
                 workArguments.targetPlatform,
                 kotlinScriptExtensions,
                 icEnv.changedFiles,
+                workArguments.outputFiles,
+                icEnv.workingDir,
+                icEnv.rootProjectDir,
                 icEnv.multiModuleICSettings.buildHistoryFile,
                 icEnv.multiModuleICSettings.useModuleDetection,
+                workArguments.incrementalModuleInfo
+                    ?: error("The build is configured to use the history-files based approach, but doesn't provide the modules meta information"),
             )
         }
     }

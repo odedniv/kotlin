@@ -58,7 +58,7 @@ public class FlexibleCachedValue<T : Any>(private val compute: () -> Pair<T, Mod
                     }
                     val (computedValue, computedDependency) = compute()
                     result = computedValue
-                    hardReference = result
+//                    hardReference = result
                     softReference = SoftReference(result)
                     dependency = computedDependency
                     timestamp = computedDependency.modificationCount

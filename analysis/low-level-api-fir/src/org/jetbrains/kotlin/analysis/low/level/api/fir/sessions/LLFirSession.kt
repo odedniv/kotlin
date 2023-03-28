@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.analysis.low.level.api.fir.sessions
 
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.PsiFile
@@ -89,10 +90,15 @@ abstract class LLFirSession(
 
     fun invalidate() {
         isExplicitlyInvalidated.set(true)
+        LOG.warn("Invalidated session `$this`.", RuntimeException())
     }
 
     val isValid: Boolean
         get() = modificationTracker.modificationCount == initialModificationCount
+
+    companion object {
+        val LOG: Logger = Logger.getInstance(LLFirSession::class.java)
+    }
 }
 
 abstract class LLFirModuleSession(

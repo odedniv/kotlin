@@ -71,6 +71,10 @@ internal class LLFirSessionCache(private val project: Project) {
         LowMemoryWatcher.register(::softenCachedValues, LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC, project)
     }
 
+    protected fun finalize() {
+        LOG.warn("Session cache has been collected.")
+    }
+
     /**
      * Returns the existing session if found, or creates a new session and caches it.
      * Analyzable session will be returned for a library module.
@@ -114,6 +118,7 @@ internal class LLFirSessionCache(private val project: Project) {
     private fun softenCachedValues() {
         sourceCache.values.forEach { it.soften() }
         binaryCache.values.forEach { it.soften() }
+        LOG.warn("Softened cached values...")
     }
 
     private fun createSession(module: KtModule): LLFirSession {

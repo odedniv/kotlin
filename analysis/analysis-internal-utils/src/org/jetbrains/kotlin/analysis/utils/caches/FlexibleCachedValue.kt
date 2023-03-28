@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.analysis.utils.org.jetbrains.kotlin.analysis.utils.caches
 
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.reference.SoftReference
 
@@ -52,6 +53,9 @@ public class FlexibleCachedValue<T : Any>(private val compute: () -> Pair<T, Mod
                 // thread might have subsequently acquired the lock and just needs to return the up-to-date value.
                 var result = softReference.get()
                 if (result == null || !isUpToDate()) {
+                    if (result != null) {
+                        LOG.warn("Flexible cached value `$result` is out of date!")
+                    }
                     val (computedValue, computedDependency) = compute()
                     result = computedValue
                     hardReference = result
@@ -78,5 +82,9 @@ public class FlexibleCachedValue<T : Any>(private val compute: () -> Pair<T, Mod
         val dependency = this.dependency ?: return false
         val timestamp = this.timestamp ?: return false
         return dependency.modificationCount == timestamp
+    }
+
+    companion object {
+        private val LOG: Logger = Logger.getInstance(FlexibleCachedValue::class.java)
     }
 }

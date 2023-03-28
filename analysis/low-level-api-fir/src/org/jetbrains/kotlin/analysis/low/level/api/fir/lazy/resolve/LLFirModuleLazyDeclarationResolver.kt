@@ -5,11 +5,13 @@
 
 package org.jetbrains.kotlin.analysis.low.level.api.fir.lazy.resolve
 
+import com.intellij.openapi.progress.ProcessCanceledException
 import org.jetbrains.kotlin.analysis.low.level.api.fir.LLFirModuleResolveComponents
 import org.jetbrains.kotlin.analysis.low.level.api.fir.api.FirDesignationWithFile
 import org.jetbrains.kotlin.analysis.low.level.api.fir.api.throwUnexpectedFirElementError
 import org.jetbrains.kotlin.analysis.low.level.api.fir.api.tryCollectDesignationWithFile
 import org.jetbrains.kotlin.analysis.low.level.api.fir.project.structure.llFirModuleData
+import org.jetbrains.kotlin.analysis.low.level.api.fir.sessions.LLFirSession
 import org.jetbrains.kotlin.analysis.low.level.api.fir.sessions.llFirSession
 import org.jetbrains.kotlin.analysis.low.level.api.fir.transformers.LLFirLazyTransformerExecutor
 import org.jetbrains.kotlin.analysis.low.level.api.fir.transformers.withOnAirDesignation
@@ -207,7 +209,13 @@ private fun handleExceptionFromResolve(
     fromPhase: FirResolvePhase,
     toPhase: FirResolvePhase?
 ): Nothing {
+    if (exception is ProcessCanceledException) {
+        LLFirSession.LOG.warn("Invalidate session from resolve `${firDeclarationToResolve.llFirSession}` due to PCE.")
+    } else {
+        LLFirSession.LOG.warn("Invalidate session from resolve `${firDeclarationToResolve.llFirSession}` due to:", exception)
+    }
     firDeclarationToResolve.llFirSession.invalidate()
+
     rethrowExceptionWithDetails(
         buildString {
             val moduleData = firDeclarationToResolve.llFirModuleData

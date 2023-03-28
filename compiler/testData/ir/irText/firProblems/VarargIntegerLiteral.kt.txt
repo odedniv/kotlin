@@ -1,0 +1,10 @@
+fun <T : Comparable<T>> arrayData(vararg values: T, toArray: @ExtensionFunctionType Function1<Array<T>, Unit>) {
+}
+
+fun box(): String {
+  arrayData<Int>(values = [42], toArray = local fun Array<Int>.<anonymous>() {
+    return Unit
+  }
+)
+  return "OK"
+}

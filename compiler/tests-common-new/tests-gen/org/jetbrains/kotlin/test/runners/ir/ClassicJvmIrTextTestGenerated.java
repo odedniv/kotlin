@@ -2851,6 +2851,12 @@ public class ClassicJvmIrTextTestGenerated extends AbstractClassicJvmIrTextTest 
         public void testVarInInit() throws Exception {
             runTest("compiler/testData/ir/irText/firProblems/VarInInit.kt");
         }
+
+        @Test
+        @TestMetadata("VarargIntegerLiteral.kt")
+        public void testVarargIntegerLiteral() throws Exception {
+            runTest("compiler/testData/ir/irText/firProblems/VarargIntegerLiteral.kt");
+        }
     }
 
     @Nested

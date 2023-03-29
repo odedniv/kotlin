@@ -439,10 +439,18 @@ private fun ConstraintSystemError.toDiagnostic(
         }
 
         is InferredEmptyIntersection -> {
+            val typeVariable = typeVariable as ConeTypeVariable
+            if (typeVariable is ConeTypeParameterBasedTypeVariable &&
+                typeVariable.typeParameterSymbol.containingDeclarationSymbol is FirSyntheticFunctionSymbol
+            ) {
+                errorsToIgnore += this
+                return null
+            }
+
             @Suppress("UNCHECKED_CAST")
             reportInferredIntoEmptyIntersection(
                 source,
-                typeVariable as ConeTypeVariable,
+                typeVariable,
                 incompatibleTypes as Collection<ConeKotlinType>,
                 causingTypes as Collection<ConeKotlinType>,
                 kind,

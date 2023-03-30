@@ -500,32 +500,44 @@ private data class ConstantInitializer(
 
 private fun buildConstantInitializer(
     initializer: ConstantInitializer, nameResolver: NameResolver, parent: StubElement<out PsiElement>
-): KotlinStubBaseImpl<*>? {
-    return when (initializer.constKind) {
-        "BYTE", "B", "SHORT", "S", "LONG", "J", "INT", "I" -> KotlinConstantExpressionStubImpl(
-            parent,
-            KtStubElementTypes.INTEGER_CONSTANT,
-            ConstantValueKind.INTEGER_CONSTANT,
-            StringRef.fromString(((initializer.valueFromClassFile ?: initializer.builtInValue?.intValue) as Number).toString())
-        )
+) {
+    when (initializer.constKind) {
+        "BYTE", "B", "SHORT", "S", "LONG", "J", "INT", "I" -> {
+            val number = (initializer.valueFromClassFile ?: initializer.builtInValue?.intValue) as Number
+            if (number.toLong() < 0) return
+            KotlinConstantExpressionStubImpl(
+                parent,
+                KtStubElementTypes.INTEGER_CONSTANT,
+                ConstantValueKind.INTEGER_CONSTANT,
+                StringRef.fromString(number.toString())
+            )
+        }
         "CHAR", "C" -> KotlinConstantExpressionStubImpl(
             parent,
             KtStubElementTypes.CHARACTER_CONSTANT,
             ConstantValueKind.CHARACTER_CONSTANT,
             StringRef.fromString(String.format("'\\u%04X'", initializer.valueFromClassFile ?: initializer.builtInValue?.intValue))
         )
-        "FLOAT", "F" -> KotlinConstantExpressionStubImpl(
-            parent,
-            KtStubElementTypes.FLOAT_CONSTANT,
-            ConstantValueKind.FLOAT_CONSTANT,
-            StringRef.fromString(((initializer.valueFromClassFile ?: initializer.builtInValue?.floatValue) as Float).toString() + "f")
-        )
-        "DOUBLE", "D" -> KotlinConstantExpressionStubImpl(
-            parent,
-            KtStubElementTypes.FLOAT_CONSTANT,
-            ConstantValueKind.FLOAT_CONSTANT,
-            StringRef.fromString(((initializer.valueFromClassFile ?: initializer.builtInValue?.doubleValue) as Double).toString())
-        )
+        "FLOAT", "F" -> {
+            val value = (initializer.valueFromClassFile ?: initializer.builtInValue?.floatValue) as Float
+            if (value < 0 || value.isNaN() || value.isInfinite()) return
+            KotlinConstantExpressionStubImpl(
+                parent,
+                KtStubElementTypes.FLOAT_CONSTANT,
+                ConstantValueKind.FLOAT_CONSTANT,
+                StringRef.fromString(value.toString() + "f")
+            )
+        }
+        "DOUBLE", "D" -> {
+            val value = (initializer.valueFromClassFile ?: initializer.builtInValue?.doubleValue) as Double
+            if (value < 0 || value.isNaN() || value.isInfinite()) return
+            KotlinConstantExpressionStubImpl(
+                parent,
+                KtStubElementTypes.FLOAT_CONSTANT,
+                ConstantValueKind.FLOAT_CONSTANT,
+                StringRef.fromString(value.toString())
+            )
+        }
         "BOOLEAN", "Z" -> KotlinConstantExpressionStubImpl(
             parent,
             KtStubElementTypes.BOOLEAN_CONSTANT,
@@ -537,12 +549,11 @@ private fun buildConstantInitializer(
             val stringTemplate = KotlinPlaceHolderStubImpl<KtStringTemplateExpression>(
                 parent, KtStubElementTypes.STRING_TEMPLATE
             )
-            return KotlinPlaceHolderWithTextStubImpl<KtSimpleNameStringTemplateEntry>(
+            KotlinPlaceHolderWithTextStubImpl<KtSimpleNameStringTemplateEntry>(
                 stringTemplate,
                 KtStubElementTypes.LITERAL_STRING_TEMPLATE_ENTRY,
                 text
             )
         }
-        else -> null
     }
 }

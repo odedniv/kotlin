@@ -23,9 +23,10 @@ interface TestVersions {
         // https://gradle.org/nightly/
         // Retention policy is 3 months
         const val G_8_0 = "8.0.2"
+        const val G_8_1 = "8.1-rc-2"
         const val MIN_SUPPORTED = minSupportedGradleVersion
         const val MIN_SUPPORTED_KPM = G_7_0
-        const val MAX_SUPPORTED = G_7_6
+        const val MAX_SUPPORTED = G_8_1
     }
 
     object Kotlin {
@@ -61,7 +62,7 @@ interface TestVersions {
         AGP_72(AGP.AGP_72, GradleVersion.version(Gradle.G_7_3), GradleVersion.version(Gradle.G_7_4), JavaVersion.VERSION_11),
         AGP_73(AGP.AGP_73, GradleVersion.version(Gradle.G_7_4), GradleVersion.version(Gradle.G_7_5), JavaVersion.VERSION_11),
         AGP_74(AGP.AGP_74, GradleVersion.version(Gradle.G_7_5), GradleVersion.version(Gradle.G_7_6), JavaVersion.VERSION_11),
-        AGP_80(AGP.AGP_80, GradleVersion.version(Gradle.G_8_0), GradleVersion.version(Gradle.G_8_0), JavaVersion.VERSION_17),
+        AGP_80(AGP.AGP_80, GradleVersion.version(Gradle.G_8_0), GradleVersion.version(Gradle.G_8_1), JavaVersion.VERSION_17),
         ;
     }
 }

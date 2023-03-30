@@ -8,7 +8,7 @@ package org.jetbrains.kotlin.gradle.testbase
 /** Beta versions of Gradle and AGP are checking in multiplatform related tests.
  *  Bumped manually.
  */
-const val BETA_GRADLE = TestVersions.Gradle.G_8_0
+const val BETA_GRADLE = TestVersions.Gradle.G_8_1
 const val BETA_AGP = TestVersions.AGP.AGP_80
 
 /**

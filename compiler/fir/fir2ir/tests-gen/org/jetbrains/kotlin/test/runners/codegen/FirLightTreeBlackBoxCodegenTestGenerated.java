@@ -52212,6 +52212,12 @@ public class FirLightTreeBlackBoxCodegenTestGenerated extends AbstractFirLightTr
         }
 
         @Test
+        @TestMetadata("nestedLoweringStart.kt")
+        public void testNestedLoweringStart() throws Exception {
+            runTest("compiler/testData/codegen/box/valueClasses/nestedLoweringStart.kt");
+        }
+
+        @Test
         @TestMetadata("overrideFunctionWithDefaultParameter.kt")
         public void testOverrideFunctionWithDefaultParameter() throws Exception {
             runTest("compiler/testData/codegen/box/valueClasses/overrideFunctionWithDefaultParameter.kt", TransformersFunctions.getReplaceOptionalJvmInlineAnnotationWithReal());

@@ -278,7 +278,15 @@ private val saveInlineFunctionsBeforeInlining = makeDeclarationTransformerPhase(
 )
 
 private val functionInliningPhase = makeBodyLoweringPhase(
-    { FunctionInlining(it, JsInlineFunctionResolver(it), it.innerClassesSupport) },
+    {
+        FunctionInlining(
+            it,
+            JsInlineFunctionResolver(it),
+            it.innerClassesSupport,
+            alwaysCreateTemporaryVariablesForArguments = true,
+            inlineArgumentsWithTheirOriginalTypeAndOffset = true
+        )
+    },
     name = "FunctionInliningPhase",
     description = "Perform function inlining",
     prerequisite = setOf(saveInlineFunctionsBeforeInlining)

@@ -3,12 +3,15 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
-@file:Suppress("PackageDirectoryMismatch") // Old package for compatibility
+@file:Suppress("PackageDirectoryMismatch", "LeakingThis") // Old package for compatibility
 package org.jetbrains.kotlin.gradle.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.MapProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.wrapper.Wrapper
@@ -23,18 +26,19 @@ import org.jetbrains.kotlin.gradle.plugin.cocoapods.KotlinCocoapodsPlugin.Compan
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.KotlinCocoapodsPlugin.Companion.SYNC_TASK_NAME
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.cocoapodsBuildDirs
 import java.io.File
+import javax.inject.Inject
 
 /**
  * The task generates a podspec file which allows a user to
  * integrate a Kotlin/Native framework into a CocoaPods project.
  */
-open class PodspecTask : DefaultTask() {
+abstract class PodspecTask @Inject constructor() : DefaultTask() {
 
     @get:Input
-    internal val specName = project.objects.property(String::class.java)
+    internal abstract val specName: Property<String>
 
     @get:Internal
-    internal val outputDir = project.objects.property(File::class.java)
+    internal abstract val outputDir: Property<File>
 
     @get:OutputFile
     val outputFile: File
@@ -44,37 +48,37 @@ open class PodspecTask : DefaultTask() {
     internal lateinit var needPodspec: Provider<Boolean>
 
     @get:Nested
-    val pods = project.objects.listProperty(CocoapodsDependency::class.java)
+    abstract val pods: ListProperty<CocoapodsDependency>
 
     @get:Input
-    internal val version = project.objects.property(String::class.java)
+    internal abstract val version: Property<String>
 
     @get:Input
-    internal val publishing = project.objects.property(Boolean::class.java)
-
-    @get:Input
-    @get:Optional
-    internal val source = project.objects.property(String::class.java)
+    internal abstract val publishing: Property<Boolean>
 
     @get:Input
     @get:Optional
-    internal val homepage = project.objects.property(String::class.java)
+    internal abstract val source: Property<String>
 
     @get:Input
     @get:Optional
-    internal val license = project.objects.property(String::class.java)
+    internal abstract val homepage: Property<String>
 
     @get:Input
     @get:Optional
-    internal val authors = project.objects.property(String::class.java)
+    internal abstract val license: Property<String>
 
     @get:Input
     @get:Optional
-    internal val summary = project.objects.property(String::class.java)
+    internal abstract val authors: Property<String>
 
     @get:Input
     @get:Optional
-    internal val extraSpecAttributes = project.objects.mapProperty(String::class.java, String::class.java)
+    internal abstract val summary: Property<String>
+
+    @get:Input
+    @get:Optional
+    internal abstract val extraSpecAttributes: MapProperty<String, String>
 
     @get:Input
     internal lateinit var frameworkName: Provider<String>
@@ -106,17 +110,17 @@ open class PodspecTask : DefaultTask() {
                 Pod version format has to conform podspec syntax requirements: https://guides.cocoapods.org/syntax/podspec.html#version 
             """.trimIndent()
         }
-
-        val gradleWrapper = (project.rootProject.tasks.getByName("wrapper") as? Wrapper)?.scriptFile
-        require(gradleWrapper != null && gradleWrapper.exists()) {
-            """
-            The Gradle wrapper is required to run the build from Xcode.
-
-            Please run the same command with `-P$GENERATE_WRAPPER_PROPERTY=true` or run the `:wrapper` task to generate the wrapper manually.
-
-            See details about the wrapper at https://docs.gradle.org/current/userguide/gradle_wrapper.html
-            """.trimIndent()
-        }
+// Remove this check preferably
+//        val gradleWrapper = (project.rootProject.tasks.getByName("wrapper") as? Wrapper)?.scriptFile
+//        require(gradleWrapper != null && gradleWrapper.exists()) {
+//            """
+//            The Gradle wrapper is required to run the build from Xcode.
+//
+//            Please run the same command with `-P$GENERATE_WRAPPER_PROPERTY=true` or run the `:wrapper` task to generate the wrapper manually.
+//
+//            See details about the wrapper at https://docs.gradle.org/current/userguide/gradle_wrapper.html
+//            """.trimIndent()
+//        }
 
         val deploymentTargets = run {
             listOf(ios, osx, tvos, watchos).map { it.get() }.filter { it.deploymentTarget != null }.joinToString("\n") {
@@ -142,6 +146,8 @@ open class PodspecTask : DefaultTask() {
                 |        'PRODUCT_MODULE_NAME' => '${frameworkName.get()}',
                 |    }
             """.trimMargin()
+
+        project.gradle.startParameter.currentDir
 
         val gradleCommand = "\$REPO_ROOT/${gradleWrapper.relativeTo(project.projectDir).invariantSeparatorsPath}"
         val scriptPhase = if (publishing.get() || extraSpecAttributes.get().containsKey("script_phases")) "" else

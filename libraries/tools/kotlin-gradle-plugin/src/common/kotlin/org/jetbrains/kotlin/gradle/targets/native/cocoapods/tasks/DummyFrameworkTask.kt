@@ -7,6 +7,7 @@
 package org.jetbrains.kotlin.gradle.tasks
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
@@ -14,6 +15,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.cocoapodsBuildDirs
 import java.io.File
+import javax.inject.Inject
 
 /**
  * Creates a dummy framework in the target directory.
@@ -26,7 +28,7 @@ import java.io.File
  * So we create a dummy static framework to allow CocoaPods install our pod correctly
  * and then replace it with the real one during a real build process.
  */
-abstract class DummyFrameworkTask : DefaultTask() {
+abstract class DummyFrameworkTask @Inject constructor(projectLayout: ProjectLayout) : DefaultTask() {
 
     @get:Input
     abstract val frameworkName: Property<String>
@@ -35,7 +37,7 @@ abstract class DummyFrameworkTask : DefaultTask() {
     abstract val useStaticFramework: Property<Boolean>
 
     @get:OutputDirectory
-    val outputFramework: Provider<File> = project.provider { project.cocoapodsBuildDirs.dummyFramework }
+    val outputFramework: Provider<File> = projectLayout.cocoapodsBuildDirs.dummyFramework.map { it.asFile }
 
     private val dummyFrameworkResource: String
         get() {

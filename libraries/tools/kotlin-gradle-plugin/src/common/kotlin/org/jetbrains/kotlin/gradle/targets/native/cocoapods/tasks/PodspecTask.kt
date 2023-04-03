@@ -8,13 +8,13 @@ package org.jetbrains.kotlin.gradle.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
-import org.gradle.api.tasks.wrapper.Wrapper
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.dsl.multiplatformExtensionOrNull
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.CocoapodsExtension
@@ -22,7 +22,6 @@ import org.jetbrains.kotlin.gradle.plugin.cocoapods.CocoapodsExtension.Cocoapods
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.CocoapodsExtension.PodspecPlatformSettings
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.KotlinCocoapodsPlugin
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.KotlinCocoapodsPlugin.Companion.COCOAPODS_EXTENSION_NAME
-import org.jetbrains.kotlin.gradle.plugin.cocoapods.KotlinCocoapodsPlugin.Companion.GENERATE_WRAPPER_PROPERTY
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.KotlinCocoapodsPlugin.Companion.SYNC_TASK_NAME
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.cocoapodsBuildDirs
 import java.io.File
@@ -32,7 +31,7 @@ import javax.inject.Inject
  * The task generates a podspec file which allows a user to
  * integrate a Kotlin/Native framework into a CocoaPods project.
  */
-abstract class PodspecTask @Inject constructor() : DefaultTask() {
+abstract class PodspecTask @Inject constructor(private val projectLayout: ProjectLayout) : DefaultTask() {
 
     @get:Input
     internal abstract val specName: Property<String>
@@ -45,7 +44,7 @@ abstract class PodspecTask @Inject constructor() : DefaultTask() {
         get() = outputDir.get().resolve("${specName.get()}.podspec")
 
     @get:Input
-    internal lateinit var needPodspec: Provider<Boolean>
+    internal abstract val needPodspec: Property<Boolean>
 
     @get:Nested
     abstract val pods: ListProperty<CocoapodsDependency>
@@ -81,19 +80,25 @@ abstract class PodspecTask @Inject constructor() : DefaultTask() {
     internal abstract val extraSpecAttributes: MapProperty<String, String>
 
     @get:Input
-    internal lateinit var frameworkName: Provider<String>
+    internal abstract val frameworkName: Property<String>
 
     @get:Nested
-    internal lateinit var ios: Provider<PodspecPlatformSettings>
+    internal abstract val ios: Property<PodspecPlatformSettings>
 
     @get:Nested
-    internal lateinit var osx: Provider<PodspecPlatformSettings>
+    internal abstract val osx: Property<PodspecPlatformSettings>
 
     @get:Nested
-    internal lateinit var tvos: Provider<PodspecPlatformSettings>
+    internal abstract val tvos: Property<PodspecPlatformSettings>
 
     @get:Nested
-    internal lateinit var watchos: Provider<PodspecPlatformSettings>
+    internal abstract val watchos: Property<PodspecPlatformSettings>
+
+    @get:Input
+    internal abstract val gradleWrapperPath: Property<String>
+
+    @get:Input
+    internal abstract val projectPath: Property<String>
 
     init {
         onlyIf { needPodspec.get() }
@@ -134,7 +139,7 @@ abstract class PodspecTask @Inject constructor() : DefaultTask() {
             "|    spec.dependency '${pod.name}'$versionSuffix"
         }.joinToString(separator = "\n")
 
-        val frameworkDir = project.cocoapodsBuildDirs.framework.relativeTo(outputFile.parentFile)
+        val frameworkDir = projectLayout.cocoapodsBuildDirs.framework.get().asFile.relativeTo(outputFile.parentFile)
         val vendoredFramework = if (publishing.get()) "${frameworkName.get()}.xcframework" else frameworkDir.resolve("${frameworkName.get()}.framework").invariantSeparatorsPath
         val vendoredFrameworks = if (extraSpecAttributes.get().containsKey("vendored_frameworks")) "" else "|    spec.vendored_frameworks      = '$vendoredFramework'"
 
@@ -143,12 +148,12 @@ abstract class PodspecTask @Inject constructor() : DefaultTask() {
         val xcConfig = if (publishing.get() || extraSpecAttributes.get().containsKey("pod_target_xcconfig")) "" else
             """ |
                 |    spec.pod_target_xcconfig = {
-                |        'KOTLIN_PROJECT_PATH' => '${if (project.depth != 0) project.path else ""}',
+                |        'KOTLIN_PROJECT_PATH' => '${projectPath.get()}',
                 |        'PRODUCT_MODULE_NAME' => '${frameworkName.get()}',
                 |    }
             """.trimMargin()
 
-        val gradleCommand = "\$REPO_ROOT/${gradleWrapper.relativeTo(project.projectDir).invariantSeparatorsPath}"
+        val gradleCommand = "\$REPO_ROOT/${File(gradleWrapperPath.get()).relativeTo(projectLayout.projectDirectory.asFile).invariantSeparatorsPath}"
         val scriptPhase = if (publishing.get() || extraSpecAttributes.get().containsKey("script_phases")) "" else
             """ |
                 |    spec.script_phases = [
@@ -196,17 +201,18 @@ abstract class PodspecTask @Inject constructor() : DefaultTask() {
         """.trimMargin()
             )
 
-            if (hasPodfileOwnOrParent(project) && publishing.get().not()) {
-                logger.quiet(
-                    """
-                    Generated a podspec file at: ${absolutePath}.
-                    To include it in your Xcode project, check that the following dependency snippet exists in your Podfile:
-
-                    pod '${specName.get()}', :path => '${parentFile.absolutePath}'
-
-            """.trimIndent()
-                )
-            }
+            // TODO bring back
+//            if (hasPodfileOwnOrParent(project) && publishing.get().not()) {
+//                logger.quiet(
+//                    """
+//                    Generated a podspec file at: ${absolutePath}.
+//                    To include it in your Xcode project, check that the following dependency snippet exists in your Podfile:
+//
+//                    pod '${specName.get()}', :path => '${parentFile.absolutePath}'
+//
+//            """.trimIndent()
+//                )
+//            }
 
         }
     }

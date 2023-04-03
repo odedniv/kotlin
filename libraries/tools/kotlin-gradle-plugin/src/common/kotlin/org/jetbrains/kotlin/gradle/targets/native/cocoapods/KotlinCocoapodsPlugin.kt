@@ -62,13 +62,11 @@ internal class CocoapodsBuildDirs(private val layout: ProjectLayout) {
         get() = dir("defs")
     val buildSettings: Provider<Directory>
         get() = dir("buildSettings")
-    val synthetic: Provider<Directory>
-        get() = dir("synthetic")
     val publish: Provider<Directory>
         get() = dir("publish")
 
-    fun synthetic(family: Family): Provider<Directory> {
-        return synthetic.map { it.dir(family.platformLiteral) }
+    fun synthetic(family: Provider<Family>): Provider<Directory> {
+        return dir("synthetic").map { it.dir(family.get().platformLiteral) }
     }
 
     fun fatFramework(buildType: NativeBuildType): Provider<Directory> {
@@ -383,28 +381,30 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
         project: Project,
         cocoapodsExtension: CocoapodsExtension
     ) {
-        project.tasks.register(POD_SPEC_TASK_NAME, PodspecTask::class.java) {
-            it.group = TASK_GROUP
-            it.description = "Generates a podspec file for CocoaPods import"
-            it.needPodspec = project.provider { cocoapodsExtension.needPodspec }
-            it.publishing.set(false)
-            it.pods.set(cocoapodsExtension.pods)
-            it.version.set(cocoapodsExtension.version ?: project.version.toString())
-            it.specName.set(cocoapodsExtension.name)
-            it.extraSpecAttributes.set(cocoapodsExtension.extraSpecAttributes)
-            it.outputDir.set(project.projectDir)
-            it.homepage.set(cocoapodsExtension.homepage)
-            it.license.set(cocoapodsExtension.license)
-            it.authors.set(cocoapodsExtension.authors)
-            it.summary.set(cocoapodsExtension.summary)
-            it.frameworkName = cocoapodsExtension.podFrameworkName
-            it.ios = project.provider { cocoapodsExtension.ios }
-            it.osx = project.provider { cocoapodsExtension.osx }
-            it.tvos = project.provider { cocoapodsExtension.tvos }
-            it.watchos = project.provider { cocoapodsExtension.watchos }
+        project.registerTask<PodspecTask>(POD_SPEC_TASK_NAME) { task ->
+            task.group = TASK_GROUP
+            task.description = "Generates a podspec file for CocoaPods import"
+            task.needPodspec.set(project.provider { cocoapodsExtension.needPodspec })
+            task.publishing.set(false)
+            task.pods.set(cocoapodsExtension.pods)
+            task.version.set(cocoapodsExtension.version ?: project.version.toString())
+            task.specName.set(cocoapodsExtension.name)
+            task.extraSpecAttributes.set(cocoapodsExtension.extraSpecAttributes)
+            task.outputDir.set(project.projectDir)
+            task.homepage.set(cocoapodsExtension.homepage)
+            task.license.set(cocoapodsExtension.license)
+            task.authors.set(cocoapodsExtension.authors)
+            task.summary.set(cocoapodsExtension.summary)
+            task.frameworkName.set(cocoapodsExtension.podFrameworkName)
+            task.ios.set(project.provider { cocoapodsExtension.ios })
+            task.osx.set(project.provider { cocoapodsExtension.osx })
+            task.tvos.set(project.provider { cocoapodsExtension.tvos })
+            task.watchos.set(project.provider { cocoapodsExtension.watchos })
+            task.gradleWrapperPath.set(project.gradleWrapperPath())
+            task.projectPath.set(project.taskProjectPath())
             val generateWrapper = project.findProperty(GENERATE_WRAPPER_PROPERTY)?.toString()?.toBoolean() ?: false
             if (generateWrapper) {
-                it.dependsOn(":wrapper")
+                task.dependsOn(":wrapper")
             }
         }
     }
@@ -551,10 +551,10 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
                 project.registerTask<PodSetupBuildTask>(sdk.toSetupBuildTaskName(pod)) { task ->
                     task.group = TASK_GROUP
                     task.description = "Collect environment variables from .xcworkspace file"
-                    task.pod = project.provider { pod }
-                    task.sdk = project.provider { sdk }
-                    task.podsXcodeProjDir = podInstallTask.map { it.podsXcodeProjDirProvider.get() }
-                    task.frameworkName = cocoapodsExtension.podFrameworkName
+                    task.pod.set(pod)
+                    task.sdk.set(sdk)
+                    task.podsXcodeProjDir.set(podInstallTask.map { it.podsXcodeProjDirProvider.get() })
+                    task.frameworkName.set(cocoapodsExtension.podFrameworkName)
                     task.dependsOn(podInstallTask)
                 }
             }
@@ -699,7 +699,7 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
                 tasks.register(lowerCamelCaseName(POD_FRAMEWORK_PREFIX, "spec", buildType.getName()), PodspecTask::class.java) { task ->
                     task.description = "Generates podspec for ${buildType.getName().capitalizeAsciiOnly()} XCFramework publishing"
                     task.outputDir.set(xcFrameworkTask.map { it.outputDir.resolve(it.buildType.getName()) })
-                    task.needPodspec = provider { true }
+                    task.needPodspec.set(true)
                     task.publishing.set(true)
                     task.pods.set(cocoapodsExtension.pods)
                     task.specName.set(cocoapodsExtension.name)
@@ -710,11 +710,13 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
                     task.authors.set(cocoapodsExtension.authors)
                     task.summary.set(cocoapodsExtension.summary)
                     task.source.set(cocoapodsExtension.source)
-                    task.frameworkName = cocoapodsExtension.podFrameworkName
-                    task.ios = provider { cocoapodsExtension.ios }
-                    task.osx = provider { cocoapodsExtension.osx }
-                    task.tvos = provider { cocoapodsExtension.tvos }
-                    task.watchos = provider { cocoapodsExtension.watchos }
+                    task.frameworkName.set(cocoapodsExtension.podFrameworkName)
+                    task.ios.set(provider { cocoapodsExtension.ios })
+                    task.osx.set(provider { cocoapodsExtension.osx })
+                    task.tvos.set(provider { cocoapodsExtension.tvos })
+                    task.watchos.set(provider { cocoapodsExtension.watchos })
+                    task.gradleWrapperPath.set(gradleWrapperPath())
+                    task.projectPath.set(taskProjectPath())
                     val generateWrapper = project.findProperty(GENERATE_WRAPPER_PROPERTY)?.toString()?.toBoolean() ?: false
                     if (generateWrapper) {
                         task.dependsOn(":wrapper")
@@ -782,6 +784,14 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
                 }
             }
         }
+    }
+
+    private fun Project.gradleWrapperPath(): String {
+        return rootProject.projectDir.resolve("gradlew").path
+    }
+
+    private fun Project.taskProjectPath(): String {
+        return if (project.depth != 0) project.path else ""
     }
 
     override fun apply(project: Project): Unit = with(project) {

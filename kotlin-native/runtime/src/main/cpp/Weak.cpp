@@ -79,7 +79,7 @@ OBJ_GETTER(Konan_getWeakReferenceImpl, ObjHeader* referred) {
 }
 
 // Materialize a weak reference to either null or the real reference.
-OBJ_GETTER(Konan_WeakReferenceCounter_get, ObjHeader* counter) {
+ALWAYS_INLINE OBJ_GETTER(Konan_WeakReferenceCounter_get, ObjHeader* counter) {
   ObjHeader** referredAddress = &asWeakReferenceCounter(counter)->referred;
 #if KONAN_NO_THREADS
   RETURN_OBJ(*referredAddress);

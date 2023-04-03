@@ -54,7 +54,7 @@ struct SweepTraits {
 
 void gc::ConcurrentMarkAndSweep::ThreadData::SafePointAllocation(size_t size) noexcept {
     gcScheduler_.OnSafePointAllocation(size);
-    mm::SuspendIfRequested();
+    mm::SafePoint();
 }
 
 void gc::ConcurrentMarkAndSweep::ThreadData::Schedule() noexcept {
@@ -93,6 +93,10 @@ NO_EXTERNAL_CALLS_CHECK void gc::ConcurrentMarkAndSweep::ThreadData::OnSuspendFo
     auto handle = GCHandle::getByEpoch(epoch);
     gc::collectRootSetForThread<internal::MarkTraits>(handle, markQueue, threadData_);
     gc::Mark<internal::MarkTraits>(handle, markQueue);
+}
+
+mm::ThreadData& gc::ConcurrentMarkAndSweep::ThreadData::CommonThreadData() noexcept {
+    return threadData_;
 }
 
 gc::ConcurrentMarkAndSweep::ConcurrentMarkAndSweep(

@@ -49,6 +49,12 @@ struct WeakCounterPayload {
     KInt cookie;
 
     static constexpr std::array<ObjHeader * WeakCounterPayload::*, 0> kFields{};
+
+    ObjHeader* readWithBarrier() {
+        ObjHeader* result;
+        TryRef(static_cast<ObjHeader*>(referred), &result);
+        return result;
+    }
 };
 
 using WeakCounter = test_support::Object<WeakCounterPayload>;
@@ -359,7 +365,7 @@ TEST_P(ConcurrentMarkAndSweepTest, FreeObjectWithFreeWeak) {
         ASSERT_THAT(Alive(threadData), testing::UnorderedElementsAre(object1.header(), weak1.header()));
         ASSERT_THAT(IsMarked(object1.header()), false);
         ASSERT_THAT(IsMarked(weak1.header()), false);
-        ASSERT_THAT(weak1->referred, object1.header());
+        ASSERT_THAT(weak1->readWithBarrier(), object1.header());
 
         threadData.gc().ScheduleAndWaitFullGCWithFinalizers();
 
@@ -376,13 +382,13 @@ TEST_P(ConcurrentMarkAndSweepTest, FreeObjectWithHoldedWeak) {
         ASSERT_THAT(Alive(threadData), testing::UnorderedElementsAre(object1.header(), weak1.header(), stack.header()));
         ASSERT_THAT(IsMarked(object1.header()), false);
         ASSERT_THAT(IsMarked(weak1.header()), false);
-        ASSERT_THAT(weak1->referred, object1.header());
+        ASSERT_THAT(weak1->readWithBarrier(), object1.header());
 
         threadData.gc().ScheduleAndWaitFullGC();
 
         EXPECT_THAT(Alive(threadData), testing::UnorderedElementsAre(weak1.header(), stack.header()));
         EXPECT_THAT(IsMarked(weak1.header()), false);
-        EXPECT_THAT(weak1->referred, nullptr);
+        EXPECT_THAT(weak1->readWithBarrier(), nullptr);
     });
 }
 
@@ -654,7 +660,8 @@ public:
     template <typename F>
     [[nodiscard]] std::future<void> Execute(F&& f) {
         return executor_.execute(
-                [this, f = std::forward<F>(f)] { f(*executor_.context().memory_->memoryState()->GetThreadData(), *this); });
+                //[this, f = std::forward<F>(f)] { f(*executor_.context().memory_->memoryState()->GetThreadData(), *this); });
+                [this, f = std::forward<F>(f)] { f(executor_.context().threadData_, *this); });
     }
 
     StackObjectHolder& AddStackRoot() {
@@ -698,10 +705,11 @@ public:
 private:
     struct Context {
         std_support::unique_ptr<ScopedMemoryInit> memory_;
+        mm::ThreadData& threadData_;
         std_support::vector<std_support::unique_ptr<StackObjectHolder>> stackRoots_;
         std_support::vector<std_support::unique_ptr<GlobalObjectHolder>> globalRoots_;
 
-        Context() : memory_(std_support::make_unique<ScopedMemoryInit>()) {
+        Context() : memory_(std_support::make_unique<ScopedMemoryInit>()), threadData_(*memory_->memoryState()->GetThreadData()) {
             // SingleThreadExecutor must work in the runnable state, so that GC does not collect between tasks.
             AssertThreadState(memory_->memoryState(), ThreadState::kRunnable);
         }
@@ -741,6 +749,20 @@ TEST_P(ConcurrentMarkAndSweepTest, MultipleMutatorsCollect) {
 
     // Spin until thread suspension is requested.
     while (!mm::IsThreadSuspensionRequested()) {
+    }
+
+    for (int i = 1; i < kDefaultThreadCount; ++i) {
+        gcFutures[i] =
+                mutators[i].Execute([](mm::ThreadData& threadData, Mutator& mutator) { threadData.gc().SafePointFunctionPrologue(); });
+    }
+
+    // wait for gc pause to end
+    for (int i = 1; i < kDefaultThreadCount; ++i) {
+        gcFutures[i].wait();
+    }
+
+    // Spin until thread checkpoint requested
+    while (!mm::IsSafePointActionRequested()) {
     }
 
     for (int i = 1; i < kDefaultThreadCount; ++i) {
@@ -882,6 +904,20 @@ TEST_P(ConcurrentMarkAndSweepTest, MultipleMutatorsAddToRootSetAfterCollectionRe
         });
     }
 
+    // wait for gc pause to end
+    for (int i = 1; i < kDefaultThreadCount; ++i) {
+        gcFutures[i].wait();
+    }
+
+    // Spin until thread checkpoint requested
+    while (!mm::IsSafePointActionRequested()) {
+    }
+
+    for (int i = 1; i < kDefaultThreadCount; ++i) {
+        gcFutures[i] =
+                mutators[i].Execute([](mm::ThreadData& threadData, Mutator& mutator) { threadData.gc().SafePointFunctionPrologue(); });
+    }
+
     for (auto& future : gcFutures) {
         future.wait();
     }
@@ -945,6 +981,20 @@ TEST_P(ConcurrentMarkAndSweepTest, CrossThreadReference) {
                 mutators[i].Execute([](mm::ThreadData& threadData, Mutator& mutator) { threadData.gc().SafePointFunctionPrologue(); });
     }
 
+    // wait for gc pause to end
+    for (int i = 1; i < kDefaultThreadCount; ++i) {
+        gcFutures[i].wait();
+    }
+
+    // Spin until thread checkpoint requested
+    while (!mm::IsSafePointActionRequested()) {
+    }
+
+    for (int i = 1; i < kDefaultThreadCount; ++i) {
+        gcFutures[i] =
+                mutators[i].Execute([](mm::ThreadData& threadData, Mutator& mutator) { threadData.gc().SafePointFunctionPrologue(); });
+    }
+
     for (auto& future : gcFutures) {
         future.wait();
     }
@@ -997,7 +1047,7 @@ TEST_P(ConcurrentMarkAndSweepTest, MultipleMutatorsWeaks) {
 
     gcFutures[0] = mutators[0].Execute([weak](mm::ThreadData& threadData, Mutator& mutator) {
         threadData.gc().ScheduleAndWaitFullGC();
-        EXPECT_THAT((*weak)->referred, nullptr);
+        EXPECT_THAT((*weak)->readWithBarrier(), nullptr);
     });
 
     // Spin until thread suspension is requested.
@@ -1007,8 +1057,22 @@ TEST_P(ConcurrentMarkAndSweepTest, MultipleMutatorsWeaks) {
     for (int i = 1; i < kDefaultThreadCount; ++i) {
         gcFutures[i] = mutators[i].Execute([weak](mm::ThreadData& threadData, Mutator& mutator) {
             threadData.gc().SafePointFunctionPrologue();
-            EXPECT_THAT((*weak)->referred, nullptr);
+            EXPECT_THAT((*weak)->readWithBarrier(), nullptr);
         });
+    }
+
+    // wait for gc pause to end
+    for (int i = 1; i < kDefaultThreadCount; ++i) {
+        gcFutures[i].wait();
+    }
+
+    // Spin until thread checkpoint requested
+    while (!mm::IsSafePointActionRequested()) {
+    }
+
+    for (int i = 1; i < kDefaultThreadCount; ++i) {
+        gcFutures[i] =
+                mutators[i].Execute([](mm::ThreadData& threadData, Mutator& mutator) { threadData.gc().SafePointFunctionPrologue(); });
     }
 
     for (auto& future : gcFutures) {
@@ -1018,6 +1082,8 @@ TEST_P(ConcurrentMarkAndSweepTest, MultipleMutatorsWeaks) {
     for (auto& mutator : mutators) {
         EXPECT_THAT(mutator.Alive(), testing::UnorderedElementsAre(globalRoot, weak->header()));
     }
+
+    EXPECT_THAT((*weak)->referred, nullptr);
 }
 
 TEST_P(ConcurrentMarkAndSweepTest, NewThreadsWhileRequestingCollection) {
@@ -1058,13 +1124,35 @@ TEST_P(ConcurrentMarkAndSweepTest, NewThreadsWhileRequestingCollection) {
     std_support::vector<std::future<void>> attachFutures(kDefaultThreadCount);
 
     for (int i = 0; i < kDefaultThreadCount; ++i) {
-        attachFutures[i] = newMutators[i].Execute([i, expandRootSet](mm::ThreadData& threadData, Mutator& mutator) { expandRootSet(threadData, mutator, i + kDefaultThreadCount); });
+        attachFutures[i] = newMutators[i].Execute([i, expandRootSet](mm::ThreadData& threadData, Mutator& mutator) {
+            expandRootSet(threadData, mutator, i + kDefaultThreadCount);
+        });
     }
 
     // All the other threads are stopping at safe points.
     for (int i = 1; i < kDefaultThreadCount; ++i) {
         gcFutures[i] =
                 mutators[i].Execute([](mm::ThreadData& threadData, Mutator& mutator) { threadData.gc().SafePointFunctionPrologue(); });
+    }
+
+    // wait for gc pause to end
+    for (int i = 1; i < kDefaultThreadCount; ++i) {
+        gcFutures[i].wait();
+    }
+
+    // Spin until thread checkpoint requested
+    while (!mm::IsSafePointActionRequested()) {
+    }
+
+    for (int i = 1; i < kDefaultThreadCount; ++i) {
+        gcFutures[i] =
+                mutators[i].Execute([](mm::ThreadData& threadData, Mutator& mutator) { threadData.gc().SafePointFunctionPrologue(); });
+    }
+
+    for (int i = 0; i < kDefaultThreadCount; ++i) {
+        // FIXME overwritten attach future
+        attachFutures[i] =
+                newMutators[i].Execute([](mm::ThreadData& threadData, Mutator& mutator) { threadData.gc().SafePointFunctionPrologue(); });
     }
 
     // GC will be completed first
@@ -1120,7 +1208,7 @@ TEST_P(ConcurrentMarkAndSweepTest, FreeObjectWithFreeWeakReversedOrder) {
         ASSERT_THAT(IsMarked(global1.header()), false);
         ASSERT_THAT(IsMarked(object1_local.header()), false);
         ASSERT_THAT(IsMarked(weak.load()->header()), false);
-        ASSERT_THAT((*weak.load())->referred, object1_local.header());
+        ASSERT_THAT((*weak.load())->readWithBarrier(), object1_local.header());
 
         global1->field1 = nullptr;
 

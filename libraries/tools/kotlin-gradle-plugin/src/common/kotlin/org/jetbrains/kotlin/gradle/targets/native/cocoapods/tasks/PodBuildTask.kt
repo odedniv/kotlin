@@ -72,6 +72,6 @@ open class PodBuildTask : CocoapodsTask() {
             "-configuration", podBuildSettings.configuration
         )
 
-        runCommand(podXcodeBuildCommand, project.logger) { directory(podsXcodeProjDir.parentFile) }
+        runCommand(podXcodeBuildCommand, logger) { directory(podsXcodeProjDir.parentFile) }
     }
 }

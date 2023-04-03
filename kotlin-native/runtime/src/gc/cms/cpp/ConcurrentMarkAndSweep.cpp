@@ -78,7 +78,7 @@ ScopedThread createGCThread(const char* name, Body&& body) {
 
 void gc::ConcurrentMarkAndSweep::ThreadData::SafePointAllocation(size_t size) noexcept {
     gcScheduler_.OnSafePointAllocation(size);
-    mm::SuspendIfRequested();
+    mm::SafePoint();
 }
 
 void gc::ConcurrentMarkAndSweep::ThreadData::Schedule() noexcept {

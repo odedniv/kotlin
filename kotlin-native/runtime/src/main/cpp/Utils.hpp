@@ -82,6 +82,16 @@ size_t CombineHash(size_t seed, size_t value);
 
 #define ownerOf(type, field, ref) *reinterpret_cast<type*>(reinterpret_cast<char*>(&ref) - offsetof(type, field))
 
+template <typename Iterable, typename Pred>
+bool forall(Iterable& iterable, Pred predicate) noexcept {
+    for (auto& thread : iterable) {
+        if (!predicate(thread)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 } // namespace kotlin
 
 #endif // RUNTIME_UTILS_H

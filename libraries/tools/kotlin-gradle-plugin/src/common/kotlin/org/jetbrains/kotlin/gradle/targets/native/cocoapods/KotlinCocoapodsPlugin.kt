@@ -9,6 +9,8 @@ package org.jetbrains.kotlin.gradle.plugin.cocoapods
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.Directory
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskProvider
@@ -43,34 +45,37 @@ import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
 import org.jetbrains.kotlin.utils.addToStdlib.cast
 import java.io.File
 
-internal val Project.cocoapodsBuildDirs: CocoapodsBuildDirs
+
+
+internal val ProjectLayout.cocoapodsBuildDirs: CocoapodsBuildDirs
     get() = CocoapodsBuildDirs(this)
 
-internal class CocoapodsBuildDirs(val project: Project) {
-    val root: File
-        get() = project.buildDir.resolve("cocoapods")
+internal class CocoapodsBuildDirs(private val layout: ProjectLayout) {
 
-    val framework: File
-        get() = root.resolve("framework")
+    val root: Provider<Directory>
+        get() = layout.buildDirectory.dir("cocoapods")
+    val framework: Provider<Directory>
+        get() = dir("framework")
+    val dummyFramework: Provider<Directory>
+        get() = dir("dummy.framework")
+    val defs: Provider<Directory>
+        get() = dir("defs")
+    val buildSettings: Provider<Directory>
+        get() = dir("buildSettings")
+    val synthetic: Provider<Directory>
+        get() = dir("synthetic")
+    val publish: Provider<Directory>
+        get() = dir("publish")
 
-    val dummyFramework: File
-        get() = root.resolve("dummy.framework")
+    fun synthetic(family: Family): Provider<Directory> {
+        return synthetic.map { it.dir(family.platformLiteral) }
+    }
 
-    val defs: File
-        get() = root.resolve("defs")
+    fun fatFramework(buildType: NativeBuildType): Provider<Directory> {
+        return root.map { it.dir("fat-frameworks/${buildType.getName()}") }
+    }
 
-    val buildSettings: File
-        get() = root.resolve("buildSettings")
-
-    val synthetic: File
-        get() = root.resolve("synthetic")
-
-    fun synthetic(family: Family) = synthetic.resolve(family.platformLiteral)
-
-    val publish: File = root.resolve("publish")
-
-    fun fatFramework(buildType: NativeBuildType) =
-        root.resolve("fat-frameworks/${buildType.getName()}")
+    private fun dir(pathFromRoot: String): Provider<Directory> = root.map { it.dir(pathFromRoot) }
 }
 
 internal fun String.asValidFrameworkName() = replace('-', '_')
@@ -185,7 +190,7 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
 
         it.dependsOn(buildingTask)
         it.files = filesProvider { originalDirectory.map { dir -> dir.listFiles().orEmpty() } }
-        it.destDir = cocoapodsBuildDirs.framework
+        it.destDir = layout.cocoapodsBuildDirs.framework.getAsFile()
     }
 
     private fun createSyncForFatFramework(
@@ -209,7 +214,7 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
         val fatFrameworkTask = project.registerTask<FatFrameworkTask>("fatFramework") { task ->
             task.group = TASK_GROUP
             task.description = "Creates a fat framework for requested architectures"
-            task.destinationDir = project.cocoapodsBuildDirs.fatFramework(requestedBuildType)
+            task.destinationDir = project.layout.cocoapodsBuildDirs.fatFramework(requestedBuildType).getAsFile()
 
             fatTargets.forEach { (_, targets) ->
                 targets.singleOrNull()?.let {
@@ -813,6 +818,8 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
             checkLinkOnlyNotUsedWithStaticFramework(project, cocoapodsExtension)
         }
     }
+
+    private fun Provider<Directory>.getAsFile(): File = get().asFile
 
     companion object {
         const val COCOAPODS_EXTENSION_NAME = "cocoapods"

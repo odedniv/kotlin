@@ -110,6 +110,7 @@ abstract class PodspecTask @Inject constructor() : DefaultTask() {
                 Pod version format has to conform podspec syntax requirements: https://guides.cocoapods.org/syntax/podspec.html#version 
             """.trimIndent()
         }
+
 // Remove this check preferably
 //        val gradleWrapper = (project.rootProject.tasks.getByName("wrapper") as? Wrapper)?.scriptFile
 //        require(gradleWrapper != null && gradleWrapper.exists()) {
@@ -146,8 +147,6 @@ abstract class PodspecTask @Inject constructor() : DefaultTask() {
                 |        'PRODUCT_MODULE_NAME' => '${frameworkName.get()}',
                 |    }
             """.trimMargin()
-
-        project.gradle.startParameter.currentDir
 
         val gradleCommand = "\$REPO_ROOT/${gradleWrapper.relativeTo(project.projectDir).invariantSeparatorsPath}"
         val scriptPhase = if (publishing.get() || extraSpecAttributes.get().containsKey("script_phases")) "" else

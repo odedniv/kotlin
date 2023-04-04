@@ -437,19 +437,6 @@ internal class LLFirSessionCache(private val project: Project) {
                 canContainKotlinPackage = true,
             )
             register(FirProvider::class, provider)
-            /*val dependencyProvider = LLFirModuleWithDependenciesSymbolProvider(this) {
-                // <all libraries scope> - <current library scope>
-                val librariesSearchScope = module.directRegularDependencies.fold(module.contentScope) { acc, it ->
-                    acc.union(it.contentScope)
-                }
-                add(LLFirBuiltinsSessionFactory.getInstance(project).getBuiltinsSession(JvmPlatforms.unspecifiedJvmPlatform).symbolProvider)
-                add(provider.symbolProvider)
-                addAll(
-                    LLFirLibraryProviderFactory.createLibraryProvidersForAllProjectLibraries(
-                        this@session, moduleData, scopeProvider, project, builtinTypes, librariesSearchScope
-                    )
-                )
-            }*/
             val dependencyProvider = LLFirDependenciesSymbolProvider(this, buildList {
                 addDependencySymbolProvidersTo(this@session, dependencies, this)
                 add(builtinsSession.symbolProvider)
@@ -462,7 +449,6 @@ internal class LLFirSessionCache(private val project: Project) {
                     this,
                     providers = listOf(
                         codeFragmentSymbolProvider,
-                        //provider.symbolProvider,
                         javaSymbolProvider,
                     ),
                     dependencyProvider,

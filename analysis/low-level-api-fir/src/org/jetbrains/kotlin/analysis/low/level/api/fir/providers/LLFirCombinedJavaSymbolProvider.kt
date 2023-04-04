@@ -41,7 +41,7 @@ internal class LLFirCombinedJavaSymbolProvider private constructor(
      * The purpose of this cache is to avoid index access for frequently accessed `ClassId`s, including failures. Because Java symbol
      * providers currently cannot benefit from a "name in package" check (see KTIJ-24642), the cache should also store negative results.
      */
-    private val classCache: NullableCaffeineCache<ClassId, FirRegularClassSymbol> = NullableCaffeineCache { it.maximumSize(2500) }
+    private val classCache: NullableCaffeineCache<ClassId, FirRegularClassSymbol> = NullableCaffeineCache { it.maximumSize(10000) }
 
     override fun getClassLikeSymbolByClassId(classId: ClassId): FirClassLikeSymbol<*>? =
         classCache.get(classId) { computeClassLikeSymbolByClassId(it) }

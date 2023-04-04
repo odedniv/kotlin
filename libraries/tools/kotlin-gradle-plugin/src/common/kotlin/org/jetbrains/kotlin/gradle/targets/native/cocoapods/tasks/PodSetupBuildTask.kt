@@ -13,6 +13,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.CocoapodsExtension.CocoapodsDependency
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.cocoapodsBuildDirs
+import org.jetbrains.kotlin.gradle.utils.mapToFile
 import org.jetbrains.kotlin.gradle.utils.runCommand
 import java.io.File
 import javax.inject.Inject
@@ -32,9 +33,7 @@ abstract class PodSetupBuildTask @Inject constructor(projectLayout: ProjectLayou
     internal abstract val podsXcodeProjDir: Property<File>
 
     @get:OutputFile
-    val buildSettingsFile: Provider<File> = projectLayout.cocoapodsBuildDirs.buildSettings.map {
-        it.file(getBuildSettingFileName(pod.get(), sdk.get())).asFile
-    }
+    val buildSettingsFile: Provider<File> = projectLayout.cocoapodsBuildDirs.buildSettings(pod, sdk).mapToFile()
 
     @TaskAction
     fun setupBuild() {
@@ -55,7 +54,4 @@ abstract class PodSetupBuildTask @Inject constructor(projectLayout: ProjectLayou
         }
     }
 }
-
-private fun getBuildSettingFileName(pod: CocoapodsDependency, sdk: String): String =
-    "build-settings-$sdk-${pod.schemeName}.properties"
 

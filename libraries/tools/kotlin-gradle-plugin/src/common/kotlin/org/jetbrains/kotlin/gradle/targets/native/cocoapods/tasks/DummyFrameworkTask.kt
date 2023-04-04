@@ -14,6 +14,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.cocoapodsBuildDirs
+import org.jetbrains.kotlin.gradle.utils.mapToFile
 import java.io.File
 import javax.inject.Inject
 
@@ -37,7 +38,7 @@ abstract class DummyFrameworkTask @Inject constructor(projectLayout: ProjectLayo
     abstract val useStaticFramework: Property<Boolean>
 
     @get:OutputDirectory
-    val outputFramework: Provider<File> = projectLayout.cocoapodsBuildDirs.dummyFramework.map { it.asFile }
+    val outputFramework: Provider<File> = projectLayout.cocoapodsBuildDirs.dummyFramework.mapToFile()
 
     private val dummyFrameworkResource: String
         get() {

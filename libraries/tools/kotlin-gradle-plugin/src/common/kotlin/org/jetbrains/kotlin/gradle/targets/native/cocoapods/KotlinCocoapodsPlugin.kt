@@ -11,6 +11,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.file.RegularFile
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskProvider
@@ -60,8 +61,6 @@ internal class CocoapodsBuildDirs(private val layout: ProjectLayout) {
         get() = dir("dummy.framework")
     val defs: Provider<Directory>
         get() = dir("defs")
-    val buildSettings: Provider<Directory>
-        get() = dir("buildSettings")
     val publish: Provider<Directory>
         get() = dir("publish")
 
@@ -71,6 +70,10 @@ internal class CocoapodsBuildDirs(private val layout: ProjectLayout) {
 
     fun fatFramework(buildType: NativeBuildType): Provider<Directory> {
         return root.map { it.dir("fat-frameworks/${buildType.getName()}") }
+    }
+
+    fun buildSettings(pod: Provider<CocoapodsDependency>, sdk: Provider<String>): Provider<RegularFile> {
+        return dir("buildSettings").map { it.file("build-settings-${sdk.get()}-${pod.get().schemeName}.properties") }
     }
 
     private fun dir(pathFromRoot: String): Provider<Directory> = root.map { it.dir(pathFromRoot) }
@@ -117,22 +120,11 @@ private val KotlinNativeTarget.toValidSDK: String
         else -> throw IllegalArgumentException("Bad target ${konanTarget.name}.")
     }
 
-internal fun Project.getPodBuildTaskProvider(
+private fun Project.getPodBuildTaskProvider(
     target: KotlinNativeTarget,
     pod: CocoapodsDependency
 ): TaskProvider<PodBuildTask> {
     return tasks.named(target.toValidSDK.toBuildDependenciesTaskName(pod), PodBuildTask::class.java)
-}
-
-internal fun Project.getPodBuildSettingsProperties(
-    target: KotlinNativeTarget,
-    pod: CocoapodsDependency
-): PodBuildSettingsProperties {
-    return getPodBuildTaskProvider(target, pod).get().buildSettingsFile.get()
-        .reader()
-        .use {
-            PodBuildSettingsProperties.readSettingsFromReader(it)
-        }
 }
 
 internal val PodBuildSettingsProperties.frameworkSearchPaths: List<String>
@@ -333,6 +325,8 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
 
                     val interopTask = project.tasks.getByPath(interop.interopProcessingTaskName)
 
+                    interopTask.onlyIf { HostManager.hostIsMac }
+
                     interopTask.dependsOn(defTask)
 
                     with(interop) {
@@ -341,16 +335,15 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
                         _extraOptsProp.addAll(project.provider { pod.extraOpts })
                     }
 
-                    if (HostManager.hostIsMac) {
-                        val podBuildTaskProvider = project.getPodBuildTaskProvider(target, pod)
-                        interopTask.inputs.file(podBuildTaskProvider.map { it.buildSettingsFile })
-                        interopTask.dependsOn(podBuildTaskProvider)
-                    }
+                    val podBuildTaskProvider = project.getPodBuildTaskProvider(target, pod)
+                    val buildSettingsFileProvider = project.buildSettingsFileProvider(pod, target)
+                    interopTask.inputs.file(buildSettingsFileProvider)
+                    interopTask.dependsOn(podBuildTaskProvider)
+
                     interopTask.doFirst { _ ->
                         // Since we cannot expand the configuration phase of interop tasks
                         // receiving the required environment variables happens on execution phase.
-                        // TODO This needs to be fixed to improve UP-TO-DATE checks.
-                        val podBuildSettings = project.getPodBuildSettingsProperties(target, pod)
+                        val podBuildSettings = PodBuildSettingsProperties.readSettingsFromFile(buildSettingsFileProvider.getAsFile())
 
                         podBuildSettings.cflags?.let { args ->
                             // Xcode quotes around paths with spaces.
@@ -360,7 +353,6 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
 
                         interop.compilerOpts.addAll(podBuildSettings.frameworkHeadersSearchPaths.map { "-I$it" })
                         interop.compilerOpts.addAll(podBuildSettings.frameworkSearchPaths.map { "-F$it" })
-
                     }
                 }
             }
@@ -640,18 +632,20 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
     private fun configureLinkingOptions(project: Project, cocoapodsExtension: CocoapodsExtension, nativeBinary: NativeBinary) {
         cocoapodsExtension.pods.all { pod ->
             nativeBinary.linkTaskProvider.configure { task ->
+                task.onlyIf { HostManager.hostIsMac }
+
                 val binary = task.binary
-                if (HostManager.hostIsMac) {
-                    val podBuildTaskProvider = project.getPodBuildTaskProvider(binary.target, pod)
-                    task.inputs.file(podBuildTaskProvider.map { it.buildSettingsFile })
-                    task.dependsOn(podBuildTaskProvider)
-                }
+
+                val podBuildTaskProvider = project.getPodBuildTaskProvider(binary.target, pod)
+                val buildSettingsFileProvider = project.buildSettingsFileProvider(pod, binary.target)
+                task.inputs.file(buildSettingsFileProvider)
+                task.dependsOn(podBuildTaskProvider)
 
                 task.doFirst { _ ->
                     val isExecutable = binary is AbstractExecutable
                     val isDynamicFramework = (binary is Framework && !binary.isStatic)
 
-                    val podBuildSettings = project.getPodBuildSettingsProperties(binary.target, pod)
+                    val podBuildSettings = PodBuildSettingsProperties.readSettingsFromFile(buildSettingsFileProvider.getAsFile())
                     val frameworkFileName = pod.moduleName + ".framework"
                     val frameworkSearchPaths = podBuildSettings.frameworkSearchPaths
 
@@ -794,6 +788,10 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
         return if (project.depth != 0) project.path else ""
     }
 
+    private fun Project.buildSettingsFileProvider(pod: CocoapodsDependency, target: KotlinNativeTarget): Provider<RegularFile> {
+        return layout.cocoapodsBuildDirs.buildSettings(provider { pod }, provider { target.toValidSDK })
+    }
+
     override fun apply(project: Project): Unit = with(project) {
 
         pluginManager.withPlugin("kotlin-multiplatform") {
@@ -829,7 +827,6 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
         }
     }
 
-    private fun Provider<Directory>.getAsFile(): File = get().asFile
 
     companion object {
         const val COCOAPODS_EXTENSION_NAME = "cocoapods"

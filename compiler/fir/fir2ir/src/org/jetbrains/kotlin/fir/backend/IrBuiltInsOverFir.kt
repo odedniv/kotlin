@@ -28,10 +28,7 @@ import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
-import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
-import org.jetbrains.kotlin.ir.symbols.IrClassifierSymbol
-import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
-import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
+import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.symbols.impl.*
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeImpl
@@ -536,37 +533,11 @@ class IrBuiltInsOverFir(
         }
     }
 
-    private class KotlinPackageFuns(
-        val arrayOf: IrSimpleFunctionSymbol,
-    )
-
-    private val kotlinBuiltinFunctions by lazy {
-        fun IrClassSymbol.addPackageFun(
-            name: String,
-            returnType: IrType,
-            vararg argumentTypes: Pair<String, IrType>,
-            builder: IrSimpleFunction.() -> Unit
-        ) =
-            kotlinIrPackage.createFunction(name, returnType, argumentTypes, postBuild = builder).also {
-                this.owner.declarations.add(it)
-            }.symbol
-
-        val kotlinKt = kotlinIrPackage.createClass(kotlinPackage.child(Name.identifier("KotlinKt")))
-        KotlinPackageFuns(
-            arrayOf = kotlinKt.addPackageFun("arrayOf", arrayClass.defaultType) arrayOf@{
-                val typeParameter = addTypeParameter("T", anyNType)
-                addValueParameter {
-                    this.name = Name.identifier("elements")
-                    this.type = arrayClass.typeWithParameters(listOf(typeParameter))
-                    this.varargElementType = typeParameter.defaultType
-                    this.origin = this@arrayOf.origin
-                }
-                returnType = arrayClass.typeWithParameters(listOf(typeParameter))
-            }
-        )
+    override val arrayOf: IrSimpleFunctionSymbol by lazy {
+        // distinct() is needed because we can get two Fir symbols for arrayOf function (from builtins and from stdlib)
+        //   with the same IR symbol for them
+        findFunctions(kotlinPackage, Name.identifier("arrayOf")).distinct().single()
     }
-
-    override val arrayOf: IrSimpleFunctionSymbol get() = kotlinBuiltinFunctions.arrayOf
 
     private fun <T : Any> getFunctionsByKey(
         name: Name,

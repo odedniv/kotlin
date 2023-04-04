@@ -14,6 +14,7 @@ kotlin {
     }
     iosX64 {
         binaries {
+            framework("Antipod")
             //framework(namePrefix = "framework")
         }
     }

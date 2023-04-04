@@ -29,7 +29,7 @@ abstract class PodSetupBuildTask @Inject constructor(projectLayout: ProjectLayou
     abstract val pod: Property<CocoapodsDependency>
 
     @get:Internal
-    internal abstract var podsXcodeProjDir: Property<File>
+    internal abstract val podsXcodeProjDir: Property<File>
 
     @get:OutputFile
     val buildSettingsFile: Provider<File> = projectLayout.cocoapodsBuildDirs.buildSettings.map {

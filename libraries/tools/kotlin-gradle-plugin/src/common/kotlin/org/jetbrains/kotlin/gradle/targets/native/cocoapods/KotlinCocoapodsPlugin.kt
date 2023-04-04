@@ -594,8 +594,8 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
                     it.description = "Calls `xcodebuild` on xcworkspace for the pod scheme"
                     it.sdk = project.provider { sdk }
                     it.pod = project.provider { pod }
-                    it.podsXcodeProjDir = podSetupBuildTaskProvider.map { task -> task.podsXcodeProjDir.get() }
-                    it.buildSettingsFile = podSetupBuildTaskProvider.map { task -> task.buildSettingsFile.get() }
+                    it.podsXcodeProjDir = podSetupBuildTaskProvider.flatMap { task -> task.podsXcodeProjDir }
+                    it.buildSettingsFile = podSetupBuildTaskProvider.flatMap { task -> task.buildSettingsFile }
                 }
             }
         }

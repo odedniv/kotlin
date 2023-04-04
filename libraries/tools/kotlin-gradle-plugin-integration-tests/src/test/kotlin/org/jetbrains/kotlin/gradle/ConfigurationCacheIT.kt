@@ -104,6 +104,9 @@ class ConfigurationCacheIT : AbstractConfigurationCacheIT() {
             )
         }
 
+        expectedTasks.clear()
+        expectedTasks.add(":lib:linkAntipodDebugFrameworkIosX64")
+
         project("native-configuration-cache", gradleVersion) {
             testConfigurationCacheOf(
                 "build",

@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
 import org.jetbrains.kotlin.cli.common.arguments.validateArguments
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.js.K2JSCompiler
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import org.jetbrains.kotlin.cli.metadata.K2MetadataCompiler
@@ -80,22 +81,29 @@ private val CompilationOptions.asDaemonCompilationOptions: DaemonCompilationOpti
     }
 
 private object CompilationServiceImpl : CompilationService {
-    override fun compile(compilerOptions: CompilerOptions, arguments: List<String>, compilationOptions: CompilationOptions) =
-        when (compilerOptions) {
-            is CompilerOptions.Daemon -> compileWithinDaemon(compilerOptions, arguments, compilationOptions)
-            is CompilerOptions.InProcess -> compileInProcess(arguments, compilationOptions)
+    override fun compile(
+        compilerOptions: CompilerOptions,
+        arguments: List<String>,
+        compilationOptions: CompilationOptions,
+        callbacks: CompilationCallbacks,
+    ): CompilationResult {
+        val messageCollector = callbacks.logger?.run { KotlinLoggerMessageCollectorAdapter(this) } ?: DefaultMessageCollectorLoggingAdapter
+        return when (compilerOptions) {
+            is CompilerOptions.Daemon -> compileWithinDaemon(compilerOptions, arguments, compilationOptions, messageCollector)
+            is CompilerOptions.InProcess -> compileInProcess(arguments, compilationOptions, messageCollector)
         }
+    }
 
     private fun compileWithinDaemon(
         compilerOptions: CompilerOptions.Daemon,
         arguments: List<String>,
-        compilationOptions: CompilationOptions
+        compilationOptions: CompilationOptions,
+        messageCollector: MessageCollector,
     ): CompilationResult {
         println("Compiling with daemon")
         val compilerId = CompilerId.makeCompilerId(compilerOptions.classpath)
         val clientIsAliveFlagFile = compilerOptions.sessionDir.resolve("1") // TODO add managing of the file
         val sessionIsAliveFlagFile = compilerOptions.sessionDir.resolve("2") // TODO add managing of the file
-        val messageCollector = DefaultMessageCollectorLoggingAdapter() // TODO: add a logger which will return the messages to the caller via callbacks
         val jvmOptions = configureDaemonJVMOptions(
             inheritMemoryLimits = true,
             inheritOtherJvmOptions = false,
@@ -132,7 +140,8 @@ private object CompilationServiceImpl : CompilationService {
 
     private fun compileInProcess(
         arguments: List<String>,
-        compilationOptions: CompilationOptions
+        compilationOptions: CompilationOptions,
+        messageCollector: MessageCollector,
     ) = when (compilationOptions) {
         is IncrementalCompilationOptions -> TODO("Incremental compilation is not yet supported for running via build-tools-api")
         is NonIncrementalCompilationOptions -> {
@@ -149,8 +158,7 @@ private object CompilationServiceImpl : CompilationService {
             if (argumentParseError != null) {
                 throw CompilationArgumentsParseException(argumentParseError)
             }
-            // TODO: add a logger which will return the messages to the caller via callbacks
-            compiler.exec(DefaultMessageCollectorLoggingAdapter(), Services.EMPTY, parsedArguments).asCompilationResult
+            compiler.exec(messageCollector, Services.EMPTY, parsedArguments).asCompilationResult
         }
     }
 }

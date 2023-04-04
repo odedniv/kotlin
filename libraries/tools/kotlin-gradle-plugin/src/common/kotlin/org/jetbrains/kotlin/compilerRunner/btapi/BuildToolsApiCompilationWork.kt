@@ -75,6 +75,7 @@ internal abstract class BuildToolsApiCompilationWork : WorkAction<BuildToolsApiC
             compilerOptions,
             workArguments.compilerArgs.toList(),
             compilationOptions,
+            callbacks = CompilationCallbacks(log)
         )
         throwExceptionIfCompilationFailed(result.asExitCode, workArguments.compilerExecutionSettings.strategy)
         log.debug("Compilation of $taskPath via the build tools API has finished successfully")

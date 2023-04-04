@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.buildtools.api
 
+import org.jetbrains.kotlin.buildtools.api.compilation.CompilationCallbacks
 import org.jetbrains.kotlin.buildtools.api.compilation.CompilationOptions
 import org.jetbrains.kotlin.buildtools.api.compilation.CompilationResult
 import org.jetbrains.kotlin.buildtools.api.compilation.CompilerOptions
@@ -18,6 +19,7 @@ interface CompilationService {
         compilerOptions: CompilerOptions,
         arguments: List<String>,
         compilationOptions: CompilationOptions,
+        callbacks: CompilationCallbacks,
     ): CompilationResult
 
     companion object {

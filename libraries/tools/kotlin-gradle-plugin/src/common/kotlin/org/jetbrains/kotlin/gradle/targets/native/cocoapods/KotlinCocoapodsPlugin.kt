@@ -588,6 +588,7 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
                     it.pod = project.provider { pod }
                     it.podsXcodeProjDir = podSetupBuildTaskProvider.flatMap { task -> task.podsXcodeProjDir }
                     it.buildSettingsFile = podSetupBuildTaskProvider.flatMap { task -> task.buildSettingsFile }
+                    it.dependsOn(podSetupBuildTaskProvider)
                 }
             }
         }

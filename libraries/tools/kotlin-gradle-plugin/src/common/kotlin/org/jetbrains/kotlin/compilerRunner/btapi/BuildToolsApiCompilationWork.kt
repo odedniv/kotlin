@@ -13,9 +13,15 @@ import org.gradle.workers.WorkParameters
 import org.jetbrains.kotlin.build.report.metrics.BuildMetricsReporter
 import org.jetbrains.kotlin.buildtools.api.CompilationService
 import org.jetbrains.kotlin.buildtools.api.SharedApiClassesClassLoader
+import org.jetbrains.kotlin.buildtools.api.compilation.CompilationOptions
+import org.jetbrains.kotlin.buildtools.api.compilation.CompilerOptions
+import org.jetbrains.kotlin.buildtools.api.compilation.NonIncrementalCompilationOptions
+import org.jetbrains.kotlin.buildtools.api.compilation.TargetPlatform
 import org.jetbrains.kotlin.compilerRunner.GradleKotlinCompilerWorkArguments
+import org.jetbrains.kotlin.compilerRunner.KotlinCompilerClass
 import org.jetbrains.kotlin.gradle.internal.ClassLoadersCachingBuildService
 import org.jetbrains.kotlin.gradle.internal.ParentClassLoaderProvider
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompilerExecutionStrategy
 import java.io.File
 import java.util.*
 
@@ -36,7 +42,32 @@ internal abstract class BuildToolsApiCompilationWork : WorkAction<BuildToolsApiC
         val classLoader = parameters.classLoadersCachingService.get()
             .getClassLoader(workArguments.compilerFullClasspath, SharedApiClassesClassLoaderProvider)
         val compilationService = CompilationService.loadImplementation(classLoader)
-        compilationService.compile()
+        val compilerOptions = when (val strategy = workArguments.compilerExecutionSettings.strategy) {
+            KotlinCompilerExecutionStrategy.DAEMON -> CompilerOptions.Daemon(workArguments.compilerFullClasspath)
+            KotlinCompilerExecutionStrategy.IN_PROCESS -> CompilerOptions.InProcess()
+            else -> error("`$strategy` is an unsupported strategy for running via build-tools-api")
+        }
+        val compilationOptions = prepareCompilationOptions()
+        compilationService.compile(
+            compilerOptions,
+            workArguments.compilerArgs.toList(),
+            compilationOptions,
+        )
+    }
+
+    private fun prepareCompilationOptions(): CompilationOptions {
+        val targetPlatform = when (val compilerClassName = workArguments.compilerClassName) {
+            KotlinCompilerClass.JVM -> TargetPlatform.JVM
+            KotlinCompilerClass.JS -> TargetPlatform.JS
+            KotlinCompilerClass.METADATA -> TargetPlatform.METADATA
+            else -> error("Unknown compiler type: $compilerClassName")
+        }
+        val icEnv = workArguments.incrementalCompilationEnvironment
+        return if (icEnv != null) {
+            TODO("Incremental compilation is not yet supported for running via build-tools-api")
+        } else {
+            NonIncrementalCompilationOptions(targetPlatform, workArguments.kotlinScriptExtensions.toList())
+        }
     }
 }
 

@@ -8,6 +8,7 @@
 #include "CompilerConstants.hpp"
 #include "Exceptions.h"
 #include "KAssert.h"
+#include "MainQueueProcessor.hpp"
 #include "Memory.h"
 #include "ObjCExportInit.h"
 #include "ObjectAlloc.hpp"
@@ -135,6 +136,7 @@ RuntimeState* initRuntime() {
   // Keep global variables in state as well.
   if (firstRuntime) {
     konan::consoleInit();
+    kotlin::initializeMainQueueProcessor();
 #if KONAN_OBJC_INTEROP
     Kotlin_ObjCExport_initialize();
 #endif

@@ -55,6 +55,7 @@ void BackRefFromAssociatedObject::initAndAddRef(ObjHeader* obj) {
     RuntimeAssert(!obj->permanent(), "Can only be called with non-permanent object");
     ref_ = static_cast<mm::RawSpecialRef*>(mm::ObjCBackRef::create(obj));
     deallocMutex_.construct();
+    finalizeOnMainQueue_ = false;
 }
 
 template <ErrorPolicy errorPolicy>
@@ -105,4 +106,12 @@ template ObjHeader* BackRefFromAssociatedObject::ref<ErrorPolicy::kTerminate>() 
 
 ObjHeader* BackRefFromAssociatedObject::refPermanent() const {
     return permanentObj_;
+}
+
+void BackRefFromAssociatedObject::setFinalizeOnMainQueue(bool value) noexcept {
+    finalizeOnMainQueue_ = value;
+}
+
+bool BackRefFromAssociatedObject::finalizeOnMainQueue() const noexcept {
+    return finalizeOnMainQueue_;
 }

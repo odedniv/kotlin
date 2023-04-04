@@ -3,6 +3,7 @@
  * that can be found in the LICENSE file.
  */
 
+#include "MainQueueProcessor.hpp"
 #if KONAN_OBJC_INTEROP
 
 #import <Foundation/NSException.h>
@@ -81,7 +82,9 @@ id allocWithZoneImp(Class self, SEL _cmd, void* zone) {
   ObjHolder holder;
   auto kotlinObj = AllocInstanceWithAssociatedObject(typeInfo, result, holder.slot());
 
-  getBackRef(result, classData)->initAndAddRef(kotlinObj);
+  auto* backRef = getBackRef(result, classData);
+  backRef->initAndAddRef(kotlinObj);
+  backRef->setFinalizeOnMainQueue(kotlin::isOnMainQueue());
 
   return result;
 }
@@ -115,24 +118,36 @@ void releaseImp(id self, SEL _cmd) {
   getBackRef(self)->releaseRef();
 }
 
+// [super release]
+void superRelease(id self, KotlinObjCClassData* classData) noexcept {
+  Class clazz = classData->objcClass;
+  struct objc_super s = {self, clazz};
+  auto messenger = reinterpret_cast<void (*) (struct objc_super*, SEL _cmd)>(objc_msgSendSuper2);
+  messenger(&s, @selector(release));
+}
+
 void releaseAsAssociatedObjectImp(id self, SEL _cmd) {
   auto* classData = GetKotlinClassData(self);
+  auto* backRef = getBackRef(self, classData);
+
   if (CurrentMemoryModel == MemoryModel::kExperimental) {
     // No need for any special handling. Weak reference handling machinery
     // has already cleaned up the reference to Kotlin object.
-    // [super release]
-    Class clazz = classData->objcClass;
-    struct objc_super s = {self, clazz};
-    auto messenger = reinterpret_cast<void (*) (struct objc_super*, SEL _cmd)>(objc_msgSendSuper2);
-    messenger(&s, @selector(release));
+    if (backRef->finalizeOnMainQueue() && kotlin::isMainQueueProcessorAvailable()) {
+      kotlin::runOnMainQueue([](void* ptr) noexcept {
+        id self = static_cast<id>(ptr);
+        auto* classData = GetKotlinClassData(self);
+        superRelease(self, classData);
+      }, self);
+    } else {
+      superRelease(self, classData);
+    }
     return;
   }
 
   // This function is called by the GC. It made a decision to reclaim Kotlin object, and runs
   // deallocation hooks at the moment, including deallocation of the "associated object" ([self])
   // using the [super release] call below.
-
-  auto* backRef = getBackRef(self, classData);
 
   // The deallocation involves running [self dealloc] which can contain arbitrary code.
   // In particular, this code can retain and release [self]. Obj-C and Swift runtimes handle this

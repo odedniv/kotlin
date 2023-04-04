@@ -30,30 +30,31 @@ open class PodBuildTask : CocoapodsTask() {
     @get:Nested
     internal lateinit var pod: Provider<CocoapodsDependency>
 
-    @get:PathSensitive(PathSensitivity.ABSOLUTE)
-    @get:IgnoreEmptyDirectories
-    @get:InputFiles
-    internal val srcDir: FileTree
-        get() = project.fileTree(
-            buildSettingsFile.map { PodBuildSettingsProperties.readSettingsFromReader(it.reader()).podsTargetSrcRoot }
-        )
+// TODO
+//    @get:PathSensitive(PathSensitivity.ABSOLUTE)
+//    @get:IgnoreEmptyDirectories
+//    @get:InputFiles
+//    internal val srcDir: FileTree
+//        get() = project.fileTree(
+//            buildSettingsFile.map { PodBuildSettingsProperties.readSettingsFromReader(it.reader()).podsTargetSrcRoot }
+//        )
 
-    @get:Internal
-    internal var buildDir: Provider<File> = project.provider {
-        project.file(PodBuildSettingsProperties.readSettingsFromReader(buildSettingsFile.get().reader()).buildDir)
-    }
+//    @get:Internal
+//    internal var buildDir: Provider<File> = project.provider {
+//        project.file(PodBuildSettingsProperties.readSettingsFromReader(buildSettingsFile.get().reader()).buildDir)
+//    }
 
     @get:Input
     internal lateinit var sdk: Provider<String>
 
-    @Suppress("unused") // declares an ouptut
-    @get:OutputFiles
-    internal val buildResult: Provider<FileCollection> = project.provider {
-        project.fileTree(buildDir.get()) {
-            it.include("**/${pod.get().schemeName}.*/")
-            it.include("**/${pod.get().schemeName}/")
-        }
-    }
+//    @Suppress("unused") // declares an ouptut
+//    @get:OutputFiles
+//    internal val buildResult: Provider<FileCollection> = project.provider {
+//        project.fileTree(buildDir.get()) {
+//            it.include("**/${pod.get().schemeName}.*/")
+//            it.include("**/${pod.get().schemeName}/")
+//        }
+//    }
 
     @get:Internal
     internal lateinit var podsXcodeProjDir: Provider<File>

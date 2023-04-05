@@ -78,6 +78,7 @@ fun FirSession.registerCommonComponents(languageVersionSettings: LanguageVersion
 @OptIn(SessionConfiguration::class)
 fun FirSession.registerCommonComponentsAfterExtensionsAreConfigured() {
     register(FirFunctionTypeKindService::class, FirFunctionTypeKindServiceImpl(this))
+    register(FirProvidedDeclarationsForMetadataService::class, FirProvidedDeclarationsForMetadataService.create(this))
 }
 
 @OptIn(SessionConfiguration::class)

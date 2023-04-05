@@ -23,11 +23,11 @@ public class HexFormat internal constructor(
     /**
      * Specifies hexadecimal format used for formatting and parsing `ByteArray`.
      */
-    val bytes: Bytes,
+    val bytes: BytesHexFormat,
     /**
      * Specifies hexadecimal format used for formatting and parsing a value of primitive type.
      */
-    val numbers: Numbers
+    val number: NumberHexFormat
 ) {
 
     /**
@@ -42,10 +42,10 @@ public class HexFormat internal constructor(
      * Each byte is converted to its two-digit hexadecimal representation,
      * immediately preceded by [bytePrefix] and immediately succeeded by [byteSuffix].
      *
-     * See [HexFormatBuilder.Bytes] to find out how the options are configured,
+     * See [HexFormatBuilder.BytesHexFormat] to find out how the options are configured,
      * and what is the default value of each option.
      */
-    public class Bytes internal constructor(
+    public class BytesHexFormat internal constructor(
         /** Maximum number of bytes per line. */
         val bytesPerLine: Int,
 
@@ -68,13 +68,13 @@ public class HexFormat internal constructor(
      * The formatting result consist of [prefix] string, hexadecimal representation of the value being formatted, and [suffix] string.
      * Hexadecimal representation of a value is calculated by mapping each four-bit chunk
      * of its binary representation to the corresponding hexadecimal digit, starting with the most significant bits.
-     * If [dropLeadingZeros] it `true`, leading zeros in hexadecimal representation are dropped.
+     * If [removeLeadingZeros] it `true`, leading zeros in hexadecimal representation are dropped.
      *
      * For example, the binary representation of the `Byte` value `58` is the 8-bits long `00111010`,
      * which converts to a hexadecimal representation of `3a` or `3A` depending on [upperCase].
      * Whereas, the binary representation of the `Int` value `58` is the 32-bits long `00000000000000000000000000111010`,
      * which converts to a hexadecimal representation of `0000003a` or `0000003A` depending on [upperCase].
-     * If [dropLeadingZeros] it `true`, leading zeros in the `0000003a` hexadecimal representation are dropped,
+     * If [removeLeadingZeros] it `true`, leading zeros in the `0000003a` hexadecimal representation are dropped,
      * resulting `3a`.
      *
      * To convert a value to hexadecimal string of a particular length,
@@ -82,18 +82,18 @@ public class HexFormat internal constructor(
      * For example, to convert an `Int` value to 4-digit hexadecimal string,
      * convert the value `toShort()` before hexadecimal formatting.
      * To convert it to hexadecimal string of at most 4 digits
-     * without leading zeros, set [dropLeadingZeros] to `true`.
+     * without leading zeros, set [removeLeadingZeros] to `true`.
      *
-     * See [HexFormatBuilder.Numbers] to find out how the options are configured,
+     * See [HexFormatBuilder.NumberHexFormat] to find out how the options are configured,
      * and what is the default value of each option.
      */
-    public class Numbers internal constructor(
+    public class NumberHexFormat internal constructor(
         /** The string that immediately precedes hexadecimal representation of a primitive value. */
         val prefix: String,
         /** The string that immediately succeeds hexadecimal representation of a primitive value. */
         val suffix: String,
         /** Specifies whether to drop leading zeros in the hexadecimal representation of a primitive value. */
-        val dropLeadingZeros: Boolean
+        val removeLeadingZeros: Boolean
     )
 
     companion object {
@@ -105,14 +105,14 @@ public class HexFormat internal constructor(
          *
          * No line separator, group separator, byte separator, byte prefix or byte suffix is used
          * when formatting or parsing `ByteArray`. That is:
-         *   * [Bytes.bytesPerLine] is `-1`.
-         *   * [Bytes.bytesPerGroup] is `-1`.
-         *   * [Bytes.byteSeparator], [Bytes.bytePrefix] and [Bytes.byteSuffix] are empty strings.
+         *   * [BytesHexFormat.bytesPerLine] is `-1`.
+         *   * [BytesHexFormat.bytesPerGroup] is `-1`.
+         *   * [BytesHexFormat.byteSeparator], [BytesHexFormat.bytePrefix] and [BytesHexFormat.byteSuffix] are empty strings.
          *
          * No prefix or suffix is used, and no leading zeros in hexadecimal representation are dropped
          * when formatting or parsing a primitive value. That is:
-         *   * [Numbers.prefix] and [Numbers.suffix] are empty strings.
-         *   * [Numbers.dropLeadingZeros] is `false`.
+         *   * [NumberHexFormat.prefix] and [NumberHexFormat.suffix] are empty strings.
+         *   * [NumberHexFormat.removeLeadingZeros] is `false`.
          */
         public val Default: HexFormat = HexFormatBuilder().build()
 
@@ -134,69 +134,79 @@ public class HexFormatBuilder @PublishedApi internal constructor() {
     var upperCase: Boolean = false
 
     /**
-     * Defines [HexFormat.Bytes] of the format being built.
-     * See [HexFormatBuilder.Bytes] for default values of the options.
+     * Defines [HexFormat.BytesHexFormat] of the format being built.
+     * See [HexFormatBuilder.BytesHexFormat] for default values of the options.
      */
-    val bytes: Bytes = Bytes()
+    val bytes: BytesHexFormat = BytesHexFormat()
 
     /**
-     * Defines [HexFormat.Numbers] of the format being built.
-     * See [HexFormatBuilder.Numbers] for default values of the options.
+     * Defines [HexFormat.NumberHexFormat] of the format being built.
+     * See [HexFormatBuilder.NumberHexFormat] for default values of the options.
      */
-    val numbers: Numbers = Numbers()
+    val number: NumberHexFormat = NumberHexFormat()
 
     /** Provides a scope for configuring the [bytes] format options. */
-    fun bytes(builderAction: Bytes.() -> Unit) {
+    fun bytes(builderAction: BytesHexFormat.() -> Unit) {
         bytes.builderAction()
     }
 
-    /** Provides a scope for configuring the [numbers] format options. */
-    fun numbers(builderAction: Numbers.() -> Unit) {
-        numbers.builderAction()
+    /** Provides a scope for configuring the [number] format options. */
+    fun number(builderAction: NumberHexFormat.() -> Unit) {
+        number.builderAction()
     }
 
     @PublishedApi
     internal fun build(): HexFormat {
-        return HexFormat(upperCase, bytes.build(), numbers.build())
+        return HexFormat(upperCase, bytes.build(), number.build())
     }
 
     /**
-     * DSL for building a [HexFormat.Bytes]. Provides API for configuring format options.
+     * DSL for building a [HexFormat.BytesHexFormat]. Provides API for configuring format options.
      */
-    class Bytes internal constructor() {
-        /** Defines [HexFormat.Bytes.bytesPerLine] of the format being built, `-1` by default. */
-        var bytesPerLine: Int = -1
+    class BytesHexFormat internal constructor() {
+        /** Defines [HexFormat.BytesHexFormat.bytesPerLine] of the format being built, [Int.MAX_VALUE] by default. */
+        var bytesPerLine: Int = Int.MAX_VALUE
+            set(value) {
+                if (value <= 0)
+                    throw IllegalArgumentException("Non-positive values are prohibited for bytesPerLine, but was $value")
+                field = value
+            }
 
-        /** Defines [HexFormat.Bytes.bytesPerGroup] of the format being built, `-1` by default. */
-        var bytesPerGroup: Int = -1
-        /** Defines [HexFormat.Bytes.bytesPerGroup] of the format being built, `" | "` by default. */
-        var groupSeparator: String = " | "
+        /** Defines [HexFormat.BytesHexFormat.bytesPerGroup] of the format being built, [Int.MAX_VALUE] by default. */
+        var bytesPerGroup: Int = Int.MAX_VALUE
+            set(value) {
+                if (value <= 0)
+                    throw IllegalArgumentException("Non-positive values are prohibited for bytesPerGroup, but was $value")
+                field = value
+            }
+        /** Defines [HexFormat.BytesHexFormat.groupSeparator] of the format being built, two whitespaces (`"  "`) by default. */
+        var groupSeparator: String = "  "
 
-        /** Defines [HexFormat.Bytes.byteSeparator] of the format being built, empty string by default. */
+        /** Defines [HexFormat.BytesHexFormat.byteSeparator] of the format being built, empty string by default. */
         var byteSeparator: String = ""
-        /** Defines [HexFormat.Bytes.bytePrefix] of the format being built, empty string by default. */
+        /** Defines [HexFormat.BytesHexFormat.bytePrefix] of the format being built, empty string by default. */
         var bytePrefix: String = ""
-        /** Defines [HexFormat.Bytes.byteSuffix] of the format being built, empty string by default. */
+        /** Defines [HexFormat.BytesHexFormat.byteSuffix] of the format being built, empty string by default. */
         var byteSuffix: String = ""
 
-        internal fun build(): HexFormat.Bytes {
-            return HexFormat.Bytes(bytesPerLine, bytesPerGroup, groupSeparator, byteSeparator, bytePrefix, byteSuffix)
+        internal fun build(): HexFormat.BytesHexFormat {
+            return HexFormat.BytesHexFormat(bytesPerLine, bytesPerGroup, groupSeparator, byteSeparator, bytePrefix, byteSuffix)
         }
     }
 
     /**
-     * DSL for building a [HexFormat.Numbers]. Provides API for configuring format options.
+     * DSL for building a [HexFormat.NumberHexFormat]. Provides API for configuring format options.
      */
-    class Numbers internal constructor() {
-        /** Defines [HexFormat.Numbers.prefix] of the format being built, empty string by default. */
+    class NumberHexFormat internal constructor() {
+        /** Defines [HexFormat.NumberHexFormat.prefix] of the format being built, empty string by default. */
         var prefix: String = ""
-        /** Defines [HexFormat.Numbers.suffix] of the format being built, empty string by default. */
+        /** Defines [HexFormat.NumberHexFormat.suffix] of the format being built, empty string by default. */
         var suffix: String = ""
-        /** Defines [HexFormat.Numbers.dropLeadingZeros] of the format being built, empty string by default. */
-        var dropLeadingZeros: Boolean = false
+        /** Defines [HexFormat.NumberHexFormat.removeLeadingZeros] of the format being built, empty string by default. */
+        var removeLeadingZeros: Boolean = false
 
-        internal fun build(): HexFormat.Numbers {
-            return HexFormat.Numbers(prefix, suffix, dropLeadingZeros)
+        internal fun build(): HexFormat.NumberHexFormat {
+            return HexFormat.NumberHexFormat(prefix, suffix, removeLeadingZeros)
         }
     }
 }

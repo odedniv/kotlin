@@ -12,7 +12,7 @@ import kotlin.internal.InlineOnly
 /**
  * Formats bytes in this array using the specified [format].
  *
- * Note that only [HexFormat.upperCase] and [HexFormat.Bytes] affect formatting.
+ * Note that only [HexFormat.upperCase] and [HexFormat.BytesHexFormat] affect formatting.
  *
  * @param format the [HexFormat] to use for formatting, [HexFormat.Default] by default.
  */
@@ -25,7 +25,7 @@ public inline fun UByteArray.toHexString(format: HexFormat = HexFormat.Default):
 /**
  * Formats bytes in this array using the specified [HexFormat].
  *
- * Note that only [HexFormat.upperCase] and [HexFormat.Bytes] affect formatting.
+ * Note that only [HexFormat.upperCase] and [HexFormat.BytesHexFormat] affect formatting.
  *
  * @param startIndex the beginning (inclusive) of the subrange to format, 0 by default.
  * @param endIndex the end (exclusive) of the subrange to format, size of this array by default.
@@ -44,7 +44,7 @@ public inline fun UByteArray.toHexString(
 /**
  * Parses bytes from this string using the specified [HexFormat].
  *
- * Note that only [HexFormat.Bytes] affects parsing.
+ * Note that only [HexFormat.BytesHexFormat] affects parsing.
  *
  * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
  */
@@ -58,7 +58,7 @@ public inline fun String.hexToUByteArray(format: HexFormat = HexFormat.Default):
 /**
  * Parses bytes from this string using the specified [HexFormat].
  *
- * Note that only [HexFormat.Bytes] affects parsing.
+ * Note that only [HexFormat.BytesHexFormat] affects parsing.
  *
  * @param startIndex the beginning (inclusive) of the substring to parse, 0 by default.
  * @param endIndex the end (exclusive) of the substring to parse, length of this string by default.
@@ -79,7 +79,7 @@ public inline fun String.hexToUByteArray(
 /**
  * Formats this `UByte` value using the specified [format].
  *
- * Note that only [HexFormat.upperCase] and [HexFormat.Numbers] affect formatting.
+ * Note that only [HexFormat.upperCase] and [HexFormat.NumberHexFormat] affect formatting.
  *
  * @param format the [HexFormat] to use for formatting, [HexFormat.Default] by default.
  */
@@ -92,7 +92,7 @@ public inline fun UByte.toHexString(format: HexFormat = HexFormat.Default): Stri
 /**
  * Parses a `UByte` value from this string using the specified [format].
  *
- * Note that only [HexFormat.Numbers] affects parsing.
+ * Note that only [HexFormat.NumberHexFormat] affects parsing.
  *
  * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
  */
@@ -105,7 +105,7 @@ public inline fun String.hexToUByte(format: HexFormat = HexFormat.Default): UByt
 /**
  * Parses a `UByte` value from this string using the specified [format].
  *
- * Note that only [HexFormat.Numbers] affects parsing.
+ * Note that only [HexFormat.NumberHexFormat] affects parsing.
  *
  * @param startIndex the beginning (inclusive) of the substring to parse, 0 by default.
  * @param endIndex the end (exclusive) of the substring to parse, length of this string by default.
@@ -123,7 +123,7 @@ public inline fun String.hexToUByte(startIndex: Int = 0, endIndex: Int = length,
 /**
  * Formats this `UShort` value using the specified [format].
  *
- * Note that only [HexFormat.upperCase] and [HexFormat.Numbers] affect formatting.
+ * Note that only [HexFormat.upperCase] and [HexFormat.NumberHexFormat] affect formatting.
  *
  * @param format the [HexFormat] to use for formatting, [HexFormat.Default] by default.
  */
@@ -136,7 +136,7 @@ public inline fun UShort.toHexString(format: HexFormat = HexFormat.Default): Str
 /**
  * Parses a `UShort` value from this string using the specified [format].
  *
- * Note that only [HexFormat.Numbers] affects parsing.
+ * Note that only [HexFormat.NumberHexFormat] affects parsing.
  *
  * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
  */
@@ -149,7 +149,7 @@ public inline fun String.hexToUShort(format: HexFormat = HexFormat.Default): USh
 /**
  * Parses a `UShort` value from this string using the specified [format].
  *
- * Note that only [HexFormat.Numbers] affects parsing.
+ * Note that only [HexFormat.NumberHexFormat] affects parsing.
  *
  * @param startIndex the beginning (inclusive) of the substring to parse, 0 by default.
  * @param endIndex the end (exclusive) of the substring to parse, length of this string by default.
@@ -167,7 +167,7 @@ public inline fun String.hexToUShort(startIndex: Int = 0, endIndex: Int = length
 /**
  * Formats this `UInt` value using the specified [format].
  *
- * Note that only [HexFormat.upperCase] and [HexFormat.Numbers] affect formatting.
+ * Note that only [HexFormat.upperCase] and [HexFormat.NumberHexFormat] affect formatting.
  *
  * @param format the [HexFormat] to use for formatting, [HexFormat.Default] by default.
  */
@@ -180,7 +180,7 @@ public inline fun UInt.toHexString(format: HexFormat = HexFormat.Default): Strin
 /**
  * Parses an `UInt` value from this string using the specified [format].
  *
- * Note that only [HexFormat.Numbers] affects parsing.
+ * Note that only [HexFormat.NumberHexFormat] affects parsing.
  *
  * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
  */
@@ -193,7 +193,7 @@ public inline fun String.hexToUInt(format: HexFormat = HexFormat.Default): UInt 
 /**
  * Parses an `UInt` value from this string using the specified [format].
  *
- * Note that only [HexFormat.Numbers] affects parsing.
+ * Note that only [HexFormat.NumberHexFormat] affects parsing.
  *
  * @param startIndex the beginning (inclusive) of the substring to parse, 0 by default.
  * @param endIndex the end (exclusive) of the substring to parse, length of this string by default.
@@ -211,7 +211,7 @@ public inline fun String.hexToUInt(startIndex: Int = 0, endIndex: Int = length, 
 /**
  * Formats this `ULong` value using the specified [format].
  *
- * Note that only [HexFormat.upperCase] and [HexFormat.Numbers] affect formatting.
+ * Note that only [HexFormat.upperCase] and [HexFormat.NumberHexFormat] affect formatting.
  *
  * @param format the [HexFormat] to use for formatting, [HexFormat.Default] by default.
  */
@@ -224,7 +224,7 @@ public inline fun ULong.toHexString(format: HexFormat = HexFormat.Default): Stri
 /**
  * Parses an `ULong` value from this string using the specified [format].
  *
- * Note that only [HexFormat.Numbers] affects parsing.
+ * Note that only [HexFormat.NumberHexFormat] affects parsing.
  *
  * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
  */
@@ -237,7 +237,7 @@ public inline fun String.hexToULong(format: HexFormat = HexFormat.Default): ULon
 /**
  * Parses an `ULong` value from this string using the specified [format].
  *
- * Note that only [HexFormat.Numbers] affects parsing.
+ * Note that only [HexFormat.NumberHexFormat] affects parsing.
  *
  * @param startIndex the beginning (inclusive) of the substring to parse, 0 by default.
  * @param endIndex the end (exclusive) of the substring to parse, length of this string by default.

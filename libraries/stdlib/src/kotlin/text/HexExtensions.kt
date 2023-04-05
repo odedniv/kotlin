@@ -14,14 +14,12 @@ private val HEX_DIGITS_TO_DECIMAL = IntArray(128) { -1 }.apply {
     UPPER_CASE_HEX_DIGITS.forEachIndexed { index, char -> this[char.code] = index }
 }
 
-private const val BYTES_LINE_SEPARATOR: String = "\n"
-
 // -------------------------- format and parse ByteArray --------------------------
 
 /**
  * Formats bytes in this array using the specified [format].
  *
- * Note that only [HexFormat.upperCase] and [HexFormat.Bytes] affect formatting.
+ * Note that only [HexFormat.upperCase] and [HexFormat.BytesHexFormat] affect formatting.
  *
  * @param format the [HexFormat] to use for formatting, [HexFormat.Default] by default.
  */
@@ -32,7 +30,7 @@ public fun ByteArray.toHexString(format: HexFormat = HexFormat.Default): String 
 /**
  * Formats bytes in this array using the specified [HexFormat].
  *
- * Note that only [HexFormat.upperCase] and [HexFormat.Bytes] affect formatting.
+ * Note that only [HexFormat.upperCase] and [HexFormat.BytesHexFormat] affect formatting.
  *
  * @param startIndex the beginning (inclusive) of the subrange to format, 0 by default.
  * @param endIndex the end (exclusive) of the subrange to format, size of this array by default.
@@ -49,8 +47,6 @@ public fun ByteArray.toHexString(
 
     val digits = if (format.upperCase) UPPER_CASE_HEX_DIGITS else LOWER_CASE_HEX_DIGITS
     val bytesFormat = format.bytes
-    val perLine = bytesFormat.bytesPerLine.let { if (it <= 0) Int.MAX_VALUE else it }
-    val perGroup = bytesFormat.bytesPerGroup.let { if (it <= 0) perLine else it }
 
     var indexInLine = 0
     var indexInGroup = 0
@@ -59,11 +55,11 @@ public fun ByteArray.toHexString(
         for (i in startIndex until endIndex) {
             val byte = this@toHexString[i].toInt() and 0xFF
 
-            if (indexInLine == perLine) {
-                append(BYTES_LINE_SEPARATOR)
+            if (indexInLine == bytesFormat.bytesPerLine) {
+                append('\n')
                 indexInLine = 0
                 indexInGroup = 0
-            } else if (indexInGroup == perGroup) {
+            } else if (indexInGroup == bytesFormat.bytesPerGroup) {
                 append(bytesFormat.groupSeparator)
                 indexInGroup = 0
             }
@@ -85,7 +81,7 @@ public fun ByteArray.toHexString(
 /**
  * Parses bytes from this string using the specified [HexFormat].
  *
- * Note that only [HexFormat.Bytes] affects parsing.
+ * Note that only [HexFormat.BytesHexFormat] affects parsing.
  *
  * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
  */
@@ -96,7 +92,7 @@ public fun String.hexToByteArray(format: HexFormat = HexFormat.Default): ByteArr
 /**
  * Parses bytes from this string using the specified [HexFormat].
  *
- * Note that only [HexFormat.Bytes] affects parsing.
+ * Note that only [HexFormat.BytesHexFormat] affects parsing.
  *
  * @param startIndex the beginning (inclusive) of the substring to parse, 0 by default.
  * @param endIndex the end (exclusive) of the substring to parse, length of this string by default.
@@ -116,14 +112,14 @@ public fun String.hexToByteArray(
     }
 
     val bytesFormat = format.bytes
-    val bytesPerLine = bytesFormat.bytesPerLine.let { if (it <= 0) Int.MAX_VALUE else it }
-    val bytesPerGroup = bytesFormat.bytesPerGroup.let { if (it <= 0) bytesPerLine else it }
+    val bytesPerLine = bytesFormat.bytesPerLine
+    val bytesPerGroup = bytesFormat.bytesPerGroup
     val bytePrefix = bytesFormat.bytePrefix
     val byteSuffix = bytesFormat.byteSuffix
     val byteSeparator = bytesFormat.byteSeparator
     val groupSeparator = bytesFormat.groupSeparator
 
-    val byteArraySize = calculateParsedByteArraySize(
+    val resultCapacity = parsedByteArrayMaxSize(
         stringLength = endIndex - startIndex,
         bytesPerLine,
         bytesPerGroup,
@@ -132,7 +128,7 @@ public fun String.hexToByteArray(
         bytePrefix.length,
         byteSuffix.length
     )
-    val result = ByteArray(byteArraySize)
+    val result = ByteArray(resultCapacity)
 
     var i = startIndex
     var byteIndex = 0
@@ -141,39 +137,31 @@ public fun String.hexToByteArray(
 
     while (i < endIndex) {
         if (indexInLine == bytesPerLine) {
-            if (this[i] != '\n') {
-                throw NumberFormatException("Expected line separator '\\n' at index $i, but was ${this[i]}")
-            }
-            i += 1
+            i = checkNewLineAt(i, endIndex)
             indexInLine = 0
             indexInGroup = 0
         } else if (indexInGroup == bytesPerGroup) {
-            checkContainsAt(groupSeparator, i, endIndex, "group separator")
-            i += groupSeparator.length
+            i = checkContainsAt(groupSeparator, i, endIndex, "group separator")
             indexInGroup = 0
         } else if (indexInGroup != 0) {
-            checkContainsAt(byteSeparator, i, endIndex, "byte separator")
-            i += byteSeparator.length
+            i = checkContainsAt(byteSeparator, i, endIndex, "byte separator")
         }
+        indexInLine += 1
+        indexInGroup += 1
 
-        checkContainsAt(bytePrefix, i, endIndex, "byte prefix")
-        i += bytePrefix.length
+        i = checkContainsAt(bytePrefix, i, endIndex, "byte prefix")
 
-        checkHexLength(i, (i + 2).coerceAtMost(endIndex), maxDigits = 2, dropLeadingZeros = false)
+        checkHexLength(i, (i + 2).coerceAtMost(endIndex), maxDigits = 2, requireMaxLength = true)
 
-        result[byteIndex++] = ((decimalFromHexDigitAt(i) shl 4) or decimalFromHexDigitAt(i + 1)).toByte()
-        i += 2
+        result[byteIndex++] = ((decimalFromHexDigitAt(i++) shl 4) or decimalFromHexDigitAt(i++)).toByte()
 
-        checkContainsAt(byteSuffix, i, endIndex, "byte suffix")
-        i += byteSuffix.length
+        i = checkContainsAt(byteSuffix, i, endIndex, "byte suffix")
     }
 
-    check(byteIndex == result.size)
-
-    return result
+    return if (byteIndex == result.size) result else result.copyOf(byteIndex)
 }
 
-private fun calculateParsedByteArraySize(
+private fun parsedByteArrayMaxSize(
     stringLength: Int,
     bytesPerLine: Int,
     bytesPerGroup: Int,
@@ -193,15 +181,18 @@ private fun calculateParsedByteArraySize(
             if (bytesPerLastGroupInLine == 0) 0 else groupSeparatorLength + charsPerLastGroupInLine
 
     var numberOfChars = stringLength.toLong()
-    val lines = elementsPerSet(numberOfChars, charsPerLine, BYTES_LINE_SEPARATOR.length)
+    val lines = elementsPerSet(numberOfChars, charsPerLine, 1) // consider as one-character line separator to maximize size
     numberOfChars -= lines * charsPerLine
     val groupsInLastLine = elementsPerSet(numberOfChars, charsPerGroup, groupSeparatorLength)
     numberOfChars -= groupsInLastLine * charsPerGroup
     val bytesInLastGroup = elementsPerSet(numberOfChars, charsPerByte, byteSeparatorLength)
     numberOfChars -= bytesInLastGroup * charsPerByte
 
-    // If numberOfChars is not zero here, have a spare capacity to let parsing continue.
-    // It will throw later on with a correct message.
+    // If numberOfChars is not zero here:
+    //   * CRLF might have been used as line separator
+    //   * or there are dangling characters at the end of string
+    // Anyhow, have a spare capacity to let parsing continue.
+    // In case of dangling characters it will throw later on with a correct message.
     val spare = if (numberOfChars != 0L) 1 else 0
 
     return ((lines * bytesPerLine) + (groupsInLastLine * bytesPerGroup) + bytesInLastGroup + spare).toInt()
@@ -215,12 +206,22 @@ private fun elementsPerSet(charsPerSet: Long, charsPerElement: Long, elementSepa
     return (charsPerSet + elementSeparatorLength) / (charsPerElement + elementSeparatorLength)
 }
 
+private fun String.checkNewLineAt(index: Int, endIndex: Int): Int {
+    return if (this[index] == '\r') {
+        if (index + 1 < endIndex && this[index + 1] == '\n') index + 2 else index + 1
+    } else if (this[index] == '\n') {
+        index + 1
+    } else {
+        throw NumberFormatException("Expected a new line at index $index, but was ${this[index]}")
+    }
+}
+
 // -------------------------- format and parse Byte --------------------------
 
 /**
  * Formats this `Byte` value using the specified [format].
  *
- * Note that only [HexFormat.upperCase] and [HexFormat.Numbers] affect formatting.
+ * Note that only [HexFormat.upperCase] and [HexFormat.NumberHexFormat] affect formatting.
  *
  * @param format the [HexFormat] to use for formatting, [HexFormat.Default] by default.
  */
@@ -231,7 +232,7 @@ public fun Byte.toHexString(format: HexFormat = HexFormat.Default): String = toL
 /**
  * Parses a `Byte` value from this string using the specified [format].
  *
- * Note that only [HexFormat.Numbers] affects parsing.
+ * Note that only [HexFormat.NumberHexFormat] affects parsing.
  *
  * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
  */
@@ -242,7 +243,7 @@ public fun String.hexToByte(format: HexFormat = HexFormat.Default): Byte = hexTo
 /**
  * Parses a `Byte` value from this string using the specified [format].
  *
- * Note that only [HexFormat.Numbers] affects parsing.
+ * Note that only [HexFormat.NumberHexFormat] affects parsing.
  *
  * @param startIndex the beginning (inclusive) of the substring to parse, 0 by default.
  * @param endIndex the end (exclusive) of the substring to parse, length of this string by default.
@@ -258,7 +259,7 @@ public fun String.hexToByte(startIndex: Int = 0, endIndex: Int = length, format:
 /**
  * Formats this `Short` value using the specified [format].
  *
- * Note that only [HexFormat.upperCase] and [HexFormat.Numbers] affect formatting.
+ * Note that only [HexFormat.upperCase] and [HexFormat.NumberHexFormat] affect formatting.
  *
  * @param format the [HexFormat] to use for formatting, [HexFormat.Default] by default.
  */
@@ -269,7 +270,7 @@ public fun Short.toHexString(format: HexFormat = HexFormat.Default): String = to
 /**
  * Parses a `Short` value from this string using the specified [format].
  *
- * Note that only [HexFormat.Numbers] affects parsing.
+ * Note that only [HexFormat.NumberHexFormat] affects parsing.
  *
  * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
  */
@@ -280,7 +281,7 @@ public fun String.hexToShort(format: HexFormat = HexFormat.Default): Short = hex
 /**
  * Parses a `Short` value from this string using the specified [format].
  *
- * Note that only [HexFormat.Numbers] affects parsing.
+ * Note that only [HexFormat.NumberHexFormat] affects parsing.
  *
  * @param startIndex the beginning (inclusive) of the substring to parse, 0 by default.
  * @param endIndex the end (exclusive) of the substring to parse, length of this string by default.
@@ -296,7 +297,7 @@ public fun String.hexToShort(startIndex: Int = 0, endIndex: Int = length, format
 /**
  * Formats this `Int` value using the specified [format].
  *
- * Note that only [HexFormat.upperCase] and [HexFormat.Numbers] affect formatting.
+ * Note that only [HexFormat.upperCase] and [HexFormat.NumberHexFormat] affect formatting.
  *
  * @param format the [HexFormat] to use for formatting, [HexFormat.Default] by default.
  */
@@ -307,7 +308,7 @@ public fun Int.toHexString(format: HexFormat = HexFormat.Default): String = toLo
 /**
  * Parses an `Int` value from this string using the specified [format].
  *
- * Note that only [HexFormat.Numbers] affects parsing.
+ * Note that only [HexFormat.NumberHexFormat] affects parsing.
  *
  * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
  */
@@ -318,7 +319,7 @@ public fun String.hexToInt(format: HexFormat = HexFormat.Default): Int = hexToIn
 /**
  * Parses an `Int` value from this string using the specified [format].
  *
- * Note that only [HexFormat.Numbers] affects parsing.
+ * Note that only [HexFormat.NumberHexFormat] affects parsing.
  *
  * @param startIndex the beginning (inclusive) of the substring to parse, 0 by default.
  * @param endIndex the end (exclusive) of the substring to parse, length of this string by default.
@@ -334,7 +335,7 @@ public fun String.hexToInt(startIndex: Int = 0, endIndex: Int = length, format: 
 /**
  * Formats this `Long` value using the specified [format].
  *
- * Note that only [HexFormat.upperCase] and [HexFormat.Numbers] affect formatting.
+ * Note that only [HexFormat.upperCase] and [HexFormat.NumberHexFormat] affect formatting.
  *
  * @param format the [HexFormat] to use for formatting, [HexFormat.Default] by default.
  */
@@ -345,7 +346,7 @@ public fun Long.toHexString(format: HexFormat = HexFormat.Default): String = toH
 /**
  * Parses a `Long` value from this string using the specified [format].
  *
- * Note that only [HexFormat.Numbers] affects parsing.
+ * Note that only [HexFormat.NumberHexFormat] affects parsing.
  *
  * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
  */
@@ -356,7 +357,7 @@ public fun String.hexToLong(format: HexFormat = HexFormat.Default): Long = hexTo
 /**
  * Parses a `Long` value from this string using the specified [format].
  *
- * Note that only [HexFormat.Numbers] affects parsing.
+ * Note that only [HexFormat.NumberHexFormat] affects parsing.
  *
  * @param startIndex the beginning (inclusive) of the substring to parse, 0 by default.
  * @param endIndex the end (exclusive) of the substring to parse, length of this string by default.
@@ -375,10 +376,10 @@ private fun Long.toHexStringImpl(format: HexFormat, bits: Int): String {
     val digits = if (format.upperCase) UPPER_CASE_HEX_DIGITS else LOWER_CASE_HEX_DIGITS
     val value = this
 
-    val prefix = format.numbers.prefix
-    val suffix = format.numbers.suffix
+    val prefix = format.number.prefix
+    val suffix = format.number.suffix
     val formatLength = prefix.length + (bits shr 2) + suffix.length
-    var dropZeros = format.numbers.dropLeadingZeros
+    var removeZeros = format.number.removeLeadingZeros
 
     return buildString(formatLength) {
         append(prefix)
@@ -387,8 +388,8 @@ private fun Long.toHexStringImpl(format: HexFormat, bits: Int): String {
         while (shift > 0) {
             shift -= 4
             val decimal = ((value shr shift) and 0xF).toInt()
-            dropZeros = dropZeros && decimal == 0 && shift > 0
-            if (!dropZeros) {
+            removeZeros = removeZeros && decimal == 0 && shift > 0
+            if (!removeZeros) {
                 append(digits[decimal])
             }
         }
@@ -400,8 +401,8 @@ private fun Long.toHexStringImpl(format: HexFormat, bits: Int): String {
 private fun String.hexToLongImpl(startIndex: Int = 0, endIndex: Int = length, format: HexFormat, maxDigits: Int): Long {
     AbstractList.checkBoundsIndexes(startIndex, endIndex, length)
 
-    val prefix = format.numbers.prefix
-    val suffix = format.numbers.suffix
+    val prefix = format.number.prefix
+    val suffix = format.number.suffix
 
     if (prefix.length + suffix.length >= endIndex - startIndex) {
         throw NumberFormatException(
@@ -409,13 +410,11 @@ private fun String.hexToLongImpl(startIndex: Int = 0, endIndex: Int = length, fo
         )
     }
 
-    checkContainsAt(prefix, startIndex, endIndex, "prefix")
-    checkContainsAt(suffix, endIndex - suffix.length, endIndex, "suffix")
-
-    val digitsStartIndex = startIndex + prefix.length
+    val digitsStartIndex = checkContainsAt(prefix, startIndex, endIndex, "prefix")
     val digitsEndIndex = endIndex - suffix.length
+    checkContainsAt(suffix, digitsEndIndex, endIndex, "suffix")
 
-    checkHexLength(digitsStartIndex, digitsEndIndex, maxDigits, format.numbers.dropLeadingZeros)
+    checkHexLength(digitsStartIndex, digitsEndIndex, maxDigits, requireMaxLength = false)
 
     var result = 0L
     for (i in digitsStartIndex until digitsEndIndex) {
@@ -424,24 +423,24 @@ private fun String.hexToLongImpl(startIndex: Int = 0, endIndex: Int = length, fo
     return result
 }
 
-private fun String.checkContainsAt(prefix: String, index: Int, endIndex: Int, prefixName: String, checkEndsWith: Boolean = false) {
-    val expectedEndIndex = index + prefix.length
-    val isCorrectSize = if (checkEndsWith) expectedEndIndex == endIndex else expectedEndIndex <= endIndex
-    if (!isCorrectSize || !regionMatches(index, prefix, 0, prefix.length)) {
+private fun String.checkContainsAt(part: String, index: Int, endIndex: Int, partName: String): Int {
+    val end = index + part.length
+    if (end > endIndex || !regionMatches(index, part, 0, part.length, ignoreCase = true)) {
         throw NumberFormatException(
-            "Expected $prefixName \"$prefix\" at index $index, but was ${this.substring(index, expectedEndIndex.coerceAtMost(endIndex))}"
+            "Expected $partName \"$part\" at index $index, but was ${this.substring(index, end.coerceAtMost(endIndex))}"
         )
     }
+    return end
 }
 
-private fun String.checkHexLength(startIndex: Int, endIndex: Int, maxDigits: Int, dropLeadingZeros: Boolean) {
-    val actualDigits = endIndex - startIndex
-    val isCorrectLength = if (dropLeadingZeros) actualDigits <= maxDigits else actualDigits == maxDigits
+private fun String.checkHexLength(startIndex: Int, endIndex: Int, maxDigits: Int, requireMaxLength: Boolean) {
+    val digitsLength = endIndex - startIndex
+    val isCorrectLength = if (requireMaxLength) digitsLength == maxDigits else digitsLength <= maxDigits
     if (!isCorrectLength) {
-        val specifier = if (dropLeadingZeros) "at most" else "exactly"
+        val specifier = if (requireMaxLength) "exactly" else "at most"
         val substring = substring(startIndex, endIndex)
         throw NumberFormatException(
-            "Expected $specifier $maxDigits hexadecimal digits at index $startIndex, but was $substring of length $actualDigits"
+            "Expected $specifier $maxDigits hexadecimal digits at index $startIndex, but was $substring of length $digitsLength"
         )
     }
 }

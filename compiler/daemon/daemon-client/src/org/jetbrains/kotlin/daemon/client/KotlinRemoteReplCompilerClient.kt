@@ -35,6 +35,19 @@ open class KotlinRemoteReplCompilerClient(
     templateClassName: String,
     port: Int = SOCKET_ANY_FREE_PORT
 ) : ReplCompiler {
+    @Deprecated("Please use a constructor with the `TargetPlatform` from the Build Tools API") // Used in IDEA
+    @Suppress("DEPRECATION")
+    constructor(
+        compileService: CompileService,
+        clientAliveFlagFile: File?,
+        targetPlatform: CompileService.TargetPlatform,
+        args: Array<out String>,
+        messageCollector: MessageCollector,
+        templateClasspath: List<File>,
+        templateClassName: String,
+        port: Int = SOCKET_ANY_FREE_PORT
+    ) : this(compileService, clientAliveFlagFile, TargetPlatform.valueOf(targetPlatform.name), args, messageCollector, templateClasspath, templateClassName, port)
+
     val services = BasicCompilerServicesWithResultsFacadeServer(messageCollector, null, port)
 
     val sessionId = compileService.leaseReplSession(

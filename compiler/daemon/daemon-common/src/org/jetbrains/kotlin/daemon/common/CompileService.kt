@@ -32,6 +32,13 @@ interface CompileService : Remote {
         XML
     }
 
+    @Deprecated("Please use the `TargetPlatform` from the Build Tools API", ReplaceWith("org.jetbrains.kotlin.buildtools.api.compilation.TargetPlatform")) // Used in IDEA
+    enum class TargetPlatform : Serializable {
+        JVM,
+        JS,
+        METADATA
+    }
+
     companion object {
         val NO_SESSION: Int = 0
     }

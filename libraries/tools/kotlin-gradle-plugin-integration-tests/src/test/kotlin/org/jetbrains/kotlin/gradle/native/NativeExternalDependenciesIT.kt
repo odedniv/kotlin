@@ -5,15 +5,12 @@
 
 package org.jetbrains.kotlin.gradle.native
 
-import org.gradle.util.internal.DefaultGradleVersion
-import org.jetbrains.kotlin.gradle.KOTLIN_VERSION
-import org.jetbrains.kotlin.gradle.PLUGIN_MARKER_VERSION_PLACEHOLDER
+import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.gradle.testbase.*
-import org.jetbrains.kotlin.gradle.util.replaceText
 import org.jetbrains.kotlin.konan.target.HostManager
-import org.jetbrains.kotlin.konan.target.KonanTarget
-import org.junit.jupiter.api.Assumptions.assumeFalse
 import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.condition.DisabledOnOs
+import org.junit.jupiter.api.condition.OS
 import java.io.File
 import java.util.*
 import kotlin.io.path.appendText
@@ -21,23 +18,26 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
-@DisplayName("NativeExternalDependencies task tests")
+@DisplayName("Tests for K/N builds with external dependencies")
 @NativeGradlePluginTests
 internal class NativeExternalDependenciesIT : KGPBaseTest() {
 
-    @DisplayName("KT-45353: building project without external dependencies should not print any external dependencies text")
+    @DisplayName("K/N shouldn't contain any external dependencies by default")
     @GradleTest
-    fun shouldNotUseExternalDependencies(gradleVersion: DefaultGradleVersion) {
+    fun shouldNotUseExternalDependencies(gradleVersion: GradleVersion) {
         buildProjectWithDependencies(gradleVersion) { externalDependenciesText ->
             assertNull(externalDependenciesText)
         }
     }
 
-    @DisplayName("KT-45353: building project with external old ktor and coroutines dependencies should should produce additional log")
+    @DisplayName("Should build with ktor 1.5.4 and coroutines 1.5.0-RC-native-mt")
     @GradleTest
-    fun shouldUseOldKtorAndCoroutinesExternalDependencies(gradleVersion: DefaultGradleVersion) {
-        // These versions of Ktor and coroutines don't support macos-arm64
-        assumeFalse(hostIsMacArm64())
+    @DisabledOnOs(
+        value = [OS.MAC],
+        architectures = ["aarch64"],
+        disabledReason = "These versions of Ktor and coroutines don't support macos-arm64"
+    )
+    fun shouldUseOldKtorAndCoroutinesExternalDependencies(gradleVersion: GradleVersion) {
 
         buildProjectWithDependencies(
             gradleVersion,
@@ -65,9 +65,9 @@ internal class NativeExternalDependenciesIT : KGPBaseTest() {
         }
     }
 
-    @DisplayName("KT-45353: building project with external ktor and coroutines dependencies should produce additional log")
+    @DisplayName("Should build with ktor 1.6.5 and coroutines 1.5.2-native-mt")
     @GradleTest
-    fun shouldUseKtorAndCoroutinesExternalDependencies(gradleVersion: DefaultGradleVersion) {
+    fun shouldUseKtorAndCoroutinesExternalDependencies(gradleVersion: GradleVersion) {
         buildProjectWithDependencies(
             gradleVersion,
             "io.ktor:ktor-io:1.6.5",
@@ -95,12 +95,11 @@ internal class NativeExternalDependenciesIT : KGPBaseTest() {
     }
 
     private fun buildProjectWithDependencies(
-        gradleVersion: DefaultGradleVersion,
+        gradleVersion: GradleVersion,
         vararg dependencies: String,
         externalDependenciesTextConsumer: (externalDependenciesText: String?) -> Unit
     ) {
         nativeProject("native-external-dependencies", gradleVersion) {
-            buildGradleKts.replaceText(PLUGIN_MARKER_VERSION_PLACEHOLDER, KOTLIN_VERSION)
             buildGradleKts.appendText(
                 """
                 |
@@ -142,8 +141,6 @@ internal class NativeExternalDependenciesIT : KGPBaseTest() {
 
     internal companion object {
         val MASKED_TARGET_NAME = "testTarget" + HostManager.host.architecture.name
-
-        fun hostIsMacArm64() = HostManager.host == KonanTarget.MACOS_ARM64
 
         fun findParameterInOutput(name: String, output: String): String? =
             output.lineSequence().mapNotNull { line ->

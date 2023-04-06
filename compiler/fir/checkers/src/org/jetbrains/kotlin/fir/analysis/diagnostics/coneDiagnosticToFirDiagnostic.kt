@@ -39,6 +39,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.jetbrains.kotlin.utils.addToStdlib.runIf
 
 private fun ConeDiagnostic.toKtDiagnostic(
+    session: FirSession,
     source: KtSourceElement,
     qualifiedAccessSource: KtSourceElement?
 ): KtDiagnostic? = when (this) {
@@ -70,7 +71,7 @@ private fun ConeDiagnostic.toKtDiagnostic(
         applicability == CandidateApplicability.UNSAFE_CALL -> {
             val candidate = candidates.first { it.applicability == CandidateApplicability.UNSAFE_CALL }
             val unsafeCall = candidate.diagnostics.firstIsInstance<UnsafeCall>()
-            mapUnsafeCallError(candidate, unsafeCall, source, qualifiedAccessSource)
+            mapUnsafeCallError(session, candidate, unsafeCall, source, qualifiedAccessSource)
         }
 
         applicability == CandidateApplicability.UNSTABLE_SMARTCAST -> {
@@ -147,11 +148,12 @@ fun ConeDiagnostic.toFirDiagnostics(
     return when (this) {
         is ConeInapplicableCandidateError -> mapInapplicableCandidateError(session, this, source, qualifiedAccessSource)
         is ConeConstraintSystemHasContradiction -> mapSystemHasContradictionError(session, this, source, qualifiedAccessSource)
-        else -> listOfNotNull(toKtDiagnostic(source, qualifiedAccessSource))
+        else -> listOfNotNull(toKtDiagnostic(session, source, qualifiedAccessSource))
     }
 }
 
 private fun mapUnsafeCallError(
+    session: FirSession,
     candidate: AbstractCandidate,
     rootCause: UnsafeCall,
     source: KtSourceElement,
@@ -173,11 +175,11 @@ private fun mapUnsafeCallError(
         // TODO: No need to check for source.elementType == BINARY_EXPRESSION if we use operator as callee reference source
         //  (see FirExpressionsResolveTransformer.transformAssignmentOperatorStatement)
         val operationSource = if (source.elementType == KtNodeTypes.BINARY_EXPRESSION) {
-            source.getChild(KtNodeTypes.OPERATION_REFERENCE)
+            source.getChild(session, KtNodeTypes.OPERATION_REFERENCE)
         } else {
             source
         }
-        return if (operationSource?.getChild(KtTokens.IDENTIFIER) != null) {
+        return if (operationSource?.getChild(session, KtTokens.IDENTIFIER) != null) {
             FirErrors.UNSAFE_INFIX_CALL.createOn(
                 source,
                 receiverExpression,
@@ -251,7 +253,7 @@ private fun mapInapplicableCandidateError(
                 rootCause.argument.source ?: source
             )
 
-            is NonVarargSpread -> FirErrors.NON_VARARG_SPREAD.createOn(rootCause.argument.source?.getChild(KtTokens.MUL, depth = 1)!!)
+            is NonVarargSpread -> FirErrors.NON_VARARG_SPREAD.createOn(rootCause.argument.source?.getChild(session, KtTokens.MUL, depth = 1)!!)
             is ArgumentPassedTwice -> FirErrors.ARGUMENT_PASSED_TWICE.createOn(rootCause.argument.source)
             is TooManyArguments -> FirErrors.TOO_MANY_ARGUMENTS.createOn(rootCause.argument.source ?: source, rootCause.function.symbol)
             is NoValueForParameter -> FirErrors.NO_VALUE_FOR_PARAMETER.createOn(
@@ -268,7 +270,7 @@ private fun mapInapplicableCandidateError(
                 rootCause.argument.source ?: source
             )
 
-            is UnsafeCall -> mapUnsafeCallError(diagnostic.candidate, rootCause, source, qualifiedAccessSource)
+            is UnsafeCall -> mapUnsafeCallError(session, diagnostic.candidate, rootCause, source, qualifiedAccessSource)
             is ManyLambdaExpressionArguments -> FirErrors.MANY_LAMBDA_EXPRESSION_ARGUMENTS.createOn(rootCause.argument.source ?: source)
             is InfixCallOfNonInfixFunction -> FirErrors.INFIX_MODIFIER_REQUIRED.createOn(source, rootCause.function)
             is OperatorCallOfNonOperatorFunction ->

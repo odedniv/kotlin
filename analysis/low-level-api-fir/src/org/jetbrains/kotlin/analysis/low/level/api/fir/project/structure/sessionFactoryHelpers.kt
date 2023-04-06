@@ -23,6 +23,8 @@ import org.jetbrains.kotlin.analysis.providers.createDeclarationProvider
 import org.jetbrains.kotlin.fir.FirExceptionHandler
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.SessionConfiguration
+import org.jetbrains.kotlin.fir.builder.FirPsiSourceElementFactory
+import org.jetbrains.kotlin.fir.builder.FirPsiSourceElementWithFixedPsiFactory
 import org.jetbrains.kotlin.fir.caches.FirCachesFactory
 import org.jetbrains.kotlin.fir.declarations.SealedClassInheritorsProvider
 import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrar
@@ -42,6 +44,7 @@ internal fun LLFirSession.registerIdeComponents(project: Project) {
     register(FirCachesFactory::class, FirThreadSafeCachesFactory)
     register(SealedClassInheritorsProvider::class, project.createSealedInheritorsProvider())
     register(FirExceptionHandler::class, LLFirExceptionHandler)
+    register(FirPsiSourceElementFactory::class, FirPsiSourceElementWithFixedPsiFactory)
 }
 
 internal inline fun createCompositeSymbolProvider(

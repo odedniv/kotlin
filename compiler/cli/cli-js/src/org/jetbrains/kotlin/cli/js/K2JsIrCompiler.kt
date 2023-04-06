@@ -61,6 +61,7 @@ import org.jetbrains.kotlin.library.impl.BuiltInsPlatform
 import org.jetbrains.kotlin.library.metadata.KlibMetadataVersion
 import org.jetbrains.kotlin.metadata.deserialization.BinaryVersion
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.progress.IncrementalNextRoundException
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.serialization.js.ModuleKind
 import org.jetbrains.kotlin.utils.KotlinPaths
@@ -488,17 +489,26 @@ class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
         val mainModule = MainModule.SourceFiles(environmentForJS.getSourceFiles())
         val moduleStructure = ModulesStructure(environmentForJS.project, mainModule, configuration, libraries, friendLibraries)
 
+        val lookupTracker = configuration.get(CommonConfigurationKeys.LOOKUP_TRACKER) ?: LookupTracker.DO_NOTHING
+
         val outputs = compileModuleToAnalyzedFir(
             moduleStructure = moduleStructure,
             ktFiles = environmentForJS.getSourceFiles(),
             libraries = libraries,
             friendLibraries = friendLibraries,
             messageCollector = messageCollector,
-            diagnosticsReporter = diagnosticsReporter
+            diagnosticsReporter = diagnosticsReporter,
+            incrementalDataProvider = configuration[JSConfigurationKeys.INCREMENTAL_DATA_PROVIDER],
+            lookupTracker = lookupTracker,
         ) ?: return null
 
         // FIR2IR
         val fir2IrActualizedResult = transformFirToIr(moduleStructure, outputs, diagnosticsReporter)
+
+        if (configuration.getBoolean(CommonConfigurationKeys.INCREMENTAL_COMPILATION)) {
+            /** can throw [IncrementalNextRoundException] */
+            compareFirMetadataAndGoToNextICRoundIfNeeded(moduleStructure, outputs, fir2IrActualizedResult, configuration)
+        }
 
         // Serialize klib
         if (arguments.irProduceKlibDir || arguments.irProduceKlibFile) {

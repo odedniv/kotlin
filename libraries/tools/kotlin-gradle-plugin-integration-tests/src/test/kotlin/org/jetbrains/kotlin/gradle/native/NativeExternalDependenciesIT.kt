@@ -1,37 +1,46 @@
 /*
- * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2023 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
 package org.jetbrains.kotlin.gradle.native
 
-import org.jetbrains.kotlin.gradle.BaseGradleIT
-import org.jetbrains.kotlin.gradle.GradleVersionRequired
+import org.gradle.util.internal.DefaultGradleVersion
+import org.jetbrains.kotlin.gradle.KOTLIN_VERSION
+import org.jetbrains.kotlin.gradle.PLUGIN_MARKER_VERSION_PLACEHOLDER
+import org.jetbrains.kotlin.gradle.testbase.*
+import org.jetbrains.kotlin.gradle.util.replaceText
 import org.jetbrains.kotlin.konan.target.HostManager
 import org.jetbrains.kotlin.konan.target.KonanTarget
-import org.junit.Assume.assumeFalse
-import org.junit.Test
+import org.junit.jupiter.api.Assumptions.assumeFalse
+import org.junit.jupiter.api.DisplayName
 import java.io.File
 import java.util.*
+import kotlin.io.path.appendText
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
-class NativeExternalDependenciesIT : BaseGradleIT() {
-    override val defaultGradleVersion: GradleVersionRequired
-        get() = GradleVersionRequired.FOR_MPP_SUPPORT
+@DisplayName("NativeExternalDependencies task tests")
+@NativeGradlePluginTests
+internal class NativeExternalDependenciesIT : KGPBaseTest() {
 
-    @Test
-    fun `no external dependencies`() = buildProjectWithDependencies { externalDependenciesText ->
-        assertNull(externalDependenciesText)
+    @DisplayName("KT-45353: building project without external dependencies should not print any external dependencies text")
+    @GradleTest
+    fun shouldNotUseExternalDependencies(gradleVersion: DefaultGradleVersion) {
+        buildProjectWithDependencies(gradleVersion) { externalDependenciesText ->
+            assertNull(externalDependenciesText)
+        }
     }
 
-    @Test
-    fun `ktor 1_5_4 and coroutines 1_5_0-RC-native-mt`() {
+    @DisplayName("KT-45353: building project with external old ktor and coroutines dependencies should should produce additional log")
+    @GradleTest
+    fun shouldUseOldKtorAndCoroutinesExternalDependencies(gradleVersion: DefaultGradleVersion) {
         // These versions of Ktor and coroutines don't support macos-arm64
         assumeFalse(hostIsMacArm64())
 
         buildProjectWithDependencies(
+            gradleVersion,
             "io.ktor:ktor-io:1.5.4",
             "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0-RC-native-mt"
         ) { externalDependenciesText ->
@@ -56,15 +65,18 @@ class NativeExternalDependenciesIT : BaseGradleIT() {
         }
     }
 
-    @Test
-    fun `ktor 1_6_5 and coroutines 1_5_2-native-mt`() = buildProjectWithDependencies(
-        "io.ktor:ktor-io:1.6.5",
-        "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2-native-mt"
-    ) { externalDependenciesText ->
-        assertNotNull(externalDependenciesText)
+    @DisplayName("KT-45353: building project with external ktor and coroutines dependencies should produce additional log")
+    @GradleTest
+    fun shouldUseKtorAndCoroutinesExternalDependencies(gradleVersion: DefaultGradleVersion) {
+        buildProjectWithDependencies(
+            gradleVersion,
+            "io.ktor:ktor-io:1.6.5",
+            "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2-native-mt"
+        ) { externalDependenciesText ->
+            assertNotNull(externalDependenciesText)
 
-        assertEquals(
-            """
+            assertEquals(
+                """
             |0 native-external-dependencies
             |1 io.ktor:ktor-io,io.ktor:ktor-io-$MASKED_TARGET_NAME[1.6.5] #0[1.6.5]
             |${'\t'}/some/path/ktor-io.klib
@@ -77,16 +89,19 @@ class NativeExternalDependenciesIT : BaseGradleIT() {
             |${'\t'}/some/path/kotlinx-coroutines-core.klib
             |
             """.trimMargin(),
-            externalDependenciesText
-        )
+                externalDependenciesText
+            )
+        }
     }
 
     private fun buildProjectWithDependencies(
+        gradleVersion: DefaultGradleVersion,
         vararg dependencies: String,
         externalDependenciesTextConsumer: (externalDependenciesText: String?) -> Unit
     ) {
-        with(transformNativeTestProjectWithPluginDsl("native-external-dependencies")) {
-            gradleBuildScript().appendText(
+        nativeProject("native-external-dependencies", gradleVersion) {
+            buildGradleKts.replaceText(PLUGIN_MARKER_VERSION_PLACEHOLDER, KOTLIN_VERSION)
+            buildGradleKts.appendText(
                 """
                 |
                 |kotlin {
@@ -98,10 +113,7 @@ class NativeExternalDependenciesIT : BaseGradleIT() {
                 """.trimMargin()
             )
 
-            build(
-                "buildExternalDependenciesFile"
-            ) {
-                assertSuccessful()
+            build("buildExternalDependenciesFile") {
                 assertTasksExecuted(":buildExternalDependenciesFile")
                 val kotlinNativeTargetName = findKotlinNativeTargetName(output)
                 assertNotNull(kotlinNativeTargetName)

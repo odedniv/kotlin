@@ -25,3 +25,9 @@ tasks.withType<KotlinCompilationTask<*>>().configureEach {
     compilerOptions.apiVersion.value(KotlinVersion.KOTLIN_1_8).finalizeValueOnRead()
     compilerOptions.languageVersion.value(KotlinVersion.KOTLIN_1_8).finalizeValueOnRead()
 }
+
+tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().configureEach {
+    kotlinOptions {
+        freeCompilerArgs += "-opt-in=org.jetbrains.kotlin.KtPsiSourceElementInternals"
+    }
+}

@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.load.java.JvmAnnotationNames
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.StandardClassIds
 import org.jetbrains.kotlin.test.TargetBackend
+import org.jetbrains.kotlin.test.backend.codegenSuppressionChecker
 import org.jetbrains.kotlin.test.backend.ir.IrBackendInput
 import org.jetbrains.kotlin.test.directives.CodegenTestDirectives.DUMP_LOCAL_DECLARATION_SIGNATURES
 import org.jetbrains.kotlin.test.directives.CodegenTestDirectives.DUMP_SIGNATURES
@@ -129,29 +130,18 @@ class IrMangledNameAndSignatureDumpHandler(testServices: TestServices) : IrPrett
             info.irModuleFragment.irBuiltins,
         )
 
-    private val isMuted: Boolean
-        get() {
-            val defaultsProvider = testServices.defaultsProvider
-            val ignoredBackends = testServices.moduleStructure.allDirectives[MUTE_SIGNATURE_COMPARISON_K2]
-            return defaultsProvider.defaultFrontend == FrontendKinds.FIR &&
-                    (defaultsProvider.defaultTargetBackend in ignoredBackends || TargetBackend.ANY in ignoredBackends)
-        }
-
     override fun processModule(module: TestModule, info: IrBackendInput) {
         if (DUMP_SIGNATURES !in module.directives || SKIP_SIGNATURE_DUMP in module.directives) return
         dumpModule(module, info)
     }
 
     override fun processAfterAllModules(someAssertionWasFailed: Boolean) {
-        try {
+        val frontendKind = testServices.defaultsProvider.defaultFrontend
+        val muteDirectives = listOfNotNull(
+            MUTE_SIGNATURE_COMPARISON_K2.takeIf { frontendKind == FrontendKinds.FIR },
+        )
+        testServices.codegenSuppressionChecker.checkMuted<FileComparisonFailure>(muteDirectives) {
             super.processAfterAllModules(someAssertionWasFailed)
-            if (isMuted) {
-                throw AssertionError("Looks like this test can be unmuted. Please remove the $MUTE_SIGNATURE_COMPARISON_K2 directive.")
-            }
-        } catch (e: FileComparisonFailure) {
-            if (!isMuted) {
-                throw e
-            }
         }
     }
 

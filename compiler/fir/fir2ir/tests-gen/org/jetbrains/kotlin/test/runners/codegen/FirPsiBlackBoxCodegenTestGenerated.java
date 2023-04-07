@@ -324,12 +324,6 @@ public class FirPsiBlackBoxCodegenTestGenerated extends AbstractFirPsiBlackBoxCo
         }
 
         @Test
-        @TestMetadata("objectConstValInAnnotationArgument.kt")
-        public void testObjectConstValInAnnotationArgument() throws Exception {
-            runTest("compiler/testData/codegen/box/annotations/objectConstValInAnnotationArgument.kt");
-        }
-
-        @Test
         @TestMetadata("parameterAnnotationInDefaultImpls.kt")
         public void testParameterAnnotationInDefaultImpls() throws Exception {
             runTest("compiler/testData/codegen/box/annotations/parameterAnnotationInDefaultImpls.kt");
@@ -28446,6 +28440,12 @@ public class FirPsiBlackBoxCodegenTestGenerated extends AbstractFirPsiBlackBoxCo
             @TestMetadata("longOperations.kt")
             public void testLongOperations() throws Exception {
                 runTest("compiler/testData/codegen/box/involvesIrInterpreter/dumpIrAndCheck/longOperations.kt");
+            }
+
+            @Test
+            @TestMetadata("objectConstValInAnnotationArgument.kt")
+            public void testObjectConstValInAnnotationArgument() throws Exception {
+                runTest("compiler/testData/codegen/box/involvesIrInterpreter/dumpIrAndCheck/objectConstValInAnnotationArgument.kt");
             }
 
             @Test

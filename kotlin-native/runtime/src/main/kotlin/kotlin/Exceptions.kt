@@ -128,7 +128,7 @@ public actual open class AssertionError : Error {
 
     actual constructor(message: Any?) : super(message?.toString())
 
-    constructor(message: String?, cause: Throwable?) : super(message, cause)
+    actual constructor(message: String?, cause: Throwable?) : super(message, cause)
 }
 
 public actual open class NoWhenBranchMatchedException : RuntimeException {

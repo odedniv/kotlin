@@ -81,7 +81,9 @@ public fun ByteArray.toHexString(
 /**
  * Parses bytes from this string using the specified [HexFormat].
  *
- * Note that only [HexFormat.BytesHexFormat] affects parsing.
+ * Note that only [HexFormat.BytesHexFormat] affects parsing,
+ * and parsing is performed in case-insensitive manner.
+ * Also, any of the char sequences CRLF, LF and CR is considered a valid line separator.
  *
  * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
  */
@@ -92,15 +94,17 @@ public fun String.hexToByteArray(format: HexFormat = HexFormat.Default): ByteArr
 /**
  * Parses bytes from this string using the specified [HexFormat].
  *
- * Note that only [HexFormat.BytesHexFormat] affects parsing.
+ * Note that only [HexFormat.BytesHexFormat] affects parsing,
+ * and parsing is performed in case-insensitive manner.
+ * Also, any of the char sequences CRLF, LF and CR is considered a valid line separator.
  *
  * @param startIndex the beginning (inclusive) of the substring to parse, 0 by default.
  * @param endIndex the end (exclusive) of the substring to parse, length of this string by default.
  * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
  */
 @ExperimentalStdlibApi
-@SinceKotlin("1.9")
-public fun String.hexToByteArray(
+//@SinceKotlin("1.9")
+private fun String.hexToByteArray(
     startIndex: Int = 0,
     endIndex: Int = length,
     format: HexFormat = HexFormat.Default
@@ -208,6 +212,7 @@ private fun elementsPerSet(charsPerSet: Long, charsPerElement: Long, elementSepa
 
 private fun String.checkNewLineAt(index: Int, endIndex: Int): Int {
     return if (this[index] == '\r') {
+        // What if byteSeparator starts with '\n' ?
         if (index + 1 < endIndex && this[index + 1] == '\n') index + 2 else index + 1
     } else if (this[index] == '\n') {
         index + 1
@@ -232,7 +237,8 @@ public fun Byte.toHexString(format: HexFormat = HexFormat.Default): String = toL
 /**
  * Parses a `Byte` value from this string using the specified [format].
  *
- * Note that only [HexFormat.NumberHexFormat] affects parsing.
+ * Note that only [HexFormat.NumberHexFormat] affects parsing,
+ * and parsing is performed in case-insensitive manner.
  *
  * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
  */
@@ -243,15 +249,16 @@ public fun String.hexToByte(format: HexFormat = HexFormat.Default): Byte = hexTo
 /**
  * Parses a `Byte` value from this string using the specified [format].
  *
- * Note that only [HexFormat.NumberHexFormat] affects parsing.
+ * Note that only [HexFormat.NumberHexFormat] affects parsing,
+ * and parsing is performed in case-insensitive manner.
  *
  * @param startIndex the beginning (inclusive) of the substring to parse, 0 by default.
  * @param endIndex the end (exclusive) of the substring to parse, length of this string by default.
  * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
  */
 @ExperimentalStdlibApi
-@SinceKotlin("1.9")
-public fun String.hexToByte(startIndex: Int = 0, endIndex: Int = length, format: HexFormat = HexFormat.Default): Byte =
+//@SinceKotlin("1.9")
+private fun String.hexToByte(startIndex: Int = 0, endIndex: Int = length, format: HexFormat = HexFormat.Default): Byte =
     hexToLongImpl(startIndex, endIndex, format, maxDigits = 2).toByte()
 
 // -------------------------- format and parse Short --------------------------
@@ -270,7 +277,8 @@ public fun Short.toHexString(format: HexFormat = HexFormat.Default): String = to
 /**
  * Parses a `Short` value from this string using the specified [format].
  *
- * Note that only [HexFormat.NumberHexFormat] affects parsing.
+ * Note that only [HexFormat.NumberHexFormat] affects parsing,
+ * and parsing is performed in case-insensitive manner.
  *
  * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
  */
@@ -281,15 +289,16 @@ public fun String.hexToShort(format: HexFormat = HexFormat.Default): Short = hex
 /**
  * Parses a `Short` value from this string using the specified [format].
  *
- * Note that only [HexFormat.NumberHexFormat] affects parsing.
+ * Note that only [HexFormat.NumberHexFormat] affects parsing,
+ * and parsing is performed in case-insensitive manner.
  *
  * @param startIndex the beginning (inclusive) of the substring to parse, 0 by default.
  * @param endIndex the end (exclusive) of the substring to parse, length of this string by default.
  * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
  */
 @ExperimentalStdlibApi
-@SinceKotlin("1.9")
-public fun String.hexToShort(startIndex: Int = 0, endIndex: Int = length, format: HexFormat = HexFormat.Default): Short =
+//@SinceKotlin("1.9")
+private fun String.hexToShort(startIndex: Int = 0, endIndex: Int = length, format: HexFormat = HexFormat.Default): Short =
     hexToLongImpl(startIndex, endIndex, format, maxDigits = 4).toShort()
 
 // -------------------------- format and parse Int --------------------------
@@ -319,15 +328,16 @@ public fun String.hexToInt(format: HexFormat = HexFormat.Default): Int = hexToIn
 /**
  * Parses an `Int` value from this string using the specified [format].
  *
- * Note that only [HexFormat.NumberHexFormat] affects parsing.
+ * Note that only [HexFormat.NumberHexFormat] affects parsing,
+ * and parsing is performed in case-insensitive manner.
  *
  * @param startIndex the beginning (inclusive) of the substring to parse, 0 by default.
  * @param endIndex the end (exclusive) of the substring to parse, length of this string by default.
  * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
  */
 @ExperimentalStdlibApi
-@SinceKotlin("1.9")
-public fun String.hexToInt(startIndex: Int = 0, endIndex: Int = length, format: HexFormat = HexFormat.Default): Int =
+//@SinceKotlin("1.9")
+private fun String.hexToInt(startIndex: Int = 0, endIndex: Int = length, format: HexFormat = HexFormat.Default): Int =
     hexToLongImpl(startIndex, endIndex, format, maxDigits = 8).toInt()
 
 // -------------------------- format and parse Long --------------------------
@@ -357,15 +367,16 @@ public fun String.hexToLong(format: HexFormat = HexFormat.Default): Long = hexTo
 /**
  * Parses a `Long` value from this string using the specified [format].
  *
- * Note that only [HexFormat.NumberHexFormat] affects parsing.
+ * Note that only [HexFormat.NumberHexFormat] affects parsing,
+ * and parsing is performed in case-insensitive manner.
  *
  * @param startIndex the beginning (inclusive) of the substring to parse, 0 by default.
  * @param endIndex the end (exclusive) of the substring to parse, length of this string by default.
  * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
  */
 @ExperimentalStdlibApi
-@SinceKotlin("1.9")
-public fun String.hexToLong(startIndex: Int = 0, endIndex: Int = length, format: HexFormat = HexFormat.Default): Long =
+//@SinceKotlin("1.9")
+private fun String.hexToLong(startIndex: Int = 0, endIndex: Int = length, format: HexFormat = HexFormat.Default): Long =
     hexToLongImpl(startIndex, endIndex, format, maxDigits = 16)
 
 // -------------------------- private format and parse functions --------------------------

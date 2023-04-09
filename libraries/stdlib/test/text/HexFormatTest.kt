@@ -143,7 +143,7 @@ class HexFormatTest {
         val idStartIndex = url.lastIndexOf('-') + 1
         assertEquals(12, url.length - idStartIndex)
 
-        val articleId = url.hexToLong(startIndex = idStartIndex, format = HexFormat { number.removeLeadingZeros = true })
+        val articleId = url.substring(idStartIndex).hexToLong(HexFormat { number.removeLeadingZeros = true })
 
         assertEquals(0xc7bbde9e10d5, articleId)
     }
@@ -276,7 +276,8 @@ class HexFormatTest {
         val byteArray = ByteArray(20) { it.toByte() }
         assertEquals(
             "0001020304050607\n08090a0b0c0d0e0f\n10111213",
-            byteArray.toHexString(HexFormat { bytes.bytesPerLine = 8 }))
+            byteArray.toHexString(HexFormat { bytes.bytesPerLine = 8 })
+        )
     }
 
     @Test

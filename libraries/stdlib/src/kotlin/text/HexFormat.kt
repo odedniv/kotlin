@@ -14,10 +14,10 @@ import kotlin.internal.InlineOnly
  */
 public class HexFormat internal constructor(
     /**
-     * Specifies whether upper case hexadecimal digits `0-9`, `A-F` should be used.
+     * Specifies whether upper case hexadecimal digits `0-9`, `A-F` should be used for formatting.
      * If `false`, lower case hexadecimal digits `0-9`, `a-f` will be used.
      *
-     * Affects both `ByteArray` and primitive value formatting.
+     * Affects both `ByteArray` and numeric value formatting.
      * */
     val upperCase: Boolean,
     /**
@@ -25,7 +25,7 @@ public class HexFormat internal constructor(
      */
     val bytes: BytesHexFormat,
     /**
-     * Specifies hexadecimal format used for formatting and parsing a value of primitive type.
+     * Specifies hexadecimal format used for formatting and parsing a numeric value.
      */
     val number: NumberHexFormat
 ) {
@@ -33,23 +33,26 @@ public class HexFormat internal constructor(
     /**
      * Represents hexadecimal format options for formatting and parsing `ByteArray`.
      *
-     * You can assume that bytes are firstly separated using line feed character (`'\n'`) into lines
-     * with [bytesPerLine] bytes in each line, except the last line, which may have fewer bytes.
+     * When formatting one can assume that bytes are firstly separated using LF character (`'\n'`) into lines
+     * with [bytesPerLine] bytes in each line. The last line may have fewer bytes, and have no line separator at the end.
      * Then each line is separated into groups using [groupSeparator] with [bytesPerGroup] bytes in each group,
      * except the last group in the line, which may have fewer bytes.
-     *
      * All bytes in a group are separated using [byteSeparator].
      * Each byte is converted to its two-digit hexadecimal representation,
      * immediately preceded by [bytePrefix] and immediately succeeded by [byteSuffix].
+     *
+     * When parsing the input string is required to be in the format described above.
+     * However, any of the char sequences CRLF, LF and CR is considered a valid line separator,
+     * and parsing is performed in case-insensitive manner.
      *
      * See [HexFormatBuilder.BytesHexFormat] to find out how the options are configured,
      * and what is the default value of each option.
      */
     public class BytesHexFormat internal constructor(
-        /** Maximum number of bytes per line. */
+        /** The maximum number of bytes per line. */
         val bytesPerLine: Int,
 
-        /** Maximum number of bytes per group. */
+        /** The maximum number of bytes per group. */
         val bytesPerGroup: Int,
         /** The string used to separate adjacent groups in a line. */
         val groupSeparator: String,
@@ -63,36 +66,40 @@ public class HexFormat internal constructor(
     )
 
     /**
-     * Represents hexadecimal format options for formatting and parsing a value of primitive type.
+     * Represents hexadecimal format options for formatting and parsing a numeric value.
      *
      * The formatting result consist of [prefix] string, hexadecimal representation of the value being formatted, and [suffix] string.
      * Hexadecimal representation of a value is calculated by mapping each four-bit chunk
      * of its binary representation to the corresponding hexadecimal digit, starting with the most significant bits.
-     * If [removeLeadingZeros] it `true`, leading zeros in hexadecimal representation are dropped.
+     * [upperCase] determines whether upper case `0-9`, `A-F` or lower case `0-9`, `a-f` hexadecimal digits are used.
+     * If [removeLeadingZeros] it `true`, leading zeros in the hexadecimal representation are removed.
      *
      * For example, the binary representation of the `Byte` value `58` is the 8-bits long `00111010`,
      * which converts to a hexadecimal representation of `3a` or `3A` depending on [upperCase].
      * Whereas, the binary representation of the `Int` value `58` is the 32-bits long `00000000000000000000000000111010`,
      * which converts to a hexadecimal representation of `0000003a` or `0000003A` depending on [upperCase].
-     * If [removeLeadingZeros] it `true`, leading zeros in the `0000003a` hexadecimal representation are dropped,
-     * resulting `3a`.
+     * If [removeLeadingZeros] it `true`, leading zeros in `0000003a` are removed, resulting `3a`.
      *
      * To convert a value to hexadecimal string of a particular length,
      * first convert the value to a type with the corresponding bit size.
      * For example, to convert an `Int` value to 4-digit hexadecimal string,
      * convert the value `toShort()` before hexadecimal formatting.
      * To convert it to hexadecimal string of at most 4 digits
-     * without leading zeros, set [removeLeadingZeros] to `true`.
+     * without leading zeros, set [removeLeadingZeros] to `true` in addition.
+     *
+     * Parsing requires [prefix] and [suffix] to be present in the input string,
+     * and the amount of hexadecimal digits to be at least one and at most the value bit size divided by four.
+     * Parsing is performed in case-insensitive manner, and [removeLeadingZeros] is ignored as well.
      *
      * See [HexFormatBuilder.NumberHexFormat] to find out how the options are configured,
      * and what is the default value of each option.
      */
     public class NumberHexFormat internal constructor(
-        /** The string that immediately precedes hexadecimal representation of a primitive value. */
+        /** The string that immediately precedes hexadecimal representation of a numeric value. */
         val prefix: String,
-        /** The string that immediately succeeds hexadecimal representation of a primitive value. */
+        /** The string that immediately succeeds hexadecimal representation of a numeric value. */
         val suffix: String,
-        /** Specifies whether to drop leading zeros in the hexadecimal representation of a primitive value. */
+        /** Specifies whether to remove leading zeros in the hexadecimal representation of a numeric value. */
         val removeLeadingZeros: Boolean
     )
 
@@ -101,16 +108,16 @@ public class HexFormat internal constructor(
          * The default hexadecimal format options.
          *
          * Uses lower case hexadecimal digits `0-9`, `a-f` when formatting
-         * both `ByteArray` and primitive values. That is [upperCase] is `false`.
+         * both `ByteArray` and numeric values. That is [upperCase] is `false`.
          *
          * No line separator, group separator, byte separator, byte prefix or byte suffix is used
          * when formatting or parsing `ByteArray`. That is:
-         *   * [BytesHexFormat.bytesPerLine] is `-1`.
-         *   * [BytesHexFormat.bytesPerGroup] is `-1`.
+         *   * [BytesHexFormat.bytesPerLine] is `Int.MAX_VALUE`.
+         *   * [BytesHexFormat.bytesPerGroup] is `Int.MAX_VALUE`.
          *   * [BytesHexFormat.byteSeparator], [BytesHexFormat.bytePrefix] and [BytesHexFormat.byteSuffix] are empty strings.
          *
-         * No prefix or suffix is used, and no leading zeros in hexadecimal representation are dropped
-         * when formatting or parsing a primitive value. That is:
+         * No prefix or suffix is used, and no leading zeros in hexadecimal representation are removed
+         * when formatting or parsing a numeric value. That is:
          *   * [NumberHexFormat.prefix] and [NumberHexFormat.suffix] are empty strings.
          *   * [NumberHexFormat.removeLeadingZeros] is `false`.
          */
@@ -118,7 +125,7 @@ public class HexFormat internal constructor(
 
         /**
          * Uses upper case hexadecimal digits `0-9`, `A-F` when formatting
-         * both `ByteArray` and primitive values. That is [upperCase] is `true`.
+         * both `ByteArray` and numeric values. That is [upperCase] is `true`.
          *
          * The same as [Default] format in other aspects.
          */
@@ -164,7 +171,11 @@ public class HexFormatBuilder @PublishedApi internal constructor() {
      * DSL for building a [HexFormat.BytesHexFormat]. Provides API for configuring format options.
      */
     class BytesHexFormat internal constructor() {
-        /** Defines [HexFormat.BytesHexFormat.bytesPerLine] of the format being built, [Int.MAX_VALUE] by default. */
+        /**
+         * Defines [HexFormat.BytesHexFormat.bytesPerLine] of the format being built, [Int.MAX_VALUE] by default.
+         *
+         * Setting a non-positive value is prohibited.
+         */
         var bytesPerLine: Int = Int.MAX_VALUE
             set(value) {
                 if (value <= 0)
@@ -172,20 +183,27 @@ public class HexFormatBuilder @PublishedApi internal constructor() {
                 field = value
             }
 
-        /** Defines [HexFormat.BytesHexFormat.bytesPerGroup] of the format being built, [Int.MAX_VALUE] by default. */
+        /**
+         * Defines [HexFormat.BytesHexFormat.bytesPerGroup] of the format being built, [Int.MAX_VALUE] by default.
+         *
+         * Setting a non-positive value is prohibited.
+         */
         var bytesPerGroup: Int = Int.MAX_VALUE
             set(value) {
                 if (value <= 0)
                     throw IllegalArgumentException("Non-positive values are prohibited for bytesPerGroup, but was $value")
                 field = value
             }
+
         /** Defines [HexFormat.BytesHexFormat.groupSeparator] of the format being built, two whitespaces (`"  "`) by default. */
         var groupSeparator: String = "  "
 
         /** Defines [HexFormat.BytesHexFormat.byteSeparator] of the format being built, empty string by default. */
         var byteSeparator: String = ""
+
         /** Defines [HexFormat.BytesHexFormat.bytePrefix] of the format being built, empty string by default. */
         var bytePrefix: String = ""
+
         /** Defines [HexFormat.BytesHexFormat.byteSuffix] of the format being built, empty string by default. */
         var byteSuffix: String = ""
 
@@ -200,8 +218,10 @@ public class HexFormatBuilder @PublishedApi internal constructor() {
     class NumberHexFormat internal constructor() {
         /** Defines [HexFormat.NumberHexFormat.prefix] of the format being built, empty string by default. */
         var prefix: String = ""
+
         /** Defines [HexFormat.NumberHexFormat.suffix] of the format being built, empty string by default. */
         var suffix: String = ""
+
         /** Defines [HexFormat.NumberHexFormat.removeLeadingZeros] of the format being built, empty string by default. */
         var removeLeadingZeros: Boolean = false
 

@@ -44,7 +44,9 @@ public inline fun UByteArray.toHexString(
 /**
  * Parses bytes from this string using the specified [HexFormat].
  *
- * Note that only [HexFormat.BytesHexFormat] affects parsing.
+ * Note that only [HexFormat.BytesHexFormat] affects parsing,
+ * and parsing is performed in case-insensitive manner.
+ * Also, any of the char sequences CRLF, LF and CR is considered a valid line separator.
  *
  * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
  */
@@ -55,24 +57,26 @@ public inline fun UByteArray.toHexString(
 public inline fun String.hexToUByteArray(format: HexFormat = HexFormat.Default): UByteArray =
     hexToByteArray(format).asUByteArray()
 
-/**
- * Parses bytes from this string using the specified [HexFormat].
- *
- * Note that only [HexFormat.BytesHexFormat] affects parsing.
- *
- * @param startIndex the beginning (inclusive) of the substring to parse, 0 by default.
- * @param endIndex the end (exclusive) of the substring to parse, length of this string by default.
- * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
- */
-@ExperimentalStdlibApi
-@SinceKotlin("1.9")
-@ExperimentalUnsignedTypes
-@InlineOnly
-public inline fun String.hexToUByteArray(
-    startIndex: Int = 0,
-    endIndex: Int = length,
-    format: HexFormat = HexFormat.Default
-): UByteArray = hexToByteArray(startIndex, endIndex, format).asUByteArray()
+///**
+// * Parses bytes from this string using the specified [HexFormat].
+// *
+// * Note that only [HexFormat.BytesHexFormat] affects parsing,
+// * and parsing is performed in case-insensitive manner.
+// * Also, any of the char sequences CRLF, LF and CR is considered a valid line separator.
+// *
+// * @param startIndex the beginning (inclusive) of the substring to parse, 0 by default.
+// * @param endIndex the end (exclusive) of the substring to parse, length of this string by default.
+// * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
+// */
+//@ExperimentalStdlibApi
+//@SinceKotlin("1.9")
+//@ExperimentalUnsignedTypes
+//@InlineOnly
+//public inline fun String.hexToUByteArray(
+//    startIndex: Int = 0,
+//    endIndex: Int = length,
+//    format: HexFormat = HexFormat.Default
+//): UByteArray = hexToByteArray(startIndex, endIndex, format).asUByteArray()
 
 // -------------------------- format and parse UByte --------------------------
 
@@ -92,7 +96,8 @@ public inline fun UByte.toHexString(format: HexFormat = HexFormat.Default): Stri
 /**
  * Parses a `UByte` value from this string using the specified [format].
  *
- * Note that only [HexFormat.NumberHexFormat] affects parsing.
+ * Note that only [HexFormat.NumberHexFormat] affects parsing,
+ * and parsing is performed in case-insensitive manner.
  *
  * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
  */
@@ -102,21 +107,22 @@ public inline fun UByte.toHexString(format: HexFormat = HexFormat.Default): Stri
 @InlineOnly
 public inline fun String.hexToUByte(format: HexFormat = HexFormat.Default): UByte = hexToByte(format).toUByte()
 
-/**
- * Parses a `UByte` value from this string using the specified [format].
- *
- * Note that only [HexFormat.NumberHexFormat] affects parsing.
- *
- * @param startIndex the beginning (inclusive) of the substring to parse, 0 by default.
- * @param endIndex the end (exclusive) of the substring to parse, length of this string by default.
- * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
- */
-@ExperimentalStdlibApi
-@SinceKotlin("1.9")
-@ExperimentalUnsignedTypes
-@InlineOnly
-public inline fun String.hexToUByte(startIndex: Int = 0, endIndex: Int = length, format: HexFormat = HexFormat.Default): UByte =
-    hexToByte(startIndex, endIndex, format).toUByte()
+///**
+// * Parses a `UByte` value from this string using the specified [format].
+// *
+// * Note that only [HexFormat.NumberHexFormat] affects parsing,
+// * and parsing is performed in case-insensitive manner.
+// *
+// * @param startIndex the beginning (inclusive) of the substring to parse, 0 by default.
+// * @param endIndex the end (exclusive) of the substring to parse, length of this string by default.
+// * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
+// */
+//@ExperimentalStdlibApi
+//@SinceKotlin("1.9")
+//@ExperimentalUnsignedTypes
+//@InlineOnly
+//public inline fun String.hexToUByte(startIndex: Int = 0, endIndex: Int = length, format: HexFormat = HexFormat.Default): UByte =
+//    hexToByte(startIndex, endIndex, format).toUByte()
 
 // -------------------------- format and parse UShort --------------------------
 
@@ -136,7 +142,8 @@ public inline fun UShort.toHexString(format: HexFormat = HexFormat.Default): Str
 /**
  * Parses a `UShort` value from this string using the specified [format].
  *
- * Note that only [HexFormat.NumberHexFormat] affects parsing.
+ * Note that only [HexFormat.NumberHexFormat] affects parsing,
+ * and parsing is performed in case-insensitive manner.
  *
  * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
  */
@@ -146,21 +153,22 @@ public inline fun UShort.toHexString(format: HexFormat = HexFormat.Default): Str
 @InlineOnly
 public inline fun String.hexToUShort(format: HexFormat = HexFormat.Default): UShort = hexToShort(format).toUShort()
 
-/**
- * Parses a `UShort` value from this string using the specified [format].
- *
- * Note that only [HexFormat.NumberHexFormat] affects parsing.
- *
- * @param startIndex the beginning (inclusive) of the substring to parse, 0 by default.
- * @param endIndex the end (exclusive) of the substring to parse, length of this string by default.
- * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
- */
-@ExperimentalStdlibApi
-@SinceKotlin("1.9")
-@ExperimentalUnsignedTypes
-@InlineOnly
-public inline fun String.hexToUShort(startIndex: Int = 0, endIndex: Int = length, format: HexFormat = HexFormat.Default): UShort =
-    hexToShort(startIndex, endIndex, format).toUShort()
+///**
+// * Parses a `UShort` value from this string using the specified [format].
+// *
+// * Note that only [HexFormat.NumberHexFormat] affects parsing,
+// * and parsing is performed in case-insensitive manner.
+// *
+// * @param startIndex the beginning (inclusive) of the substring to parse, 0 by default.
+// * @param endIndex the end (exclusive) of the substring to parse, length of this string by default.
+// * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
+// */
+//@ExperimentalStdlibApi
+//@SinceKotlin("1.9")
+//@ExperimentalUnsignedTypes
+//@InlineOnly
+//public inline fun String.hexToUShort(startIndex: Int = 0, endIndex: Int = length, format: HexFormat = HexFormat.Default): UShort =
+//    hexToShort(startIndex, endIndex, format).toUShort()
 
 // -------------------------- format and parse UInt --------------------------
 
@@ -180,7 +188,8 @@ public inline fun UInt.toHexString(format: HexFormat = HexFormat.Default): Strin
 /**
  * Parses an `UInt` value from this string using the specified [format].
  *
- * Note that only [HexFormat.NumberHexFormat] affects parsing.
+ * Note that only [HexFormat.NumberHexFormat] affects parsing,
+ * and parsing is performed in case-insensitive manner.
  *
  * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
  */
@@ -190,21 +199,22 @@ public inline fun UInt.toHexString(format: HexFormat = HexFormat.Default): Strin
 @InlineOnly
 public inline fun String.hexToUInt(format: HexFormat = HexFormat.Default): UInt = hexToInt(format).toUInt()
 
-/**
- * Parses an `UInt` value from this string using the specified [format].
- *
- * Note that only [HexFormat.NumberHexFormat] affects parsing.
- *
- * @param startIndex the beginning (inclusive) of the substring to parse, 0 by default.
- * @param endIndex the end (exclusive) of the substring to parse, length of this string by default.
- * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
- */
-@ExperimentalStdlibApi
-@SinceKotlin("1.9")
-@ExperimentalUnsignedTypes
-@InlineOnly
-public inline fun String.hexToUInt(startIndex: Int = 0, endIndex: Int = length, format: HexFormat = HexFormat.Default): UInt =
-    hexToInt(startIndex, endIndex, format).toUInt()
+///**
+// * Parses an `UInt` value from this string using the specified [format].
+// *
+// * Note that only [HexFormat.NumberHexFormat] affects parsing,
+// * and parsing is performed in case-insensitive manner.
+// *
+// * @param startIndex the beginning (inclusive) of the substring to parse, 0 by default.
+// * @param endIndex the end (exclusive) of the substring to parse, length of this string by default.
+// * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
+// */
+//@ExperimentalStdlibApi
+//@SinceKotlin("1.9")
+//@ExperimentalUnsignedTypes
+//@InlineOnly
+//public inline fun String.hexToUInt(startIndex: Int = 0, endIndex: Int = length, format: HexFormat = HexFormat.Default): UInt =
+//    hexToInt(startIndex, endIndex, format).toUInt()
 
 // -------------------------- format and parse ULong --------------------------
 
@@ -224,7 +234,8 @@ public inline fun ULong.toHexString(format: HexFormat = HexFormat.Default): Stri
 /**
  * Parses an `ULong` value from this string using the specified [format].
  *
- * Note that only [HexFormat.NumberHexFormat] affects parsing.
+ * Note that only [HexFormat.NumberHexFormat] affects parsing,
+ * and parsing is performed in case-insensitive manner.
  *
  * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
  */
@@ -234,18 +245,19 @@ public inline fun ULong.toHexString(format: HexFormat = HexFormat.Default): Stri
 @InlineOnly
 public inline fun String.hexToULong(format: HexFormat = HexFormat.Default): ULong = hexToLong(format).toULong()
 
-/**
- * Parses an `ULong` value from this string using the specified [format].
- *
- * Note that only [HexFormat.NumberHexFormat] affects parsing.
- *
- * @param startIndex the beginning (inclusive) of the substring to parse, 0 by default.
- * @param endIndex the end (exclusive) of the substring to parse, length of this string by default.
- * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
- */
-@ExperimentalStdlibApi
-@SinceKotlin("1.9")
-@ExperimentalUnsignedTypes
-@InlineOnly
-public inline fun String.hexToULong(startIndex: Int = 0, endIndex: Int = length, format: HexFormat = HexFormat.Default): ULong =
-    hexToLong(startIndex, endIndex, format).toULong()
+///**
+// * Parses an `ULong` value from this string using the specified [format].
+// *
+// * Note that only [HexFormat.NumberHexFormat] affects parsing,
+// * and parsing is performed in case-insensitive manner.
+// *
+// * @param startIndex the beginning (inclusive) of the substring to parse, 0 by default.
+// * @param endIndex the end (exclusive) of the substring to parse, length of this string by default.
+// * @param format the [HexFormat] to use for parsing, [HexFormat.Default] by default.
+// */
+//@ExperimentalStdlibApi
+//@SinceKotlin("1.9")
+//@ExperimentalUnsignedTypes
+//@InlineOnly
+//public inline fun String.hexToULong(startIndex: Int = 0, endIndex: Int = length, format: HexFormat = HexFormat.Default): ULong =
+//    hexToLong(startIndex, endIndex, format).toULong()

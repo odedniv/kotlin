@@ -45,7 +45,7 @@ public class HexFormat internal constructor(
      * However, any of the char sequences CRLF, LF and CR is considered a valid line separator,
      * and parsing is performed in case-insensitive manner.
      *
-     * See [HexFormatBuilder.BytesHexFormat] to find out how the options are configured,
+     * See [BytesHexFormat.Builder] to find out how the options are configured,
      * and what is the default value of each option.
      */
     public class BytesHexFormat internal constructor(
@@ -63,7 +63,52 @@ public class HexFormat internal constructor(
         val bytePrefix: String,
         /** The string that immediately succeeds two-digit hexadecimal representation of each byte. */
         val byteSuffix: String
-    )
+    ) {
+        /**
+         * DSL for building a [BytesHexFormat]. Provides API for configuring format options.
+         */
+        class Builder internal constructor() {
+            /**
+             * Defines [BytesHexFormat.bytesPerLine] of the format being built, [Int.MAX_VALUE] by default.
+             *
+             * Setting a non-positive value is prohibited.
+             */
+            var bytesPerLine: Int = Int.MAX_VALUE
+                set(value) {
+                    if (value <= 0)
+                        throw IllegalArgumentException("Non-positive values are prohibited for bytesPerLine, but was $value")
+                    field = value
+                }
+
+            /**
+             * Defines [BytesHexFormat.bytesPerGroup] of the format being built, [Int.MAX_VALUE] by default.
+             *
+             * Setting a non-positive value is prohibited.
+             */
+            var bytesPerGroup: Int = Int.MAX_VALUE
+                set(value) {
+                    if (value <= 0)
+                        throw IllegalArgumentException("Non-positive values are prohibited for bytesPerGroup, but was $value")
+                    field = value
+                }
+
+            /** Defines [BytesHexFormat.groupSeparator] of the format being built, two whitespaces (`"  "`) by default. */
+            var groupSeparator: String = "  "
+
+            /** Defines [BytesHexFormat.byteSeparator] of the format being built, empty string by default. */
+            var byteSeparator: String = ""
+
+            /** Defines [BytesHexFormat.bytePrefix] of the format being built, empty string by default. */
+            var bytePrefix: String = ""
+
+            /** Defines [BytesHexFormat.byteSuffix] of the format being built, empty string by default. */
+            var byteSuffix: String = ""
+
+            internal fun build(): BytesHexFormat {
+                return BytesHexFormat(bytesPerLine, bytesPerGroup, groupSeparator, byteSeparator, bytePrefix, byteSuffix)
+            }
+        }
+    }
 
     /**
      * Represents hexadecimal format options for formatting and parsing a numeric value.
@@ -91,7 +136,7 @@ public class HexFormat internal constructor(
      * and the amount of hexadecimal digits to be at least one and at most the value bit size divided by four.
      * Parsing is performed in case-insensitive manner, and [removeLeadingZeros] is ignored as well.
      *
-     * See [HexFormatBuilder.NumberHexFormat] to find out how the options are configured,
+     * See [NumberHexFormat.Builder] to find out how the options are configured,
      * and what is the default value of each option.
      */
     public class NumberHexFormat internal constructor(
@@ -101,7 +146,64 @@ public class HexFormat internal constructor(
         val suffix: String,
         /** Specifies whether to remove leading zeros in the hexadecimal representation of a numeric value. */
         val removeLeadingZeros: Boolean
-    )
+    ) {
+        /**
+         * DSL for building a [NumberHexFormat]. Provides API for configuring format options.
+         */
+        class Builder internal constructor() {
+            /** Defines [NumberHexFormat.prefix] of the format being built, empty string by default. */
+            var prefix: String = ""
+
+            /** Defines [NumberHexFormat.suffix] of the format being built, empty string by default. */
+            var suffix: String = ""
+
+            /** Defines [NumberHexFormat.removeLeadingZeros] of the format being built, empty string by default. */
+            var removeLeadingZeros: Boolean = false
+
+            internal fun build(): NumberHexFormat {
+                return NumberHexFormat(prefix, suffix, removeLeadingZeros)
+            }
+        }
+    }
+
+
+    /**
+     * DSL for building a [HexFormat]. Provides API for configuring format options.
+     */
+    public class Builder @PublishedApi internal constructor() {
+        /** Defines [HexFormat.upperCase] of the format being built, `false` by default. */
+        var upperCase: Boolean = false
+
+        /**
+         * Defines [HexFormat.bytes] of the format being built.
+         * See [BytesHexFormat.Builder] for default values of the options.
+         */
+        val bytes: BytesHexFormat.Builder = BytesHexFormat.Builder()
+
+        /**
+         * Defines [HexFormat.number] of the format being built.
+         * See [NumberHexFormat.Builder] for default values of the options.
+         */
+        val number: NumberHexFormat.Builder = NumberHexFormat.Builder()
+
+        /** Provides a scope for configuring the [HexFormat.bytes] format options. */
+        @InlineOnly
+        inline fun bytes(builderAction: BytesHexFormat.Builder.() -> Unit) {
+            bytes.builderAction()
+        }
+
+        /** Provides a scope for configuring the [HexFormat.number] format options. */
+        @InlineOnly
+        inline fun number(builderAction: NumberHexFormat.Builder.() -> Unit) {
+            number.builderAction()
+        }
+
+        @PublishedApi
+        internal fun build(): HexFormat {
+            return HexFormat(upperCase, bytes.build(), number.build())
+        }
+    }
+
 
     companion object {
         /**
@@ -121,7 +223,7 @@ public class HexFormat internal constructor(
          *   * [NumberHexFormat.prefix] and [NumberHexFormat.suffix] are empty strings.
          *   * [NumberHexFormat.removeLeadingZeros] is `false`.
          */
-        public val Default: HexFormat = HexFormatBuilder().build()
+        public val Default: HexFormat = Builder().build()
 
         /**
          * Uses upper case hexadecimal digits `0-9`, `A-F` when formatting
@@ -134,108 +236,10 @@ public class HexFormat internal constructor(
 }
 
 /**
- * DSL for building a [HexFormat]. Provides API for configuring format options.
- */
-public class HexFormatBuilder @PublishedApi internal constructor() {
-    /** Defines [HexFormat.upperCase] of the format being built, `false` by default. */
-    var upperCase: Boolean = false
-
-    /**
-     * Defines [HexFormat.BytesHexFormat] of the format being built.
-     * See [HexFormatBuilder.BytesHexFormat] for default values of the options.
-     */
-    val bytes: BytesHexFormat = BytesHexFormat()
-
-    /**
-     * Defines [HexFormat.NumberHexFormat] of the format being built.
-     * See [HexFormatBuilder.NumberHexFormat] for default values of the options.
-     */
-    val number: NumberHexFormat = NumberHexFormat()
-
-    /** Provides a scope for configuring the [bytes] format options. */
-    fun bytes(builderAction: BytesHexFormat.() -> Unit) {
-        bytes.builderAction()
-    }
-
-    /** Provides a scope for configuring the [number] format options. */
-    fun number(builderAction: NumberHexFormat.() -> Unit) {
-        number.builderAction()
-    }
-
-    @PublishedApi
-    internal fun build(): HexFormat {
-        return HexFormat(upperCase, bytes.build(), number.build())
-    }
-
-    /**
-     * DSL for building a [HexFormat.BytesHexFormat]. Provides API for configuring format options.
-     */
-    class BytesHexFormat internal constructor() {
-        /**
-         * Defines [HexFormat.BytesHexFormat.bytesPerLine] of the format being built, [Int.MAX_VALUE] by default.
-         *
-         * Setting a non-positive value is prohibited.
-         */
-        var bytesPerLine: Int = Int.MAX_VALUE
-            set(value) {
-                if (value <= 0)
-                    throw IllegalArgumentException("Non-positive values are prohibited for bytesPerLine, but was $value")
-                field = value
-            }
-
-        /**
-         * Defines [HexFormat.BytesHexFormat.bytesPerGroup] of the format being built, [Int.MAX_VALUE] by default.
-         *
-         * Setting a non-positive value is prohibited.
-         */
-        var bytesPerGroup: Int = Int.MAX_VALUE
-            set(value) {
-                if (value <= 0)
-                    throw IllegalArgumentException("Non-positive values are prohibited for bytesPerGroup, but was $value")
-                field = value
-            }
-
-        /** Defines [HexFormat.BytesHexFormat.groupSeparator] of the format being built, two whitespaces (`"  "`) by default. */
-        var groupSeparator: String = "  "
-
-        /** Defines [HexFormat.BytesHexFormat.byteSeparator] of the format being built, empty string by default. */
-        var byteSeparator: String = ""
-
-        /** Defines [HexFormat.BytesHexFormat.bytePrefix] of the format being built, empty string by default. */
-        var bytePrefix: String = ""
-
-        /** Defines [HexFormat.BytesHexFormat.byteSuffix] of the format being built, empty string by default. */
-        var byteSuffix: String = ""
-
-        internal fun build(): HexFormat.BytesHexFormat {
-            return HexFormat.BytesHexFormat(bytesPerLine, bytesPerGroup, groupSeparator, byteSeparator, bytePrefix, byteSuffix)
-        }
-    }
-
-    /**
-     * DSL for building a [HexFormat.NumberHexFormat]. Provides API for configuring format options.
-     */
-    class NumberHexFormat internal constructor() {
-        /** Defines [HexFormat.NumberHexFormat.prefix] of the format being built, empty string by default. */
-        var prefix: String = ""
-
-        /** Defines [HexFormat.NumberHexFormat.suffix] of the format being built, empty string by default. */
-        var suffix: String = ""
-
-        /** Defines [HexFormat.NumberHexFormat.removeLeadingZeros] of the format being built, empty string by default. */
-        var removeLeadingZeros: Boolean = false
-
-        internal fun build(): HexFormat.NumberHexFormat {
-            return HexFormat.NumberHexFormat(prefix, suffix, removeLeadingZeros)
-        }
-    }
-}
-
-/**
  * Builds a new [HexFormat] by configuring its format options using the specified [builderAction],
  * and returns the resulting format.
  */
 @InlineOnly
-public inline fun HexFormat(builderAction: HexFormatBuilder.() -> Unit): HexFormat {
-    return HexFormatBuilder().apply(builderAction).build()
+public inline fun HexFormat(builderAction: HexFormat.Builder.() -> Unit): HexFormat {
+    return HexFormat.Builder().apply(builderAction).build()
 }

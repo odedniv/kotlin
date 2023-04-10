@@ -17,6 +17,7 @@ val commonMainSources by task<Sync> {
         exclude(
             listOf(
                 "libraries/stdlib/unsigned/src/kotlin/UByteArray.kt",
+                "libraries/stdlib/unsigned/src/kotlin/UHexExtensions.kt",
                 "libraries/stdlib/unsigned/src/kotlin/UIntArray.kt",
                 "libraries/stdlib/unsigned/src/kotlin/ULongArray.kt",
                 "libraries/stdlib/unsigned/src/kotlin/UMath.kt",

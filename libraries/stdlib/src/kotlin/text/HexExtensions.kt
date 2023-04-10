@@ -5,10 +5,13 @@
 
 package kotlin.text
 
+import kotlin.native.concurrent.SharedImmutable
+
 private const val LOWER_CASE_HEX_DIGITS = "0123456789abcdef"
 private const val UPPER_CASE_HEX_DIGITS = "0123456789ABCDEF"
 
 // case-insensitive parsing
+@SharedImmutable
 private val HEX_DIGITS_TO_DECIMAL = IntArray(128) { -1 }.apply {
     LOWER_CASE_HEX_DIGITS.forEachIndexed { index, char -> this[char.code] = index }
     UPPER_CASE_HEX_DIGITS.forEachIndexed { index, char -> this[char.code] = index }
@@ -381,6 +384,7 @@ private fun String.hexToLong(startIndex: Int = 0, endIndex: Int = length, format
 
 // -------------------------- private format and parse functions --------------------------
 
+@ExperimentalStdlibApi
 private fun Long.toHexStringImpl(format: HexFormat, bits: Int): String {
     require(bits and 0x3 == 0)
 
@@ -409,6 +413,7 @@ private fun Long.toHexStringImpl(format: HexFormat, bits: Int): String {
     }
 }
 
+@ExperimentalStdlibApi
 private fun String.hexToLongImpl(startIndex: Int = 0, endIndex: Int = length, format: HexFormat, maxDigits: Int): Long {
     AbstractList.checkBoundsIndexes(startIndex, endIndex, length)
 

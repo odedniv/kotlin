@@ -8,6 +8,8 @@ public val kotlin.CharSequence.indices: kotlin.ranges.IntRange { get; }
 
 public val kotlin.CharSequence.lastIndex: kotlin.Int { get; }
 
+@kotlin.ExperimentalStdlibApi
+@kotlin.SinceKotlin(version = "1.9")
 @kotlin.internal.InlineOnly
 public inline fun HexFormat(builderAction: kotlin.text.HexFormat.Builder.() -> kotlin.Unit): kotlin.text.HexFormat
 
@@ -380,7 +382,6 @@ public fun kotlin.String.hexToShort(format: kotlin.text.HexFormat = ...): kotlin
 
 @kotlin.ExperimentalStdlibApi
 @kotlin.SinceKotlin(version = "1.9")
-@kotlin.ExperimentalUnsignedTypes
 @kotlin.internal.InlineOnly
 public inline fun kotlin.String.hexToUByte(format: kotlin.text.HexFormat = ...): kotlin.UByte
 
@@ -392,19 +393,16 @@ public inline fun kotlin.String.hexToUByteArray(format: kotlin.text.HexFormat = 
 
 @kotlin.ExperimentalStdlibApi
 @kotlin.SinceKotlin(version = "1.9")
-@kotlin.ExperimentalUnsignedTypes
 @kotlin.internal.InlineOnly
 public inline fun kotlin.String.hexToUInt(format: kotlin.text.HexFormat = ...): kotlin.UInt
 
 @kotlin.ExperimentalStdlibApi
 @kotlin.SinceKotlin(version = "1.9")
-@kotlin.ExperimentalUnsignedTypes
 @kotlin.internal.InlineOnly
 public inline fun kotlin.String.hexToULong(format: kotlin.text.HexFormat = ...): kotlin.ULong
 
 @kotlin.ExperimentalStdlibApi
 @kotlin.SinceKotlin(version = "1.9")
-@kotlin.ExperimentalUnsignedTypes
 @kotlin.internal.InlineOnly
 public inline fun kotlin.String.hexToUShort(format: kotlin.text.HexFormat = ...): kotlin.UShort
 
@@ -1080,7 +1078,6 @@ public fun kotlin.Short.toHexString(format: kotlin.text.HexFormat = ...): kotlin
 
 @kotlin.ExperimentalStdlibApi
 @kotlin.SinceKotlin(version = "1.9")
-@kotlin.ExperimentalUnsignedTypes
 @kotlin.internal.InlineOnly
 public inline fun kotlin.UByte.toHexString(format: kotlin.text.HexFormat = ...): kotlin.String
 
@@ -1098,19 +1095,16 @@ public inline fun kotlin.UByteArray.toHexString(format: kotlin.text.HexFormat = 
 
 @kotlin.ExperimentalStdlibApi
 @kotlin.SinceKotlin(version = "1.9")
-@kotlin.ExperimentalUnsignedTypes
 @kotlin.internal.InlineOnly
 public inline fun kotlin.UInt.toHexString(format: kotlin.text.HexFormat = ...): kotlin.String
 
 @kotlin.ExperimentalStdlibApi
 @kotlin.SinceKotlin(version = "1.9")
-@kotlin.ExperimentalUnsignedTypes
 @kotlin.internal.InlineOnly
 public inline fun kotlin.ULong.toHexString(format: kotlin.text.HexFormat = ...): kotlin.String
 
 @kotlin.ExperimentalStdlibApi
 @kotlin.SinceKotlin(version = "1.9")
-@kotlin.ExperimentalUnsignedTypes
 @kotlin.internal.InlineOnly
 public inline fun kotlin.UShort.toHexString(format: kotlin.text.HexFormat = ...): kotlin.String
 
@@ -1442,6 +1436,8 @@ public open class CharacterCodingException : kotlin.Exception {
     public constructor CharacterCodingException(message: kotlin.String?)
 }
 
+@kotlin.ExperimentalStdlibApi
+@kotlin.SinceKotlin(version = "1.9")
 public final class HexFormat {
     public final val bytes: kotlin.text.HexFormat.BytesHexFormat { get; }
 

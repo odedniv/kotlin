@@ -12,6 +12,8 @@ import kotlin.internal.InlineOnly
  *
  * To create a new [HexFormat] use `HexFormat` function.
  */
+@ExperimentalStdlibApi
+@SinceKotlin("1.9")
 public class HexFormat internal constructor(
     /**
      * Specifies whether upper case hexadecimal digits `0-9`, `A-F` should be used for formatting.
@@ -176,23 +178,33 @@ public class HexFormat internal constructor(
 
         /**
          * Defines [HexFormat.bytes] of the format being built.
+         *
          * See [BytesHexFormat.Builder] for default values of the options.
          */
         val bytes: BytesHexFormat.Builder = BytesHexFormat.Builder()
 
         /**
          * Defines [HexFormat.number] of the format being built.
+         *
          * See [NumberHexFormat.Builder] for default values of the options.
          */
         val number: NumberHexFormat.Builder = NumberHexFormat.Builder()
 
-        /** Provides a scope for configuring the [HexFormat.bytes] format options. */
+        /**
+         * Provides a scope for configuring the [HexFormat.bytes] format options.
+         *
+         * See [BytesHexFormat.Builder] for default values of the options.
+         */
         @InlineOnly
         inline fun bytes(builderAction: BytesHexFormat.Builder.() -> Unit) {
             bytes.builderAction()
         }
 
-        /** Provides a scope for configuring the [HexFormat.number] format options. */
+        /**
+         * Provides a scope for configuring the [HexFormat.number] format options.
+         *
+         * See [NumberHexFormat.Builder] for default values of the options.
+         */
         @InlineOnly
         inline fun number(builderAction: NumberHexFormat.Builder.() -> Unit) {
             number.builderAction()
@@ -239,6 +251,8 @@ public class HexFormat internal constructor(
  * Builds a new [HexFormat] by configuring its format options using the specified [builderAction],
  * and returns the resulting format.
  */
+@ExperimentalStdlibApi
+@SinceKotlin("1.9")
 @InlineOnly
 public inline fun HexFormat(builderAction: HexFormat.Builder.() -> Unit): HexFormat {
     return HexFormat.Builder().apply(builderAction).build()

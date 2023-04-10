@@ -28425,6 +28425,12 @@ public class IrBlackBoxCodegenTestGenerated extends AbstractIrBlackBoxCodegenTes
             }
 
             @Test
+            @TestMetadata("jvmFloatDoubleToString.kt")
+            public void testJvmFloatDoubleToString() throws Exception {
+                runTest("compiler/testData/codegen/box/involvesIrInterpreter/dumpIrAndCheck/jvmFloatDoubleToString.kt");
+            }
+
+            @Test
             @TestMetadata("kCallableName.kt")
             public void testKCallableName() throws Exception {
                 runTest("compiler/testData/codegen/box/involvesIrInterpreter/dumpIrAndCheck/kCallableName.kt");

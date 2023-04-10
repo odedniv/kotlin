@@ -149,13 +149,15 @@ class BlackBoxCodegenSuppressor(
             } catch (e: Throwable) {
                 e as? ExpectedError ?: throw e
             }
-            processAllDirectives(ignoreDirectives) { ignoreDirective, suppressionResult ->
+
+            processAllDirectives<Unit>(ignoreDirectives) { ignoreDirective, suppressionResult ->
                 processMutedTest(
                     failed = expectedError != null,
                     ignoreDirective,
                     suppressionResult
-                )
-            }?.let { throw it }
+                )?.let { throw it }
+                return
+            }
 
             expectedError?.let { throw it }
         }

@@ -73,7 +73,8 @@ private fun Test.ComputedTestProperties(init: ComputedTestProperties.() -> Unit)
 
 fun Project.nativeTest(
     taskName: String,
-    tag: String?,
+    includedTags: String? = null, // comma-separated tags
+    excludedTags: String? = null, // comma-separated tags
     requirePlatformLibs: Boolean = false,
     customDependencies: List<Configuration> = emptyList(),
     customKlibDependencies: List<Configuration> = emptyList()
@@ -173,7 +174,13 @@ fun Project.nativeTest(
         environment("GRADLE_TASK_NAME", path)
 
         useJUnitPlatform {
-            tag?.let { includeTags(it) }
+            fun parseTags(tags: String?): Set<String>? = tags
+                ?.split(',')
+                ?.mapNotNullTo(HashSet()) { it.trim().takeIf(String::isNotEmpty) }
+                ?.ifEmpty { null }
+
+            parseTags(includedTags)?.let { includeTags = it }
+            parseTags(excludedTags)?.let { excludeTags = it }
         }
 
         doFirst {

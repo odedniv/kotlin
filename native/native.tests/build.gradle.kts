@@ -59,10 +59,16 @@ val cachesTest = nativeTest("cachesTest", "caches")
 val k1libContentsTest = nativeTest("k1libContentsTest", "k1libContents")
 val k2libContentsTest = nativeTest("k2libContentsTest", "k2libContents")
 
-val testTags = findProperty("kotlin.native.tests.tags")?.toString()
+val includedTestTags = findProperty("kotlin.native.tests.includedTags")?.toString()
+    ?: findProperty("kotlin.native.tests.tags")?.toString() // TODO: use '*.includedTags' property instead
+val excludedTestTags = findProperty("kotlin.native.tests.excludedTags")?.toString()
 // Note: arbitrary JUnit tag expressions can be used in this property.
 // See https://junit.org/junit5/docs/current/user-guide/#running-tests-tag-expressions
-val test by nativeTest("test", testTags)
+val test by nativeTest(
+    taskName = "test",
+    includedTags = includedTestTags,
+    excludedTags = excludedTestTags
+)
 
 val generateTests by generator("org.jetbrains.kotlin.generators.tests.GenerateNativeTestsKt") {
     javaLauncher.set(project.getToolchainLauncherFor(JdkMajorVersion.JDK_11_0))

@@ -98,6 +98,12 @@ public class FirOldFrontendMPPDiagnosticsWithLightTreeTestGenerated extends Abst
     }
 
     @Test
+    @TestMetadata("multipleExpectInterfacesImplementation.kt")
+    public void testMultipleExpectInterfacesImplementation() throws Exception {
+        runTest("compiler/testData/diagnostics/tests/multiplatform/multipleExpectInterfacesImplementation.kt");
+    }
+
+    @Test
     @TestMetadata("namedArguments.kt")
     public void testNamedArguments() throws Exception {
         runTest("compiler/testData/diagnostics/tests/multiplatform/namedArguments.kt");

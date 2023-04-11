@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.types.classifierOrFail
+import org.jetbrains.kotlin.ir.util.isFakeOverride
 import org.jetbrains.kotlin.ir.util.kotlinFqName
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
@@ -177,7 +178,9 @@ private class MemberLinksCollector(
             actualMemberMatches.size > 1 -> {
                 // TODO: report AMBIGUOUS_ACTUALS here, see KT-57932
             }
-            !declaration.parent.containsOptionalExpectation() && !(declaration is IrConstructor && declaration.isPrimary) -> {
+            !declaration.parent.containsOptionalExpectation() &&
+                    !(declaration is IrConstructor && declaration.isPrimary) &&
+                    !declaration.isFakeOverride -> {
                 diagnosticsReporter.reportMissingActual(declaration)
             }
         }

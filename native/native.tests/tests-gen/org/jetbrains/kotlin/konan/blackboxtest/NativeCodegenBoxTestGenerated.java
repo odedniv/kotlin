@@ -13009,6 +13009,12 @@ public class NativeCodegenBoxTestGenerated extends AbstractNativeCodegenBoxTest 
             }
 
             @Test
+            @TestMetadata("delegationToIntersectionType.kt")
+            public void testDelegationToIntersectionType() throws Exception {
+                runTest("compiler/testData/codegen/box/delegation/delegationToIntersectionType.kt");
+            }
+
+            @Test
             @TestMetadata("delegationWithPrivateConstructor.kt")
             public void testDelegationWithPrivateConstructor() throws Exception {
                 runTest("compiler/testData/codegen/box/delegation/delegationWithPrivateConstructor.kt");
@@ -13042,6 +13048,12 @@ public class NativeCodegenBoxTestGenerated extends AbstractNativeCodegenBoxTest 
             @TestMetadata("kt8154.kt")
             public void testKt8154() throws Exception {
                 runTest("compiler/testData/codegen/box/delegation/kt8154.kt");
+            }
+
+            @Test
+            @TestMetadata("smartCastedDelegation.kt")
+            public void testSmartCastedDelegation() throws Exception {
+                runTest("compiler/testData/codegen/box/delegation/smartCastedDelegation.kt");
             }
 
             @Test

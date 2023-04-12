@@ -5,6 +5,7 @@
 
 package kotlin.native.internal
 
+import kotlin.experimental.ExperimentalNativeApi
 import kotlin.internal.getProgressionLastElement
 import kotlin.reflect.KClass
 import kotlin.native.concurrent.FreezableAtomicReference
@@ -152,7 +153,7 @@ internal fun ReportUnhandledException(throwable: Throwable) {
 // Using object to make sure that `hook` is initialized when it's needed instead of
 // in a normal global initialization flow. This is important if some global happens
 // to throw an exception during it's initialization before this hook would've been initialized.
-@OptIn(FreezingIsDeprecated::class, ExperimentalStdlibApi::class)
+@OptIn(FreezingIsDeprecated::class, ExperimentalStdlibApi::class, ExperimentalNativeApi::class)
 internal object UnhandledExceptionHookHolder {
     internal val hook: FreezableAtomicReference<ReportUnhandledExceptionHook?> =
         if (Platform.memoryModel == MemoryModel.EXPERIMENTAL) {

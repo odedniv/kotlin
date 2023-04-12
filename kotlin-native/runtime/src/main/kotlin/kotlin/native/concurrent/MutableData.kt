@@ -5,6 +5,7 @@
 
 package kotlin.native.concurrent
 
+import kotlin.experimental.ExperimentalNativeApi
 import kotlin.native.internal.*
 import kotlinx.cinterop.*
 
@@ -32,7 +33,7 @@ public class MutableData constructor(capacity: Int = 16) {
 
     private var buffer_ = ByteArray(capacity).apply { share() }
     private var buffer: ByteArray
-        @OptIn(ExperimentalStdlibApi::class)
+        @OptIn(ExperimentalNativeApi::class)
         get() =
             when (kotlin.native.Platform.memoryModel) {
                 kotlin.native.MemoryModel.EXPERIMENTAL -> buffer_

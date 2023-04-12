@@ -946,7 +946,7 @@ private fun ObjCExportCodeGenerator.generateObjCImp(
             )
         }
         val llvmCallable = if (isVirtual) {
-            codegen.getVirtualFunctionTrampoline(target)
+            codegen.getVirtualFunctionTrampoline(target as IrSimpleFunction)
         } else {
             codegen.llvmFunction(target)
         }

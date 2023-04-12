@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrEnumEntry
 import org.jetbrains.kotlin.ir.declarations.IrFunction
+import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.util.isOverridable
 import org.jetbrains.kotlin.resolve.DescriptorUtils
 
@@ -50,7 +51,7 @@ internal class CAdapterCodegen(
                 // If function is virtual, we need to resolve receiver properly.
                 generateFunction(codegen, bridgeFunctionProto) {
                     val callee = if (!DescriptorUtils.isTopLevelDeclaration(function) && irFunction.isOverridable) {
-                        codegen.getVirtualFunctionTrampoline(irFunction)
+                        codegen.getVirtualFunctionTrampoline(irFunction as IrSimpleFunction)
                     } else {
                         // KT-45468: Alias insertion may not be handled by LLVM properly, in case callee is in the cache.
                         // Hence, insert not an alias but a wrapper, hoping it will be optimized out later.

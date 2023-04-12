@@ -18,6 +18,9 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import java.util.*
 
+private fun BitSet.withBit(bit: Int) = if (get(bit)) this else copy().also { it.set(bit) }
+private fun BitSet.withOutBit(bit: Int) = if (!get(bit)) this else copy().also { it.clear(bit) }
+
 object LivenessAnalysis {
     fun run(body: IrBody, filter: (IrElement) -> Boolean) =
         LivenessAnalysisVisitor(filter).run(body)
@@ -49,16 +52,14 @@ object LivenessAnalysis {
 
         fun run(body: IrBody): Map<IrElement, List<IrVariable>> {
             body.accept(this, BitSet() /* No variable is live at the end */)
-            return filteredElementEndsLV.entries.associate { (element, liveVariables) ->
-                val list = mutableListOf<IrVariable>()
-                liveVariables.forEachBit { list.add(variables[it]) }
-                element to list
+            return filteredElementEndsLV.mapValues { (_, liveVariables) ->
+                buildList { liveVariables.forEachBit { add(variables[it]) } }
             }
         }
 
         private fun getVariableId(variable: IrVariable) = variableIds.getOrPut(variable) {
             variables.add(variable)
-            variables.size - 1
+            variables.lastIndex
         }
 
         private inline fun <T : IrElement> saveAndCompute(element: T, liveVariables: BitSet, compute: () -> BitSet): BitSet {
@@ -82,19 +83,12 @@ object LivenessAnalysis {
 
         override fun visitGetValue(expression: IrGetValue, data: BitSet) = saveAndCompute(expression, data) {
             val variable = expression.symbol.owner as? IrVariable ?: return@saveAndCompute data
-            val variableId = getVariableId(variable)
-            if (data.get(variableId))
-                data
-            else
-                data.copy().also { it.set(variableId) }
+            data.withBit(getVariableId(variable))
         }
 
         override fun visitVariable(declaration: IrVariable, data: BitSet) = saveAndCompute(declaration, data) {
             val variableId = getVariableId(declaration)
-            var liveVariables = if (data.get(variableId))
-                data.copy().also { it.clear(variableId) }
-            else
-                data
+            var liveVariables = data.withOutBit(variableId)
             liveVariables = declaration.initializer?.accept(this, liveVariables) ?: liveVariables
             require(!liveVariables.get(variableId)) { "Use of uninitialized variable ${declaration.render()}" }
             liveVariables
@@ -102,11 +96,7 @@ object LivenessAnalysis {
 
         override fun visitSetValue(expression: IrSetValue, data: BitSet) = saveAndCompute(expression, data) {
             val variable = expression.symbol.owner as? IrVariable ?: error("Unexpected parameter rewrite: ${expression.render()}")
-            val variableId = getVariableId(variable)
-            val liveVariables = if (data.get(variableId))
-                data.copy().also { it.clear(variableId) }
-            else
-                data
+            val liveVariables = data.withOutBit(getVariableId(variable))
             expression.value.accept(this, liveVariables)
         }
 

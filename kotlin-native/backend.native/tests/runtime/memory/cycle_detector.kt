@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.native.runtime.NativeRuntimeApi::class, ExperimentalStdlibApi::class)
+@file:OptIn(kotlin.native.runtime.NativeRuntimeApi::class)
 
 import kotlin.native.concurrent.*
 import kotlin.native.runtime.GC

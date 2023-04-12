@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalStdlibApi::class)
-
 import objc_misc.*
 import kotlin.native.Platform
 

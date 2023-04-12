@@ -7,7 +7,6 @@ package org.jetbrains.kotlin.gradle.native
 
 import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.gradle.testbase.*
-import org.jetbrains.kotlin.konan.target.HostManager
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.condition.DisabledOnOs
 import org.junit.jupiter.api.condition.OS
@@ -139,17 +138,4 @@ internal class NativeExternalDependenciesIT : KGPBaseTest() {
         }
     }
 
-    internal companion object {
-        val MASKED_TARGET_NAME = "testTarget" + HostManager.host.architecture.name
-
-        fun findParameterInOutput(name: String, output: String): String? =
-            output.lineSequence().mapNotNull { line ->
-                val (key, value) = line.split('=', limit = 2).takeIf { it.size == 2 } ?: return@mapNotNull null
-                if (key.endsWith(name)) value else null
-            }.firstOrNull()
-
-        fun findKotlinNativeTargetName(output: String): String? = findParameterInOutput("for_test_kotlin_native_target", output)
-            ?.takeIf(String::isNotBlank)
-            ?.lowercase(Locale.getDefault())
-    }
 }

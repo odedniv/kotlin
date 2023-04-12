@@ -7,9 +7,9 @@ package org.jetbrains.kotlin.gradle.native
 
 import org.jetbrains.kotlin.gradle.BaseGradleIT
 import org.jetbrains.kotlin.gradle.GradleVersionRequired
-import org.jetbrains.kotlin.gradle.native.NativeExternalDependenciesIT.Companion.MASKED_TARGET_NAME
-import org.jetbrains.kotlin.gradle.native.NativeExternalDependenciesIT.Companion.findKotlinNativeTargetName
-import org.jetbrains.kotlin.gradle.native.NativeExternalDependenciesIT.Companion.findParameterInOutput
+import org.jetbrains.kotlin.gradle.testbase.MASKED_TARGET_NAME
+import org.jetbrains.kotlin.gradle.testbase.findKotlinNativeTargetName
+import org.jetbrains.kotlin.gradle.testbase.findParameterInOutput
 import org.jetbrains.kotlin.konan.library.KONAN_PLATFORM_LIBS_NAME_PREFIX
 import org.jetbrains.kotlin.konan.target.HostManager
 import org.jetbrains.kotlin.konan.target.KonanTarget

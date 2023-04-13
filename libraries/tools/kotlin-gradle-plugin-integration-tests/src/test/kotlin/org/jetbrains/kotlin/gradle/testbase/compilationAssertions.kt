@@ -21,9 +21,9 @@ private val javaSrcRegex by lazy { Regex("\\[DEBUG] \\[[^]]*JavaCompiler] Compil
 private fun taskOutputRegex(
     taskName: String
 ) = """
-    \[org\.gradle\.internal\.operations\.DefaultBuildOperationRunner] Build operation 'Task :$taskName' started
+    \[org\.gradle\.internal\.operations\.DefaultBuildOperationRunner] Build operation 'Task $taskName' started
     ([\s\S]+?)
-    \[org\.gradle\.internal\.operations\.DefaultBuildOperationRunner] Build operation 'Task :$taskName' completed
+    \[org\.gradle\.internal\.operations\.DefaultBuildOperationRunner] Build operation 'Task $taskName' completed
     """.trimIndent()
     .replace("\n", "")
     .toRegex()

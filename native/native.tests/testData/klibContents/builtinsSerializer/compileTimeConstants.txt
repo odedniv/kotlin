@@ -1,22 +1,26 @@
     class Class constructor() {
-        val arrayConst: Any = {1.toByte(), 2.toByte()}
-        val booleanConst: Boolean = true
         val byteConst: Byte = 10.toByte()
-        val charConst: Char = \u0041 ('A')
-        val doubleConst: Double = 3.0.toDouble()
-        val enumConst: Weapon? = Weapon.ROCK
-        val floatConst: Float = 2.0.toFloat()
+        val shortConst: Short = 20.toShort()
         val intConst: Int = 30
         val longConst: Long = 40.toLong()
-        val shortConst: Short = 20.toShort()
+        val charConst: Char = \u0041 ('A')
         val stringConst: String = "abcd"
+        val booleanConst: Boolean = true
+        val floatConst: Float = 2.0.toFloat()
+        val doubleConst: Double = 3.0.toDouble()
+        val enumConst: Weapon? = Weapon.ROCK
+        val arrayConst: Any = {1.toByte(), 2.toByte()}
+        val a: Int = 10
+        val b: Int = 30
     }
     enum class Weapon private constructor() : Enum<Weapon> {
         enum entry ROCK
         enum entry PAPER
         enum entry SCISSORS
     }
+    val a: Int = 10
     val arrayConst: Any = {1.toByte(), 2.toByte()}
+    val b: Int = 30
     val booleanConst: Boolean = true
     val byteConst: Byte = 10.toByte()
     val charConst: Char = \u0041 ('A')

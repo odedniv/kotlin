@@ -15,6 +15,15 @@ PsiJetFileStubImpl[package=test]
               REFERENCE_EXPRESSION[referencedName=Boolean]
     CLASS_BODY
       SECONDARY_CONSTRUCTOR[fqName=null, hasBody=true, isDelegatedCallToThis=false, isExtension=false, isTopLevel=false, name=SecondaryConstructors]
+        MODIFIER_LIST[private]
+        VALUE_PARAMETER_LIST
+          VALUE_PARAMETER[fqName=null, hasDefaultValue=false, hasValOrVar=false, isMutable=false, name=x]
+            TYPE_REFERENCE
+              USER_TYPE
+                USER_TYPE
+                  REFERENCE_EXPRESSION[referencedName=kotlin]
+                REFERENCE_EXPRESSION[referencedName=Int]
+      SECONDARY_CONSTRUCTOR[fqName=null, hasBody=true, isDelegatedCallToThis=false, isExtension=false, isTopLevel=false, name=SecondaryConstructors]
         MODIFIER_LIST[public]
           ANNOTATION_ENTRY[hasValueArguments=false, shortName=anno]
             CONSTRUCTOR_CALLEE
@@ -30,15 +39,6 @@ PsiJetFileStubImpl[package=test]
                 USER_TYPE
                   REFERENCE_EXPRESSION[referencedName=kotlin]
                 REFERENCE_EXPRESSION[referencedName=String]
-      SECONDARY_CONSTRUCTOR[fqName=null, hasBody=true, isDelegatedCallToThis=false, isExtension=false, isTopLevel=false, name=SecondaryConstructors]
-        MODIFIER_LIST[private]
-        VALUE_PARAMETER_LIST
-          VALUE_PARAMETER[fqName=null, hasDefaultValue=false, hasValOrVar=false, isMutable=false, name=x]
-            TYPE_REFERENCE
-              USER_TYPE
-                USER_TYPE
-                  REFERENCE_EXPRESSION[referencedName=kotlin]
-                REFERENCE_EXPRESSION[referencedName=Int]
       CLASS[classId=test/SecondaryConstructors.Inner, fqName=test.SecondaryConstructors.Inner, isEnumEntry=false, isInterface=false, isLocal=false, isTopLevel=false, name=Inner, superNames=[]]
         MODIFIER_LIST[inner public final]
         TYPE_PARAMETER_LIST
@@ -80,6 +80,9 @@ PsiJetFileStubImpl[package=test]
         MODIFIER_LIST[public final]
         CLASS_BODY
           SECONDARY_CONSTRUCTOR[fqName=null, hasBody=true, isDelegatedCallToThis=false, isExtension=false, isTopLevel=false, name=Nested]
+            MODIFIER_LIST[internal]
+            VALUE_PARAMETER_LIST
+          SECONDARY_CONSTRUCTOR[fqName=null, hasBody=true, isDelegatedCallToThis=false, isExtension=false, isTopLevel=false, name=Nested]
             MODIFIER_LIST[public]
               ANNOTATION_ENTRY[hasValueArguments=false, shortName=anno]
                 CONSTRUCTOR_CALLEE
@@ -95,6 +98,3 @@ PsiJetFileStubImpl[package=test]
                     USER_TYPE
                       REFERENCE_EXPRESSION[referencedName=kotlin]
                     REFERENCE_EXPRESSION[referencedName=Int]
-          SECONDARY_CONSTRUCTOR[fqName=null, hasBody=true, isDelegatedCallToThis=false, isExtension=false, isTopLevel=false, name=Nested]
-            MODIFIER_LIST[internal]
-            VALUE_PARAMETER_LIST

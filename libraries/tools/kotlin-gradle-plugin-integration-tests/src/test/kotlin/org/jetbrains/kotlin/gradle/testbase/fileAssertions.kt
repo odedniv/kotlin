@@ -19,14 +19,17 @@ import kotlin.test.asserter
  * Asserts file under [file] path exists and is a regular file.
  */
 fun GradleProject.assertFileExists(
-    file: Path
+    file: Path,
+    regularCheck: Boolean = true
 ) {
     assert(Files.exists(file)) {
         "File '${file}' does not exist!"
     }
 
-    assert(Files.isRegularFile(file)) {
-        "'${file}' is not a regular file!"
+    if(regularCheck) {
+        assert(Files.isRegularFile(file)) {
+            "'${file}' is not a regular file!"
+        }
     }
 }
 

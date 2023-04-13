@@ -42,6 +42,15 @@ fun BuildResult.assertTasksExecuted(vararg tasks: String) {
 }
 
 /**
+ * Asserts given [tasks] have been not executed.
+ */
+fun BuildResult.assertTasksNotExecuted(vararg tasks: String) {
+    for (task in tasks) {
+        assertOutputDoesNotContain("(Executing actions for task|Executing task) '$task'".toRegex())
+    }
+}
+
+/**
  * Asserts given [tasks] have 'SUCCESS' execution state.
  */
 fun BuildResult.assertTasksExecuted(tasks: Collection<String>) {
@@ -125,6 +134,24 @@ fun BuildResult.assertTasksPackedToCache(vararg tasks: String) {
 }
 
 /**
+ * Asserts given [tasks] have been registered.
+ */
+fun BuildResult.assertTasksRegistered(vararg tasks: String) {
+    for (task in tasks) {
+        assertOutputContains("'Register task $task'")
+    }
+}
+
+/**
+ * Asserts given [tasks] have not been registered.
+ */
+fun BuildResult.assertTasksNotRegistered(vararg tasks: String) {
+    for (task in tasks) {
+        assertOutputDoesNotContain("'Register task $task'")
+    }
+}
+
+/**
  * Asserts classpath of the tasks, which were executed (with native compiler by default).
  *
  * Note: Log level of output must be set to [LogLevel.DEBUG].
@@ -138,3 +165,18 @@ fun BuildResult.assertTasksClasspath(
     toolName: NativeToolKind = NativeToolKind.KONANC,
     assertions: (List<String>) -> Unit
 ) = tasksNames.forEach { taskName -> assertions(extractNativeCompilerClasspath(getOutputForTask(taskName), toolName)) }
+
+/**
+ * Asserts command line arguments of the tasks, which were executed (with native compiler by default).
+ *
+ * Note: Log level of output must be set to [LogLevel.DEBUG].
+ *
+ * @param tasksNames names of the tasks, which command line arguments should be checked with give assertions
+ * @param toolName name of build tool
+ * @param assertions assertions, with will be applied to each classpath of each given task
+ */
+fun BuildResult.assertTasksCommandLineArguments(
+    vararg tasksNames: String,
+    toolName: NativeToolKind = NativeToolKind.KONANC,
+    assertions: (List<String>) -> Unit
+) = tasksNames.forEach { taskName -> assertions(extractNativeCompilerCommanLineArguments(getOutputForTask(taskName), toolName)) }

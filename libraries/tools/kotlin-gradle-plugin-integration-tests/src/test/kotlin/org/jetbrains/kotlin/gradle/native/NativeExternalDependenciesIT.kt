@@ -113,22 +113,13 @@ internal class NativeExternalDependenciesIT : KGPBaseTest() {
 
             build("buildExternalDependenciesFile") {
                 assertTasksExecuted(":buildExternalDependenciesFile")
-                val kotlinNativeTargetName = findKotlinNativeTargetName(output)
-                assertNotNull(kotlinNativeTargetName)
 
                 val externalDependenciesFile = findParameterInOutput("for_test_external_dependencies_file", output)?.let(::File)
                 val externalDependenciesText = if (externalDependenciesFile?.exists() == true) {
                     externalDependenciesFile.readText()
                         .lineSequence()
                         .map { line ->
-                            if (line.firstOrNull()?.isWhitespace() == true) {
-                                // Transform artifact path.
-                                val pureFileName = File(line.trimStart()).name
-                                "\t/some/path/$pureFileName"
-                            } else {
-                                // Transform module name (mask target name).
-                                line.replace(kotlinNativeTargetName, MASKED_TARGET_NAME)
-                            }
+                            if (line.firstOrNull()?.isWhitespace() == true) "\t/some/path/${File(line.trimStart()).name}" else line
                         }
                         .joinToString("\n")
                 } else null

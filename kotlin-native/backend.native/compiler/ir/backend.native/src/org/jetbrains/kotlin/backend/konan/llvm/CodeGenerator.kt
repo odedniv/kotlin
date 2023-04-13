@@ -291,6 +291,11 @@ internal object VirtualTablesLookup {
     }
 }
 
+/*
+ * Special trampoline function to call actual virtual implementation. This helps with reducing
+ * dependence between klibs/files (if vtable/itable of some class has changed, the call sites
+ * would be the same and wouldn't need recompiling).
+ */
 internal fun CodeGenerator.getVirtualFunctionTrampoline(irFunction: IrSimpleFunction): LlvmCallable {
     /*
      * Resolve owner of the call with special handling of Any methods:
@@ -309,14 +314,9 @@ private fun CodeGenerator.getVirtualFunctionTrampolineImpl(irFunction: IrSimpleF
                 irFunction.computePrivateSymbolName(irFunction.parentAsClass.fqNameForIrSerialization.asString())
             val proto = LlvmFunctionProto(
                     name = "$targetName-trampoline",
-                    signature = LlvmFunctionSignature(getLlvmFunctionReturnType(irFunction), getLlvmFunctionParameterTypes(irFunction)),
+                    signature = LlvmFunctionSignature(irFunction, this),
                     origin = null,
-                    linkage = when {
-                        isExternal(irFunction) -> LLVMLinkage.LLVMExternalLinkage
-                        irFunction.isExported() -> LLVMLinkage.LLVMExternalLinkage
-                        context.config.producePerFileCache && irFunction in generationState.calledFromExportedInlineFunctions -> LLVMLinkage.LLVMExternalLinkage
-                        else -> LLVMLinkage.LLVMInternalLinkage
-                    }
+                    linkage = linkageOf(irFunction)
             )
             if (isExternal(irFunction))
                 llvm.externalFunction(proto)

@@ -18,40 +18,27 @@ using namespace kotlin;
 namespace {
 
 #if KONAN_SUPPORTS_GRAND_CENTRAL_DISPATCH
-struct MainQueueData {
-    std::atomic<bool> isBeingProcessed = false;
-};
-
-MainQueueData mainQueueData;
+std::atomic<bool> isMainQueueProcessed = false;
 #endif
 
 } // namespace
 
 void kotlin::initializeMainQueueProcessor() noexcept {
 #if KONAN_SUPPORTS_GRAND_CENTRAL_DISPATCH
-    dispatch_queue_set_specific(dispatch_get_main_queue(), &mainQueueData, &mainQueueData, nullptr);
     dispatch_async_f(
-            dispatch_get_main_queue(), nullptr, [](void*) { mainQueueData.isBeingProcessed.store(true, std::memory_order_relaxed); });
+            dispatch_get_main_queue(), nullptr, [](void*) { isMainQueueProcessed.store(true, std::memory_order_relaxed); });
 #endif
 }
 
 bool kotlin::isMainQueueProcessorAvailable() noexcept {
 #if KONAN_SUPPORTS_GRAND_CENTRAL_DISPATCH
-    return mainQueueData.isBeingProcessed.load(std::memory_order_relaxed);
+    return isMainQueueProcessed.load(std::memory_order_relaxed);
 #else
     return false;
 #endif
 }
 
-bool kotlin::isOnMainQueue() noexcept {
-#if KONAN_SUPPORTS_GRAND_CENTRAL_DISPATCH
-    return dispatch_get_specific(&mainQueueData) == &mainQueueData;
-#else
-    return false;
-#endif
-}
-
-void kotlin::runOnMainQueue(void (*f)(void*), void* arg) noexcept {
+void kotlin::runOnMainQueue(void* arg, void (*f)(void*)) noexcept {
     RuntimeAssert(isMainQueueProcessorAvailable(), "Running on main queue when it's not processed");
 #if KONAN_SUPPORTS_GRAND_CENTRAL_DISPATCH
     dispatch_async_f(dispatch_get_main_queue(), arg, f);

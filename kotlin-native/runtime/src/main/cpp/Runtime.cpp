@@ -136,7 +136,9 @@ RuntimeState* initRuntime() {
   // Keep global variables in state as well.
   if (firstRuntime) {
     konan::consoleInit();
-    kotlin::initializeMainQueueProcessor();
+    if (compiler::objcDisposeOnMain()) {
+      kotlin::initializeMainQueueProcessor();
+    }
 #if KONAN_OBJC_INTEROP
     Kotlin_ObjCExport_initialize();
 #endif

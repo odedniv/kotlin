@@ -3,10 +3,10 @@
  * that can be found in the LICENSE file.
  */
 
-#include "MainQueueProcessor.hpp"
 #if KONAN_OBJC_INTEROP
 
 #import <Foundation/NSException.h>
+#import <Foundation/NSThread.h>
 #import <objc/objc-exception.h>
 
 #include <objc/objc.h>
@@ -19,6 +19,7 @@
 #include "Memory.h"
 #include "MemorySharedRefs.hpp"
 
+#include "MainQueueProcessor.hpp"
 #include "Natives.h"
 #include "ObjCInterop.h"
 #include "ObjCExportPrivate.h"
@@ -84,7 +85,14 @@ id allocWithZoneImp(Class self, SEL _cmd, void* zone) {
 
   auto* backRef = getBackRef(result, classData);
   backRef->initAndAddRef(kotlinObj);
-  backRef->setFinalizeOnMainQueue(kotlin::isOnMainQueue());
+  // TODO: Consider additional filtering based on types:
+  //       * have some kind of an allowlist that can be populated by the user
+  //         to specify that objects of these types must be finalized only on
+  //         the main thread.
+  //       * prepopulate it for the system frameworks.
+  //       * if that were to be done at runtime, library authors could register
+  //         their types in a library initialization code.
+  backRef->setFinalizeOnMainQueue([NSThread isMainThread]);
 
   return result;
 }
@@ -119,7 +127,7 @@ void releaseImp(id self, SEL _cmd) {
 }
 
 // [super release]
-void superRelease(id self, KotlinObjCClassData* classData) noexcept {
+void superRelease(id self, KotlinObjCClassData* classData) {
   Class clazz = classData->objcClass;
   struct objc_super s = {self, clazz};
   auto messenger = reinterpret_cast<void (*) (struct objc_super*, SEL _cmd)>(objc_msgSendSuper2);
@@ -134,11 +142,11 @@ void releaseAsAssociatedObjectImp(id self, SEL _cmd) {
     // No need for any special handling. Weak reference handling machinery
     // has already cleaned up the reference to Kotlin object.
     if (backRef->finalizeOnMainQueue() && kotlin::isMainQueueProcessorAvailable()) {
-      kotlin::runOnMainQueue([](void* ptr) noexcept {
+      kotlin::runOnMainQueue(self, [](void* ptr) {
         id self = static_cast<id>(ptr);
         auto* classData = GetKotlinClassData(self);
         superRelease(self, classData);
-      }, self);
+      });
     } else {
       superRelease(self, classData);
     }
@@ -163,11 +171,7 @@ void releaseAsAssociatedObjectImp(id self, SEL _cmd) {
   // the reference to it (e.g. when calling Kotlin method on [self]) would crash.
   // The latter is generally ok, because by the time superclass dealloc gets launched, subclass state
   // should already be deinitialized, and Kotlin methods operate on the subclass.
-  // [super release]
-  Class clazz = classData->objcClass;
-  struct objc_super s = {self, clazz};
-  auto messenger = reinterpret_cast<void (*) (struct objc_super*, SEL _cmd)>(objc_msgSendSuper2);
-  messenger(&s, @selector(release));
+  superRelease(self, classData);
 }
 
 void deallocImp(id self, SEL _cmd) {

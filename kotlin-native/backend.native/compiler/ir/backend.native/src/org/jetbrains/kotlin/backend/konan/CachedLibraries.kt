@@ -37,7 +37,6 @@ class CachedLibraries(
     enum class Kind { DYNAMIC, STATIC }
 
     sealed class Cache(protected val target: KonanTarget, val kind: Kind, val path: String, val rootDirectory: String) {
-        val hash: ByteArray by lazy { File(rootDirectory).child(HASH_FILE_NAME).readBytes() }
         val bitcodeDependencies by lazy { computeBitcodeDependencies() }
         val binariesPaths by lazy { computeBinariesPaths() }
         val serializedInlineFunctionBodies by lazy { computeSerializedInlineFunctionBodies() }
@@ -105,6 +104,9 @@ class CachedLibraries(
                         require(it.exists) { "File $file is not found in cache $path" }
                         it.absolutePath
                     }
+
+            fun getFileHash(file: String) =
+                    File(path).child(file).child(HASH_FILE_NAME).readBytes()
 
             override fun computeBitcodeDependencies() = perFileBitcodeDependencies.values.flatten()
 

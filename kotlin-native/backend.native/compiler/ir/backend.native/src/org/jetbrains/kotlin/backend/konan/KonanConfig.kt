@@ -402,7 +402,7 @@ class KonanConfig(val project: Project, val configuration: CompilerConfiguration
 
     internal val additionalCacheFlags by lazy { platformManager.loader(target).additionalCacheFlags }
 
-    internal val nThreads = configuration.get(CommonConfigurationKeys.PARALLEL_BACKEND_THREADS) ?: 1
+    internal val threadsCount = configuration.get(CommonConfigurationKeys.PARALLEL_BACKEND_THREADS) ?: 1
 
     private fun StringBuilder.appendCommonCacheFlavor() {
         append(target.toString())

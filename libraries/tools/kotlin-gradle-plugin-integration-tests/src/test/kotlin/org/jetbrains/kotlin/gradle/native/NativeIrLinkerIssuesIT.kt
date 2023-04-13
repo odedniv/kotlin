@@ -8,7 +8,6 @@ package org.jetbrains.kotlin.gradle.native
 import org.jetbrains.kotlin.gradle.BaseGradleIT
 import org.jetbrains.kotlin.gradle.GradleVersionRequired
 import org.jetbrains.kotlin.gradle.testbase.MASKED_TARGET_NAME
-import org.jetbrains.kotlin.gradle.testbase.findKotlinNativeTargetName
 import org.jetbrains.kotlin.gradle.testbase.findParameterInOutput
 import org.jetbrains.kotlin.konan.library.KONAN_PLATFORM_LIBS_NAME_PREFIX
 import org.jetbrains.kotlin.konan.target.HostManager
@@ -272,8 +271,6 @@ class NativeIrLinkerIssuesIT : BaseGradleIT() {
             build("linkDebugExecutableNative") {
                 assertFailed()
 
-                val kotlinNativeTargetName = findKotlinNativeTargetName(output)
-                assertNotNull(kotlinNativeTargetName)
 
                 val kotlinNativeCompilerVersion = findKotlinNativeCompilerVersion(output)
                 assertNotNull(kotlinNativeCompilerVersion)
@@ -281,7 +278,6 @@ class NativeIrLinkerIssuesIT : BaseGradleIT() {
                 val errorMessage = ERROR_LINE_REGEX.findAll(getOutputForTask("linkDebugExecutableNative"))
                     .map { matchResult -> matchResult.groupValues[1] }
                     .filterNot { it.startsWith("w:") || it.startsWith("v:") || it.startsWith("i:") }
-                    .map { line -> line.replace(kotlinNativeTargetName, MASKED_TARGET_NAME) }
                     .map { line ->
                         line.replace(COMPRESSED_PLATFORM_LIBS_REGEX) { result ->
                             val rangeWithPlatformLibrariesCount = result.groups[1]!!.range

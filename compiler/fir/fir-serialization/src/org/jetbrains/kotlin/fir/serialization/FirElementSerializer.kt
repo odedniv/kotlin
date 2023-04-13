@@ -25,15 +25,13 @@ import org.jetbrains.kotlin.fir.expressions.impl.FirEmptyAnnotationArgumentMappi
 import org.jetbrains.kotlin.fir.extensions.extensionService
 import org.jetbrains.kotlin.fir.extensions.providedDeclarationsForMetadataService
 import org.jetbrains.kotlin.fir.extensions.typeAttributeExtensions
-import org.jetbrains.kotlin.fir.resolve.*
+import org.jetbrains.kotlin.fir.resolve.ScopeSession
+import org.jetbrains.kotlin.fir.resolve.fullyExpandedType
 import org.jetbrains.kotlin.fir.resolve.providers.symbolProvider
+import org.jetbrains.kotlin.fir.resolve.toSymbol
 import org.jetbrains.kotlin.fir.scopes.*
 import org.jetbrains.kotlin.fir.scopes.impl.nestedClassifierScope
 import org.jetbrains.kotlin.fir.serialization.constant.*
-import org.jetbrains.kotlin.fir.serialization.constant.EnumValue
-import org.jetbrains.kotlin.fir.serialization.constant.IntValue
-import org.jetbrains.kotlin.fir.serialization.constant.StringValue
-import org.jetbrains.kotlin.fir.serialization.constant.toConstantValue
 import org.jetbrains.kotlin.fir.symbols.impl.*
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
@@ -164,10 +162,8 @@ class FirElementSerializer private constructor(
             }
         }
 
-        val callableMembers =
-            extension.customClassMembersProducer?.getCallableMembers(klass)
-                ?: (klass.memberDeclarations() + providedDeclarationsService.getProvidedCallables(classSymbol, scopeSession))
-                    .sortedWith(FirCallableDeclarationComparator)
+        val callableMembers = (klass.memberDeclarations() + providedDeclarationsService.getProvidedCallables(classSymbol, scopeSession))
+            .sortedWith(FirCallableDeclarationComparator)
 
         for (declaration in callableMembers) {
             if (declaration !is FirEnumEntry && declaration.isStatic) continue // ??? Miss values() & valueOf()

@@ -1,28 +1,31 @@
 /*
- * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2023 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
 package org.jetbrains.kotlin.gradle.native
 
-import org.jetbrains.kotlin.gradle.BaseGradleIT
-import org.jetbrains.kotlin.gradle.GradleVersionRequired
-import org.jetbrains.kotlin.gradle.native.GeneralNativeIT.Companion.withNativeCommandLineArguments
-import org.jetbrains.kotlin.gradle.transformProjectWithPluginsDsl
-import org.jetbrains.kotlin.konan.target.HostManager
-import org.junit.Assume
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
-import kotlin.test.Test
+import org.gradle.api.logging.LogLevel
+import org.gradle.util.GradleVersion
+import org.jetbrains.kotlin.gradle.testbase.*
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.condition.EnabledOnOs
+import org.junit.jupiter.api.condition.OS
+import kotlin.io.path.appendText
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
-class NativeLibraryDslIT : BaseGradleIT() {
-    override val defaultGradleVersion = GradleVersionRequired.FOR_MPP_SUPPORT
+@DisplayName("Tests for K/N library dsl builds")
+@NativeGradlePluginTests
+class NativeLibraryDslIT : KGPBaseTest() {
 
-    @Test
-    fun `check registered gradle tasks`() {
-        with(transformProjectWithPluginsDsl("new-kn-library-dsl")) {
-            build(":shared:tasks") {
-                assertSuccessful()
+    @DisplayName("Checks registered gradle tasks")
+    @GradleTest
+    fun shouldSharedAndLibRegisteredTasks(gradleVersion: GradleVersion) {
+        nativeProject("new-kn-library-dsl", gradleVersion) {
+            build(":shared:tasks", buildOptions = buildOptions.copy(logLevel = LogLevel.DEBUG)) {
+                assertTasksExecuted()
                 assertTasksRegistered(
                     ":shared:assembleMyfatframeFatFramework",
                     ":shared:assembleMyframeFrameworkIosArm64",
@@ -34,8 +37,7 @@ class NativeLibraryDslIT : BaseGradleIT() {
                     ":shared:assembleMyslibReleaseSharedLibraryLinuxX64"
                 )
             }
-            build(":lib:tasks") {
-                assertSuccessful()
+            build(":lib:tasks", buildOptions = buildOptions.copy(logLevel = LogLevel.DEBUG)) {
                 assertTasksRegistered(
                     ":lib:assembleGroofatframeFatFramework",
                     ":lib:assembleGrooframeFrameworkIosArm64",
@@ -46,27 +48,27 @@ class NativeLibraryDslIT : BaseGradleIT() {
         }
     }
 
-    @Test
-    fun `link shared library from two gradle modules`() {
-        with(transformProjectWithPluginsDsl("new-kn-library-dsl")) {
+    @DisplayName("Checks link shared libraries from two gradle modules")
+    @GradleTest
+    fun shouldLinkSharedLibrariesFromTwoModules(gradleVersion: GradleVersion) {
+        nativeProject("new-kn-library-dsl", gradleVersion) {
             build(":shared:assembleMyslibDebugSharedLibraryLinuxX64") {
-                assertSuccessful()
                 assertTasksExecuted(
                     ":lib:compileKotlinLinuxX64",
                     ":shared:compileKotlinLinuxX64",
                     ":shared:assembleMyslibDebugSharedLibraryLinuxX64"
                 )
-                assertFileExists("/shared/build/out/dynamic/linux_x64/debug/libmyslib.so")
-                assertFileExists("/shared/build/out/dynamic/linux_x64/debug/libmyslib_api.h")
+                assertFileExists(projectPath.resolve("./shared/build/out/dynamic/linux_x64/debug/libmyslib.so"))
+                assertFileExists(projectPath.resolve("./shared/build/out/dynamic/linux_x64/debug/libmyslib_api.h"))
             }
         }
     }
 
-    @Test
-    fun `link shared library from single gradle module`() {
-        with(transformProjectWithPluginsDsl("new-kn-library-dsl")) {
-            build(":shared:assembleMylibDebugSharedLibraryLinuxX64") {
-                assertSuccessful()
+    @DisplayName("Checks link shared library from single gradle module")
+    @GradleTest
+    fun shouldLinkSharedLibrariesFromSingleModule(gradleVersion: GradleVersion) {
+        nativeProject("new-kn-library-dsl", gradleVersion) {
+            build(":shared:assembleMylibDebugSharedLibraryLinuxX64", buildOptions = buildOptions.copy(logLevel = LogLevel.DEBUG)) {
                 assertTasksExecuted(
                     ":shared:compileKotlinLinuxX64",
                     ":shared:assembleMylibDebugSharedLibraryLinuxX64"
@@ -74,23 +76,23 @@ class NativeLibraryDslIT : BaseGradleIT() {
                 assertTasksNotExecuted(
                     ":lib:compileKotlinLinuxX64"
                 )
-                withNativeCommandLineArguments(":shared:assembleMylibDebugSharedLibraryLinuxX64") {
+                assertTasksCommandLineArguments(":shared:assembleMylibDebugSharedLibraryLinuxX64") {
                     assertFalse(it.contains("-Xfoo=bar"))
                     assertFalse(it.contains("-Xbaz=qux"))
                     assertTrue(it.contains("-Xmen=pool"))
                 }
-                assertFileExists("/shared/build/out/dynamic/linux_x64/debug/libmylib.so")
-                assertFileExists("/shared/build/out/dynamic/linux_x64/debug/libmylib_api.h")
+                assertFileExists(projectPath.resolve("./shared/build/out/dynamic/linux_x64/debug/libmylib.so"))
+                assertFileExists(projectPath.resolve("./shared/build/out/dynamic/linux_x64/debug/libmylib_api.h"))
             }
         }
     }
 
-    @Test
-    fun `link shared library from single gradle module with additional link args`() {
-        with(transformProjectWithPluginsDsl("new-kn-library-dsl")) {
-            gradleProperties().appendText("\nkotlin.native.linkArgs=-Xfoo=bar -Xbaz=qux")
-            build(":shared:assembleMylibDebugSharedLibraryLinuxX64") {
-                assertSuccessful()
+    @DisplayName("Checks link shared library from single gradle module with additional link args")
+    @GradleTest
+    fun shouldLinkSharedLibrariesFromSingleModuleWithAdditionalLinkArgs(gradleVersion: GradleVersion) {
+        nativeProject("new-kn-library-dsl", gradleVersion) {
+            gradleProperties.appendText("\nkotlin.native.linkArgs=-Xfoo=bar -Xbaz=qux")
+            build(":shared:assembleMylibDebugSharedLibraryLinuxX64", buildOptions = buildOptions.copy(logLevel = LogLevel.DEBUG)) {
                 assertTasksExecuted(
                     ":shared:compileKotlinLinuxX64",
                     ":shared:assembleMylibDebugSharedLibraryLinuxX64"
@@ -98,23 +100,24 @@ class NativeLibraryDslIT : BaseGradleIT() {
                 assertTasksNotExecuted(
                     ":lib:compileKotlinLinuxX64"
                 )
-                withNativeCommandLineArguments(":shared:assembleMylibDebugSharedLibraryLinuxX64") {
-                    assertTrue(it.contains("-Xfoo=bar"))
-                    assertTrue(it.contains("-Xbaz=qux"))
-                    assertTrue(it.contains("-Xmen=pool"))
+                assertTasksCommandLineArguments(":shared:assembleMylibDebugSharedLibraryLinuxX64") {
+                    Assertions.assertTrue(it.contains("-Xfoo=bar"))
+                    Assertions.assertTrue(it.contains("-Xbaz=qux"))
+                    Assertions.assertTrue(it.contains("-Xmen=pool"))
                 }
-                assertFileExists("/shared/build/out/dynamic/linux_x64/debug/libmylib.so")
-                assertFileExists("/shared/build/out/dynamic/linux_x64/debug/libmylib_api.h")
+                assertFileExists(projectPath.resolve("./shared/build/out/dynamic/linux_x64/debug/libmylib.so"))
+                assertFileExists(projectPath.resolve("./shared/build/out/dynamic/linux_x64/debug/libmylib_api.h"))
             }
         }
     }
 
-    @Test
-    fun `link release XCFramework from two gradle modules`() {
-        Assume.assumeTrue(HostManager.hostIsMac)
-        with(transformProjectWithPluginsDsl("new-kn-library-dsl")) {
+    @EnabledOnOs(OS.MAC)
+    @DisplayName("Checks link release XCFramework from two gradle modules")
+    @GradleTest
+    fun shouldLinkXCFrameworkFromTwoModules(gradleVersion: GradleVersion) {
+        nativeProject("new-kn-library-dsl", gradleVersion) {
+            makeSnapshotTo("/Users/Dmitrii.Krasnov/Projects/kotlin/snapshot-test-dir")
             build(":shared:assembleSharedReleaseXCFramework") {
-                assertSuccessful()
                 assertTasksExecuted(
                     ":shared:compileKotlinIosX64",
                     ":shared:compileKotlinIosArm64",
@@ -127,8 +130,9 @@ class NativeLibraryDslIT : BaseGradleIT() {
                 assertTasksNotExecuted(
                     ":shared:assembleSharedDebugXCFramework"
                 )
-                assertFileExists("/shared/build/out/xcframework/release/shared.xcframework")
+                assertFileExists(projectPath.resolve("./shared/build/out/xcframework/release/shared.xcframework"), false)
             }
         }
     }
+
 }

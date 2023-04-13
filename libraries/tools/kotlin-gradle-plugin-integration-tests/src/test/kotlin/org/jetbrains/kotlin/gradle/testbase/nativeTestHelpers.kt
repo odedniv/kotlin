@@ -28,12 +28,24 @@ fun findParameterInOutput(name: String, output: String): String? =
 fun extractNativeCompilerClasspath(taskOutput: String, toolName: NativeToolKind): List<String> =
     extractNativeToolSettings(taskOutput, toolName, NativeToolSettingsKind.COMPILER_CLASSPATH).toList()
 
+/**
+ * Extracts command line arguments of given task's output
+ *
+ * @param taskOutput debug level output of the task
+ * @param toolName compiler type
+ *
+ * @return list of command line arguments
+ */
+fun extractNativeCompilerCommanLineArguments(taskOutput: String, toolName: NativeToolKind): List<String> =
+    extractNativeToolSettings(taskOutput, toolName, NativeToolSettingsKind.COMMAND_LINE_ARGUMENTS).toList()
+
 enum class NativeToolKind(val title: String) {
     KONANC("konanc")
 }
 
 private enum class NativeToolSettingsKind(val title: String) {
-    COMPILER_CLASSPATH("Classpath")
+    COMPILER_CLASSPATH("Classpath"),
+    COMMAND_LINE_ARGUMENTS("Arguments"),
 }
 
 private fun extractNativeToolSettings(

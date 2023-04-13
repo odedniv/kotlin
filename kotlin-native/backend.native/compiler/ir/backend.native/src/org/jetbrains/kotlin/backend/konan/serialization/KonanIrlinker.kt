@@ -600,8 +600,8 @@ internal class KonanIrLinker(
             fileDeserializationStates.associateBy { SerializedFileReference(it.file.fqName.asString(), it.file.path) }
         }
 
-        private fun SerializedFileReference.getFileDeserializationState() =
-                fileReferenceToFileDeserializationState[this] ?: error("Unknown file $this")
+        private val SerializedFileReference.deserializationState
+            get() = fileReferenceToFileDeserializationState[this] ?: error("Unknown file $this")
 
         fun getFileNameOf(declaration: IrDeclaration): String {
             fun IrDeclaration.getSignature() = symbol.signature ?: descriptorSignatures[descriptor]
@@ -825,7 +825,7 @@ internal class KonanIrLinker(
         private val inlineFunctionReferences by lazy {
             val cache = cachedLibraries.getLibraryCache(klib)!! // ?: error("No cache for ${klib.libraryName}") // KT-54668
             cache.serializedInlineFunctionBodies.associateBy {
-                it.file.getFileDeserializationState().declarationDeserializer.symbolDeserializer.deserializeIdSignature(it.functionSignature)
+                it.file.deserializationState.declarationDeserializer.symbolDeserializer.deserializeIdSignature(it.functionSignature)
             }
         }
 
@@ -855,7 +855,7 @@ internal class KonanIrLinker(
             ?: error("No signature for ${function.render()}")
             val inlineFunctionReference = inlineFunctionReferences[signature]
                     ?: error("No inline function reference for ${function.render()}, sig = ${signature.render()}")
-            val fileDeserializationState = inlineFunctionReference.file.getFileDeserializationState()
+            val fileDeserializationState = inlineFunctionReference.file.deserializationState
             val declarationDeserializer = fileDeserializationState.declarationDeserializer
             val symbolDeserializer = declarationDeserializer.symbolDeserializer
 
@@ -928,7 +928,7 @@ internal class KonanIrLinker(
         private val classesFields by lazy {
             val cache = cachedLibraries.getLibraryCache(klib)!! // ?: error("No cache for ${klib.libraryName}") // KT-54668
             cache.serializedClassFields.associateBy {
-                it.file.getFileDeserializationState().declarationDeserializer.symbolDeserializer.deserializeIdSignature(it.classSignature)
+                it.file.deserializationState.declarationDeserializer.symbolDeserializer.deserializeIdSignature(it.classSignature)
             }
         }
 
@@ -941,7 +941,7 @@ internal class KonanIrLinker(
                     ?: error("No signature for ${irClass.render()}")
             val serializedClassFields = classesFields[signature]
                     ?: error("No class fields for ${irClass.render()}, sig = ${signature.render()}")
-            val fileDeserializationState = serializedClassFields.file.getFileDeserializationState()
+            val fileDeserializationState = serializedClassFields.file.deserializationState
             val declarationDeserializer = fileDeserializationState.declarationDeserializer
             val symbolDeserializer = declarationDeserializer.symbolDeserializer
 
@@ -1004,7 +1004,7 @@ internal class KonanIrLinker(
         val eagerInitializedFiles by lazy {
             val cache = cachedLibraries.getLibraryCache(klib)!! // ?: error("No cache for ${klib.libraryName}") // KT-54668
             cache.serializedEagerInitializedFiles
-                    .map { it.file.getFileDeserializationState().file }
+                    .map { it.file.deserializationState.file }
                     .distinct()
         }
 

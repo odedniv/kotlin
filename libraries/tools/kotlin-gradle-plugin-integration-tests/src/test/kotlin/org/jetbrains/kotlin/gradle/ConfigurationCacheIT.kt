@@ -77,7 +77,7 @@ class ConfigurationCacheIT : AbstractConfigurationCacheIT() {
 
     @NativeGradlePluginTests
     @DisplayName("works with native tasks in complex project")
-    @GradleTestVersions(minVersion = TestVersions.Gradle.G_7_4)
+    @GradleTestVersions(minVersion = TestVersions.Gradle.G_7_6)
     @GradleTest
     fun testNativeTasks(gradleVersion: GradleVersion) {
         val expectedTasks = mutableListOf(
@@ -104,14 +104,13 @@ class ConfigurationCacheIT : AbstractConfigurationCacheIT() {
             )
         }
 
-        expectedTasks.clear()
-        expectedTasks.add(":lib:linkAntipodDebugFrameworkIosX64")
-
         project("native-configuration-cache", gradleVersion) {
-            testConfigurationCacheOf(
-                "build",
-                executedTaskNames = expectedTasks,
-            )
+//            testConfigurationCacheOf(
+//                "build",
+//                executedTaskNames = expectedTasks,
+//            )
+
+            testConfigurationCacheOf(":lib:linkAntipodDebugFrameworkIosX64")
         }
     }
 

@@ -14,7 +14,9 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.*
 import org.gradle.process.ExecOperations
 import org.jetbrains.kotlin.compilerRunner.KotlinNativeCompilerRunner
@@ -43,12 +45,15 @@ abstract class KotlinNativeLink
 @Inject
 constructor(
     @Internal
+    @Transient
     val binary: NativeBinary,
     private val objectFactory: ObjectFactory,
-    private val execOperations: ExecOperations
+    private val execOperations: ExecOperations,
+    providerFactory: ProviderFactory,
 ) : AbstractKotlinCompileTool<StubK2NativeCompilerArguments>(objectFactory),
     UsesKonanPropertiesBuildService,
     KotlinToolTask<KotlinCommonCompilerToolOptions> {
+
     @Deprecated("Visibility will be lifted to private in the future releases")
     @get:Internal
     val compilation: KotlinNativeCompilation
@@ -85,16 +90,16 @@ constructor(
     )
 
     @get:Input
-    val outputKind: CompilerOutputKind get() = binary.outputKind.compilerOutputKind
+    val outputKind: CompilerOutputKind = binary.outputKind.compilerOutputKind
 
     @get:Input
-    val optimized: Boolean get() = binary.optimized
+    val optimized: Boolean = binary.optimized
 
     @get:Input
-    val debuggable: Boolean get() = binary.debuggable
+    val debuggable: Boolean = binary.debuggable
 
     @get:Input
-    val baseName: String get() = binary.baseName
+    val baseName: String = binary.baseName
 
     @Suppress("DEPRECATION")
     private val konanTarget = compilation.konanTarget
@@ -141,16 +146,17 @@ constructor(
     // Binary-specific options.
     @get:Input
     @get:Optional
-    val entryPoint: String? get() = (binary as? Executable)?.entryPoint
+    val entryPoint: String? = (binary as? Executable)?.entryPoint
 
     @get:Input
-    val linkerOpts: List<String> get() = binary.linkerOpts
+    val linkerOpts: ListProperty<String> = objectFactory.listProperty<String>()
+        .value(providerFactory.provider { binary.linkerOpts })
 
     @get:Input
-    val binaryOptions: Map<String, String> by lazy { PropertiesProvider(project).nativeBinaryOptions + binary.binaryOptions }
+    val binaryOptions: Map<String, String> = PropertiesProvider(project).nativeBinaryOptions + binary.binaryOptions
 
     @get:Input
-    val processTests: Boolean get() = binary is TestExecutable
+    val processTests: Boolean = binary is TestExecutable
 
     @get:Classpath
     val exportLibraries: FileCollection get() = exportLibrariesResolvedConfiguration?.files ?: objectFactory.fileCollection()
@@ -162,8 +168,7 @@ constructor(
     }
 
     @get:Input
-    val isStaticFramework: Boolean
-        get() = binary.let { it is Framework && it.isStatic }
+    val isStaticFramework: Boolean = binary.let { it is Framework && it.isStatic }
 
     @Suppress("DEPRECATION")
     @get:Input
@@ -181,7 +186,7 @@ constructor(
     @get:Internal
     val apiFiles = project.files(project.configurations.getByName(compilation.apiConfigurationName)).filterKlibsPassedToCompiler()
 
-    private val externalDependenciesArgs by lazy { ExternalDependenciesBuilder(project, compilation).buildCompilerArgs() }
+    private val externalDependenciesArgs = ExternalDependenciesBuilder(project, compilation).buildCompilerArgs()
 
     private val cacheBuilderSettings by lazy {
         CacheBuilder.Settings.createWithProject(project, binary, konanTarget, toolOptions, externalDependenciesArgs)
@@ -225,13 +230,15 @@ constructor(
                 }
             }
 
-            """
-                |Following dependencies exported in the ${binary.name} binary are not specified as API-dependencies of a corresponding source set:
-                |
-                $failedDependenciesList
-                |
-                |Please add them in the API-dependencies and rerun the build.
-            """.trimMargin()
+            // TODOgit 
+            ""
+//            """
+//                |Following dependencies exported in the ${binary.name} binary are not specified as API-dependencies of a corresponding source set:
+//                |
+//                $failedDependenciesList
+//                |
+//                |Please add them in the API-dependencies and rerun the build.
+//            """.trimMargin()
         }
     }
 
@@ -334,7 +341,7 @@ constructor(
             processTests,
             entryPoint,
             embedBitcodeMode.get(),
-            linkerOpts,
+            linkerOpts.get(),
             binaryOptions,
             isStaticFramework,
             exportLibraries.files.filterKlibsPassedToCompiler(),

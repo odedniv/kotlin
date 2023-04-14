@@ -43,11 +43,6 @@ THREAD_LOCAL_VARIABLE bool gSuspensionRequestedByCurrentThread = false;
 
 } // namespace
 
-bool kotlin::mm::isSuspendedOrNative(kotlin::mm::ThreadData& thread) noexcept {
-    auto& suspensionData = thread.suspensionData();
-    return suspensionData.suspended() || suspensionData.state() == kotlin::ThreadState::kNative;
-}
-
 std::atomic<bool> kotlin::mm::internal::gSuspensionRequested = false;
 
 kotlin::ThreadState kotlin::mm::ThreadSuspensionData::setState(kotlin::ThreadState newState) noexcept {

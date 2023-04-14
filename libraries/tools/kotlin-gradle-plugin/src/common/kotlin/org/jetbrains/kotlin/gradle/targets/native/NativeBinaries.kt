@@ -269,7 +269,6 @@ class Framework(
     compilation: KotlinNativeCompilation
 ) : AbstractNativeLibrary(name, baseName, buildType, compilation), HasAttributes {
 
-//    @Transient // TODO not
     private val attributeContainer = HierarchyAttributeContainer(parent = compilation.attributes)
 
     override fun getAttributes() = attributeContainer

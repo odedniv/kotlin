@@ -45,7 +45,7 @@ abstract class KotlinNativeLink
 @Inject
 constructor(
     @Internal
-    @Transient
+    @Transient // This property can't be accessed in the execution phase
     val binary: NativeBinary,
     private val objectFactory: ObjectFactory,
     private val execOperations: ExecOperations,
@@ -90,16 +90,19 @@ constructor(
     )
 
     @get:Input
-    val outputKind: CompilerOutputKind = binary.outputKind.compilerOutputKind
+    val outputKind: CompilerOutputKind by lazy { binary.outputKind.compilerOutputKind }
 
     @get:Input
-    val optimized: Boolean = binary.optimized
+    val optimized: Boolean by lazy { binary.optimized }
 
     @get:Input
-    val debuggable: Boolean = binary.debuggable
+    val debuggable: Boolean by lazy { binary.debuggable }
 
     @get:Input
-    val baseName: String = binary.baseName
+    val baseName: String by lazy { binary.baseName }
+
+    @get:Input
+    internal val binaryName: String by lazy { binary.name }
 
     @Suppress("DEPRECATION")
     private val konanTarget = compilation.konanTarget
@@ -146,17 +149,17 @@ constructor(
     // Binary-specific options.
     @get:Input
     @get:Optional
-    val entryPoint: String? = (binary as? Executable)?.entryPoint
+    val entryPoint: String? by lazy { (binary as? Executable)?.entryPoint }
 
     @get:Input
     val linkerOpts: ListProperty<String> = objectFactory.listProperty<String>()
         .value(providerFactory.provider { binary.linkerOpts })
 
     @get:Input
-    val binaryOptions: Map<String, String> = PropertiesProvider(project).nativeBinaryOptions + binary.binaryOptions
+    val binaryOptions: Map<String, String> by lazy { PropertiesProvider(project).nativeBinaryOptions + binary.binaryOptions }
 
     @get:Input
-    val processTests: Boolean = binary is TestExecutable
+    val processTests: Boolean by lazy { binary is TestExecutable }
 
     @get:Classpath
     val exportLibraries: FileCollection get() = exportLibrariesResolvedConfiguration?.files ?: objectFactory.fileCollection()
@@ -168,7 +171,7 @@ constructor(
     }
 
     @get:Input
-    val isStaticFramework: Boolean = binary.let { it is Framework && it.isStatic }
+    val isStaticFramework: Boolean by lazy { binary.let { it is Framework && it.isStatic } }
 
     @Suppress("DEPRECATION")
     @get:Input
@@ -230,15 +233,13 @@ constructor(
                 }
             }
 
-            // TODOgit 
-            ""
-//            """
-//                |Following dependencies exported in the ${binary.name} binary are not specified as API-dependencies of a corresponding source set:
-//                |
-//                $failedDependenciesList
-//                |
-//                |Please add them in the API-dependencies and rerun the build.
-//            """.trimMargin()
+            """
+                |Following dependencies exported in the $binaryName binary are not specified as API-dependencies of a corresponding source set:
+                |
+                $failedDependenciesList
+                |
+                |Please add them in the API-dependencies and rerun the build.
+            """.trimMargin()
         }
     }
 

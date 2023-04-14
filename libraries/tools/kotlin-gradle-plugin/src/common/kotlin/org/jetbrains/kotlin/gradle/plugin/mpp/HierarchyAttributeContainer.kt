@@ -18,7 +18,6 @@ package org.jetbrains.kotlin.gradle.plugin.mpp
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.provider.Provider
-import java.io.Serializable
 import java.util.*
 
 // TODO better implementation: attribute invariants (no attrs with same name and different types allowed), thread safety?
@@ -32,7 +31,7 @@ import java.util.*
 class HierarchyAttributeContainer(
     val parent: AttributeContainer?,
     val filterParentAttributes: (Attribute<*>) -> Boolean = { true }
-) : AttributeContainer, Serializable {
+) : AttributeContainer {
 
     private val attributesMap = Collections.synchronizedMap(mutableMapOf<Attribute<*>, Any>())
     private val lazyAttributesMap = Collections.synchronizedMap(mutableMapOf<Attribute<*>, Provider<out Any>>())

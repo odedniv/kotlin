@@ -643,7 +643,7 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
                 task.dependsOn(podBuildTaskProvider)
 
                 val isExecutable = binary is AbstractExecutable
-                val isDynamicFramework = (binary is Framework && !binary.isStatic)
+                val isDynamicFramework = project.provider { binary is Framework && !binary.isStatic }
 
                 task.linkerOpts.addAll(buildSettingsFileProvider.map { buildSettingsFile ->
 
@@ -653,7 +653,7 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
 
                     val linkerOpts = mutableListOf<String>()
 
-                    if (isExecutable || isDynamicFramework) {
+                    if (isExecutable || isDynamicFramework.get()) {
                         val frameworkFileExists = frameworkSearchPaths.any { dir -> File(dir, frameworkFileName).exists() }
                         if (frameworkFileExists) linkerOpts.addArg("-framework", pod.moduleName)
                         linkerOpts.addAll(frameworkSearchPaths.map { "-F$it" })

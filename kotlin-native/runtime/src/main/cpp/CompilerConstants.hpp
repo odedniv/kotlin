@@ -37,6 +37,7 @@ extern "C" const int32_t Kotlin_needDebugInfo;
 extern "C" const int32_t Kotlin_runtimeAssertsMode;
 extern "C" const char* const Kotlin_runtimeLogs;
 extern "C" const int32_t Kotlin_gcSchedulerType;
+extern "C" const int32_t Kotlin_concurrentExtraSweep;
 extern "C" const int32_t Kotlin_freezingEnabled;
 extern "C" const int32_t Kotlin_freezingChecksEnabled;
 
@@ -100,6 +101,10 @@ ALWAYS_INLINE inline bool freezingChecksEnabled() noexcept {
 
 ALWAYS_INLINE inline GCSchedulerType getGCSchedulerType() noexcept {
     return static_cast<compiler::GCSchedulerType>(Kotlin_gcSchedulerType);
+}
+
+ALWAYS_INLINE inline bool concurrentExtraSweep() noexcept {
+    return Kotlin_concurrentExtraSweep != 0;
 }
 
 

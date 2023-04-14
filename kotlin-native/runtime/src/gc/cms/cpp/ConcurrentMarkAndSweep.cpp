@@ -248,15 +248,28 @@ bool gc::ConcurrentMarkAndSweep::PerformFullGC(int64_t epoch, mark::MarkDispatch
     scheduler.gcData().UpdateAliveSetBytes(markStats.totalObjectsSize);
 
 #ifndef CUSTOM_ALLOCATOR
-    mm::ExtraObjectDataFactory& extraObjectDataFactory = mm::GlobalData::Instance().extraObjectDataFactory();
-    gc::SweepExtraObjects<SweepTraits>(gcHandle, extraObjectDataFactory);
-
     auto objectFactoryIterable = objectFactory_.LockForIter();
     checkMarkCorrectness(objectFactoryIterable);
 
-    mm::ResumeThreads();
-    gcHandle.threadsAreResumed();
-    // STW ends
+    if (compiler::concurrentExtraSweep()) {
+        // Expected to happen inside STW.
+        gc::EnableWeakRefBarriers(true);
+
+        mm::ResumeThreads();
+        gcHandle.threadsAreResumed();
+        // STW ends
+    }
+
+    mm::ExtraObjectDataFactory& extraObjectDataFactory = mm::GlobalData::Instance().extraObjectDataFactory();
+    gc::SweepExtraObjects<SweepTraits>(gcHandle, extraObjectDataFactory);
+
+    if (compiler::concurrentExtraSweep()) {
+        gc::DisableWeakRefBarriers(false);
+    } else {
+        mm::ResumeThreads();
+        gcHandle.threadsAreResumed();
+        // STW ends
+    }
 
     auto finalizerQueue = gc::Sweep<SweepTraits>(gcHandle, objectFactoryIterable);
     kotlin::compactObjectPoolInMainThread();

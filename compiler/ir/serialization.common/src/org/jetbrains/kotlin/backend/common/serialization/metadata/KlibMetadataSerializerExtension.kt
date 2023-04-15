@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.backend.common.serialization.metadata
 
-import org.jetbrains.kotlin.config.LanguageFeature
+import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.library.metadata.KlibMetadataProtoBuf
@@ -89,12 +89,13 @@ class KlibMetadataSerializerExtension(
     }
 }
 
-fun DeclarationDescriptorWithSource.findKDocString(): String? {
-    val psi = source.getPsi()
-    if (psi is KtDeclaration) {
-        if (psi is KtPrimaryConstructor)
+fun DeclarationDescriptorWithSource.findKDocString(): String? = source.getPsi()?.findKDocString()
+
+fun PsiElement?.findKDocString(): String? {
+    if (this is KtDeclaration) {
+        if (this is KtPrimaryConstructor)
             return null  // to be rendered with class itself
-        val kdoc = psi.docComment
+        val kdoc = this.docComment
         if (kdoc != null) {
             return kdoc.getDefaultSection().parent.text
         }

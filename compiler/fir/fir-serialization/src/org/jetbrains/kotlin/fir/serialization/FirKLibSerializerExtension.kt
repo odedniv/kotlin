@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.serialization
 
+import org.jetbrains.kotlin.backend.common.serialization.metadata.findKDocString
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.resolve.providers.firProvider
@@ -19,6 +20,7 @@ import org.jetbrains.kotlin.metadata.ProtoBuf
 import org.jetbrains.kotlin.metadata.deserialization.BinaryVersion
 import org.jetbrains.kotlin.metadata.serialization.MutableVersionRequirementTable
 import org.jetbrains.kotlin.protobuf.GeneratedMessageLite
+import org.jetbrains.kotlin.psi
 import org.jetbrains.kotlin.serialization.deserialization.DYNAMIC_TYPE_DESERIALIZER_ID
 
 class FirKLibSerializerExtension(
@@ -96,10 +98,7 @@ class FirKLibSerializerExtension(
         }
     }
 
-    private fun FirDeclaration.findKDocString(): String? {
-        // TODO: KT-56090
-        return null
-    }
+    private fun FirDeclaration.findKDocString(): String? = source.psi?.findKDocString()
 
     @Suppress("Reformat")
     private fun <

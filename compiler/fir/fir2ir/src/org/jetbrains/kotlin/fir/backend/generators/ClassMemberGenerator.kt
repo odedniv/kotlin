@@ -315,7 +315,6 @@ internal class ClassMemberGenerator(
             }
 
         }
-        annotationGenerator.generate(this, property)
     }
 
     private fun IrFieldAccessExpression.setReceiver(declaration: IrDeclaration): IrFieldAccessExpression {

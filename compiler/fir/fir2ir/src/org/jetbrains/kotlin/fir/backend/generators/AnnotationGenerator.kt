@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.fir.backend.generators
 
-import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
 import org.jetbrains.kotlin.fir.FirAnnotationContainer
 import org.jetbrains.kotlin.fir.backend.Fir2IrComponents
 import org.jetbrains.kotlin.fir.declarations.FirBackingField
@@ -18,12 +17,10 @@ import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 /**
  * A generator that converts annotations in [FirAnnotationContainer] to annotations in [IrMutableAnnotationContainer].
  *
- * Almost always annotations are bound to the target already in frontend, e.g.
+ * Annotations are bound to the target already in frontend, e.g.
  *
  * +  Annotations on primary constructor properties are already split between value parameters, properties and backing fields in FIR.</li>
  * +  Annotations on regular properties are also already split between properties and backing fields.</li>
- *
- * The only exception is annotations with RECEIVER target which are still stored on a property.
  *
  * So this class task is only to convert FirAnnotations to IrAnnotations.
  * Some time before, it performed also annotation splitting between use-site targets.
@@ -49,14 +46,5 @@ class AnnotationGenerator(private val components: Fir2IrComponents) : Fir2IrComp
 
     fun generate(irField: IrField, backingField: FirBackingField) {
         irField.annotations += backingField.annotations.toIrAnnotations()
-    }
-
-    fun generate(propertyAccessor: IrFunction, property: FirProperty) {
-        assert(propertyAccessor.isPropertyAccessor) { "$propertyAccessor is not a property accessor." }
-        propertyAccessor.extensionReceiverParameter?.let { receiver ->
-            receiver.annotations += property.annotations
-                .filter { it.useSiteTarget == AnnotationUseSiteTarget.RECEIVER }
-                .toIrAnnotations()
-        }
     }
 }

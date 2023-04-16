@@ -921,6 +921,7 @@ open class FirDeclarationsResolveTransformer(
             else -> ResolutionMode.ContextDependent
         }
         backingField.transformInitializer(transformer, initializerData)
+        backingField.transformAnnotations(transformer, data)
         if (
             backingField.returnTypeRef is FirErrorTypeRef ||
             backingField.returnTypeRef is FirResolvedTypeRef

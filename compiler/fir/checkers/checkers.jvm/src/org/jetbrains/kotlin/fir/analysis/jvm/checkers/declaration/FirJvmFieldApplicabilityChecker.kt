@@ -40,7 +40,6 @@ object FirJvmFieldApplicabilityChecker : FirPropertyChecker() {
     override fun check(declaration: FirProperty, context: CheckerContext, reporter: DiagnosticReporter) {
         val session = context.session
         val annotation = declaration.backingField?.getAnnotationByClassId(JVM_FIELD_ANNOTATION_CLASS_ID, session)
-            ?: declaration.delegateFieldSymbol?.getAnnotationByClassId(JVM_FIELD_ANNOTATION_CLASS_ID, session)
             ?: return
         val containingClassSymbol = declaration.containingClassLookupTag()?.toFirRegularClassSymbol(session)
 

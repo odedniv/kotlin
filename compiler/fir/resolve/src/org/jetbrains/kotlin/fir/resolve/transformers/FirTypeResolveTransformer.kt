@@ -443,8 +443,8 @@ open class FirTypeResolveTransformer(
      * class Foo(@Ann val x: String)
      * ```
      * This ambiguity may be resolved by specifying the use-site explicitly, i.e. `@field:Ann` or by analysing the allowed targets from
-     * the [kotlin.annotation.Target] meta-annotation. In latter case, the method will assign a use-site target to the corresponding
-     * annotation.
+     * the [kotlin.annotation.Target] meta-annotation.
+     * In latter case, the method will ensure that the annotation is moved to the correct element (field or parameter) or left at the property.
      */
     private fun FirVariable.moveOrDeleteIrrelevantAnnotations() {
         if (annotations.isEmpty()) return
@@ -473,12 +473,13 @@ open class FirTypeResolveTransformer(
         }
     }
 
+    private fun annotationShouldBeMovedToField(allowedTargets: Set<AnnotationUseSiteTarget>): Boolean =
+        (FIELD in allowedTargets || PROPERTY_DELEGATE_FIELD in allowedTargets) && PROPERTY !in allowedTargets
+
     private fun calculateDeprecations(callableDeclaration: FirCallableDeclaration) {
         if (callableDeclaration.deprecationsProvider is UnresolvedDeprecationProvider) {
             callableDeclaration.replaceDeprecationsProvider(callableDeclaration.getDeprecationsProvider(session))
         }
     }
 
-    private fun annotationShouldBeMovedToField(allowedTargets: Set<AnnotationUseSiteTarget>): Boolean =
-        (FIELD in allowedTargets || PROPERTY_DELEGATE_FIELD in allowedTargets) && PROPERTY !in allowedTargets
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2022 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license
+ * Copyright 2010-2023 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license
  * that can be found in the LICENSE file.
  */
 
@@ -21,7 +21,7 @@ import kotlin.native.concurrent.*
  */
 @Frozen
 @OptIn(FreezingIsDeprecated::class, ExperimentalStdlibApi::class)
-public class AtomicInt(public @Volatile var value: Int) {
+public class AtomicInt(@Volatile public var value: Int) {
     /**
      * Atomically sets the value to the given [new value][newValue] and returns the old value.
      */
@@ -74,7 +74,7 @@ public class AtomicInt(public @Volatile var value: Int) {
     public fun getAndDecrement(): Int = this::value.getAndAddField(-1)
 
     /**
-     * Returns the string representation of this object.
+     * Returns the string representation of the current [value].
      */
     public override fun toString(): String = value.toString()
 }
@@ -89,7 +89,7 @@ public class AtomicInt(public @Volatile var value: Int) {
  */
 @Frozen
 @OptIn(FreezingIsDeprecated::class, ExperimentalStdlibApi::class)
-public class AtomicLong(public @Volatile var value: Long)  {
+public class AtomicLong(@Volatile public var value: Long)  {
     /**
      * Atomically sets the value to the given [new value][newValue] and returns the old value.
      */
@@ -142,7 +142,7 @@ public class AtomicLong(public @Volatile var value: Long)  {
     public fun getAndDecrement(): Long = this::value.getAndAddField(-1L)
 
     /**
-     * Returns the string representation of this object.
+     * Returns the string representation of the current [value].
      */
     public override fun toString(): String = value.toString()
 }
@@ -224,7 +224,7 @@ public class AtomicReference<T> {
     external public fun compareAndSwap(expected: T, newValue: T): T
 
     /**
-     * Returns the string representation of this object.
+     * Returns the string representation of the current [value].
      */
     public override fun toString(): String =
             "${debugString(this)} -> ${debugString(value)}"
@@ -262,7 +262,7 @@ public class AtomicReference<T> {
  */
 @Frozen
 @OptIn(FreezingIsDeprecated::class, ExperimentalStdlibApi::class)
-public class AtomicNativePtr(public @Volatile var value: NativePtr) {
+public class AtomicNativePtr(@Volatile public var value: NativePtr) {
     /**
      * Atomically sets the value to the given [new value][newValue] and returns the old value.
      */
@@ -301,7 +301,7 @@ public class AtomicNativePtr(public @Volatile var value: NativePtr) {
             this::value.compareAndSwapField(expected, newValue)
 
     /**
-     * Returns the string representation of this object.
+     * Returns the string representation of the current [value].
      */
     public override fun toString(): String = value.toString()
 }

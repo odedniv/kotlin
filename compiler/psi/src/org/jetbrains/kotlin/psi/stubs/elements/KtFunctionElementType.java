@@ -23,6 +23,7 @@ import com.intellij.psi.stubs.StubOutputStream;
 import com.intellij.util.io.StringRef;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.kotlin.contracts.description.EventOccurrencesRange;
 import org.jetbrains.kotlin.name.FqName;
 import org.jetbrains.kotlin.psi.KtFile;
 import org.jetbrains.kotlin.psi.KtNamedFunction;
@@ -84,7 +85,7 @@ public class KtFunctionElementType extends KtStubElementType<KotlinFunctionStub,
                     if (conclusion != null) {
                         writeExpression(dataStream, conclusion);
                     }
-                    KotlinContractInvocationKind invocationKind = effect.getInvocationKind();
+                    EventOccurrencesRange invocationKind = effect.getInvocationKind();
                     dataStream.writeInt(invocationKind != null ? invocationKind.ordinal() : -1);
                 }
             }
@@ -164,7 +165,7 @@ public class KtFunctionElementType extends KtStubElementType<KotlinFunctionStub,
                 boolean hasConclusion = dataStream.readBoolean();
                 KotlinContractExpression conclusion = hasConclusion ? readExpression(dataStream) : null;
                 int invocationKindOrdinal = dataStream.readInt();
-                KotlinContractInvocationKind invocationKind = invocationKindOrdinal < 0 ? null : KotlinContractInvocationKind.getEntries().get(invocationKindOrdinal);
+                EventOccurrencesRange invocationKind = invocationKindOrdinal < 0 ? null : EventOccurrencesRange.getEntries().get(invocationKindOrdinal);
                 effects.add(new KotlinContractEffect(effectType, arguments, conclusion, invocationKind));
             }
         }

@@ -24,20 +24,6 @@ enum class KotlinContractEffectType {
     CALLS,
 }
 
-enum class KotlinContractInvocationKind {
-    AT_MOST_ONCE,
-    EXACTLY_ONCE,
-    AT_LEAST_ONCE;
-
-    fun toEventOccurrencesRange(): EventOccurrencesRange {
-        return when (this) {
-            AT_MOST_ONCE -> EventOccurrencesRange.AT_MOST_ONCE
-            EXACTLY_ONCE -> EventOccurrencesRange.EXACTLY_ONCE
-            AT_LEAST_ONCE -> EventOccurrencesRange.AT_LEAST_ONCE
-        }
-    }
-}
-
 enum class KotlinContractConstantValue {
     TRUE, FALSE, NULL;
 }
@@ -46,7 +32,7 @@ data class KotlinContractEffect(
     val effectType: KotlinContractEffectType,
     val arguments: List<KotlinContractExpression>?,
     val conclusion: KotlinContractExpression?,
-    val invocationKind: KotlinContractInvocationKind?
+    val invocationKind: EventOccurrencesRange?
 )
 
 data class KotlinContractExpression(

@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.analysis.decompiler.stub
 
+import org.jetbrains.kotlin.contracts.description.EventOccurrencesRange
 import org.jetbrains.kotlin.metadata.ProtoBuf
 import org.jetbrains.kotlin.metadata.deserialization.Flags
 import org.jetbrains.kotlin.metadata.deserialization.TypeTable
@@ -144,10 +145,10 @@ class ClsContractBuilder(private val typeTable: TypeTable, private val typeStubB
         )
     }
 
-    private fun ProtoBuf.Effect.InvocationKind.toDescriptorInvocationKind(): KotlinContractInvocationKind = when (this) {
-        ProtoBuf.Effect.InvocationKind.AT_MOST_ONCE -> KotlinContractInvocationKind.AT_MOST_ONCE
-        ProtoBuf.Effect.InvocationKind.EXACTLY_ONCE -> KotlinContractInvocationKind.EXACTLY_ONCE
-        ProtoBuf.Effect.InvocationKind.AT_LEAST_ONCE -> KotlinContractInvocationKind.AT_LEAST_ONCE
+    private fun ProtoBuf.Effect.InvocationKind.toDescriptorInvocationKind(): EventOccurrencesRange = when (this) {
+        ProtoBuf.Effect.InvocationKind.AT_MOST_ONCE -> EventOccurrencesRange.AT_MOST_ONCE
+        ProtoBuf.Effect.InvocationKind.EXACTLY_ONCE -> EventOccurrencesRange.EXACTLY_ONCE
+        ProtoBuf.Effect.InvocationKind.AT_LEAST_ONCE -> EventOccurrencesRange.AT_LEAST_ONCE
     }
 
     private fun extractType(proto: ProtoBuf.Expression): KotlinTypeBean? {

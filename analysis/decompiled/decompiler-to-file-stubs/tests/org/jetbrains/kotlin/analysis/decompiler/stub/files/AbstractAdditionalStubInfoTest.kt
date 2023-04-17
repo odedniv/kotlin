@@ -12,6 +12,8 @@ import org.jetbrains.kotlin.psi.KtProjectionKind
 import org.jetbrains.kotlin.psi.stubs.impl.*
 import org.jetbrains.kotlin.test.KotlinTestUtils
 import java.nio.file.Paths
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 
 abstract class AbstractAdditionalStubInfoTest : AbstractDecompiledClassTest() {
     fun runTest(testDirectory: String) {
@@ -91,4 +93,11 @@ abstract class AbstractAdditionalStubInfoTest : AbstractDecompiledClassTest() {
             }
         }
     }
+}
+@OptIn(ExperimentalContracts::class)
+inline fun <reified T : Number> T.test0(): Boolean {
+    contract {
+        returns(true) implies (this@test0 is Int)
+    }
+    return this is Int
 }

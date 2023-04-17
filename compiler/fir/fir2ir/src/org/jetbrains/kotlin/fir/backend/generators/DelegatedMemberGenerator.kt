@@ -247,17 +247,26 @@ class DelegatedMemberGenerator(private val components: Fir2IrComponents) : Fir2I
             superFunction.typeParameters.size,
             superFunction.valueParameters.size
         ).apply {
-            dispatchReceiver =
-                IrGetFieldImpl(
+            val getField = IrGetFieldImpl(
+                startOffset, endOffset,
+                irField.symbol,
+                irField.type,
+                IrGetValueImpl(
                     startOffset, endOffset,
-                    irField.symbol,
-                    irField.type,
-                    IrGetValueImpl(
-                        startOffset, endOffset,
-                        delegateFunction.dispatchReceiverParameter?.type!!,
-                        delegateFunction.dispatchReceiverParameter?.symbol!!
-                    )
+                    delegateFunction.dispatchReceiverParameter?.type!!,
+                    delegateFunction.dispatchReceiverParameter?.symbol!!
                 )
+            )
+
+            // When the delegation expression has an intersection type, it is not guaranteed that the field will have the same type as the
+            // dispatch receiver of the target method. Therefore, we need to check if a cast must be inserted.
+            val superFunctionParent = superFunction.parent as? IrClass
+            dispatchReceiver = if (superFunctionParent == null || irField.type.isSubtypeOfClass(superFunctionParent.symbol)) {
+                getField
+            } else {
+                Fir2IrImplicitCastInserter.implicitCastOrExpression(getField, superFunction.dispatchReceiverParameter!!.type)
+            }
+
             extensionReceiver =
                 delegateFunction.extensionReceiverParameter?.let { extensionReceiver ->
                     IrGetValueImpl(startOffset, endOffset, extensionReceiver.type, extensionReceiver.symbol)

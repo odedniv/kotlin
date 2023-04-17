@@ -12630,6 +12630,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
             runTest("compiler/testData/codegen/box/delegation/delegationToIntersectionType.kt");
         }
 
+        @TestMetadata("delegationToIntersectionType2.kt")
+        public void testDelegationToIntersectionType2() throws Exception {
+            runTest("compiler/testData/codegen/box/delegation/delegationToIntersectionType2.kt");
+        }
+
         @TestMetadata("delegationToMap.kt")
         public void testDelegationToMap() throws Exception {
             runTest("compiler/testData/codegen/box/delegation/delegationToMap.kt");

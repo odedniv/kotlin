@@ -2,7 +2,9 @@
 
 fun <T> select(a: T, b: T) : T = a
 
-interface A
+interface A {
+    fun foo(): Any
+}
 interface B {
     fun foo(): String
 }
@@ -15,7 +17,7 @@ class D : A, B {
 
 fun test(c: C, d: D): String {
     val intersection = select(c, d)
-    return object: B by intersection {}.foo()
+    return object: A by intersection {}.foo().toString()
 }
 
 fun box() = test(C(), D())

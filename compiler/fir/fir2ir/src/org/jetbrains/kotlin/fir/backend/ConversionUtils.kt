@@ -109,12 +109,7 @@ internal enum class ConversionTypeOrigin {
     SETTER
 }
 
-class ConversionTypeContext private constructor(
-    internal val origin: ConversionTypeOrigin,
-    internal val expectedType: ConeKotlinType? = null,
-) {
-    fun withExpectedType(type: ConeKotlinType) = ConversionTypeContext(origin, type)
-
+class ConversionTypeContext private constructor(internal val origin: ConversionTypeOrigin) {
     companion object {
         internal val DEFAULT = ConversionTypeContext(
             origin = ConversionTypeOrigin.DEFAULT

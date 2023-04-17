@@ -1074,10 +1074,7 @@ class Fir2IrDeclarationStorage(
         return createIrField(
             field,
             irParent = irClass,
-            // NB: discrepancy between FIR in IR. The FIR field has the type of the delegated supertype
-            // whereas the IR field has the type of the delegation expression.
             typeRef = initializer?.typeRef ?: field.returnTypeRef,
-            typeContext = ConversionTypeContext.DEFAULT.withExpectedType(field.returnTypeRef.coneType),
             origin = IrDeclarationOrigin.DELEGATE
         )
     }
@@ -1086,10 +1083,9 @@ class Fir2IrDeclarationStorage(
         field: FirField,
         irParent: IrDeclarationParent?,
         typeRef: FirTypeRef = field.returnTypeRef,
-        typeContext: ConversionTypeContext = ConversionTypeContext.DEFAULT,
         origin: IrDeclarationOrigin = IrDeclarationOrigin.IR_EXTERNAL_JAVA_DECLARATION_STUB
     ): IrField = convertCatching(field) {
-        val type = typeRef.toIrType(typeContext)
+        val type = typeRef.toIrType()
         val classId = (irParent as? IrClass)?.classId
         val containingClassLookupTag = classId?.toLookupTag()
         val signature = signatureComposer.composeSignature(field, containingClassLookupTag)

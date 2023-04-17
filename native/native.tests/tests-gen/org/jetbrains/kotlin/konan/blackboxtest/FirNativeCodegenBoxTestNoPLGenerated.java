@@ -13465,6 +13465,12 @@ public class FirNativeCodegenBoxTestNoPLGenerated extends AbstractNativeCodegenB
             }
 
             @Test
+            @TestMetadata("delegationToIntersectionType2.kt")
+            public void testDelegationToIntersectionType2() throws Exception {
+                runTest("compiler/testData/codegen/box/delegation/delegationToIntersectionType2.kt");
+            }
+
+            @Test
             @TestMetadata("delegationWithPrivateConstructor.kt")
             public void testDelegationWithPrivateConstructor() throws Exception {
                 runTest("compiler/testData/codegen/box/delegation/delegationWithPrivateConstructor.kt");

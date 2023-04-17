@@ -10515,6 +10515,11 @@ public class IrCodegenBoxWasmTestGenerated extends AbstractIrCodegenBoxWasmTest 
             runTest("compiler/testData/codegen/box/delegation/delegationToIntersectionType.kt");
         }
 
+        @TestMetadata("delegationToIntersectionType2.kt")
+        public void testDelegationToIntersectionType2() throws Exception {
+            runTest("compiler/testData/codegen/box/delegation/delegationToIntersectionType2.kt");
+        }
+
         @TestMetadata("delegationWithPrivateConstructor.kt")
         public void testDelegationWithPrivateConstructor() throws Exception {
             runTest("compiler/testData/codegen/box/delegation/delegationWithPrivateConstructor.kt");

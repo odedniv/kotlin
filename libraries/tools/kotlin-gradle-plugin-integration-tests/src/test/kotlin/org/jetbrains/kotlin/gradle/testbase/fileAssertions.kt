@@ -18,7 +18,7 @@ import kotlin.test.asserter
 /**
  * Asserts file under [file] path exists and is a regular file.
  */
-fun GradleProject.assertFileExists(
+fun assertFileExists(
     file: Path,
     regularCheck: Boolean = true
 ) {
@@ -26,7 +26,7 @@ fun GradleProject.assertFileExists(
         "File '${file}' does not exist!"
     }
 
-    if(regularCheck) {
+    if (regularCheck) {
         assert(Files.isRegularFile(file)) {
             "'${file}' is not a regular file!"
         }
@@ -42,7 +42,7 @@ fun GradleProject.assertFileInProjectExists(
     assertFileExists(projectPath.resolve(pathToFile))
 }
 
-fun GradleProject.assertFileExistsInTree(
+fun assertFileExistsInTree(
     pathToTreeRoot: Path,
     fileName: String
 ) {
@@ -57,6 +57,7 @@ fun GradleProject.assertFileExistsInTree(
         "File $fileName does not exists in $pathToTreeRoot!"
     }
 }
+
 /**
  * Asserts file under [pathToFile] relative to the test project does not exist.
  */
@@ -66,7 +67,7 @@ fun GradleProject.assertFileInProjectNotExists(
     assertFileNotExists(projectPath.resolve(pathToFile))
 }
 
-fun GradleProject.assertFileNotExists(
+fun assertFileNotExists(
     pathToFile: Path
 ) {
     assert(!Files.exists(pathToFile)) {
@@ -74,7 +75,7 @@ fun GradleProject.assertFileNotExists(
     }
 }
 
-fun GradleProject.assertFileNotExistsInTree(
+fun assertFileNotExistsInTree(
     pathToTreeRoot: Path,
     fileName: String
 ) {
@@ -111,7 +112,7 @@ fun GradleProject.assertDirectoryExists(
     dirPath: Path
 ) = assertDirectoriesExist(dirPath)
 
-fun GradleProject.assertDirectoriesExist(
+fun assertDirectoriesExist(
     vararg dirPaths: Path
 ) {
     val (exist, notExist) = dirPaths.partition { it.exists() }
@@ -154,7 +155,7 @@ fun GradleProject.assertFileInProjectDoesNotContain(
 /**
  * Asserts file under [file] exists and contains all the lines from [expectedText]
  */
-fun GradleProject.assertFileContains(
+fun assertFileContains(
     file: Path,
     vararg expectedText: String
 ) {
@@ -176,7 +177,7 @@ fun GradleProject.assertFileContains(
 /**
  * Asserts file under [file] exists and does not contain any line from [unexpectedText]
  */
-fun GradleProject.assertFileDoesNotContain(
+fun assertFileDoesNotContain(
     file: Path,
     vararg unexpectedText: String
 ) {
@@ -215,6 +216,12 @@ fun assertContainsFiles(expected: Iterable<Path>, actual: Iterable<Path>, messag
                 "Expected set: ${expectedSet.sorted().joinToString(", ")}\n" +
                 "Actual set: ${actualSet.sorted().joinToString(", ")}\n"
     }, actualSet.containsAll(expectedSet))
+}
+
+fun assertFilesContentEqual(expected: Path, actual: Path) {
+    assertFileExists(expected)
+    assertFileExists(actual)
+    assertEquals(expected.readText(), actual.readText())
 }
 
 class GradleVariantAssertions(

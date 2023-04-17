@@ -7,6 +7,8 @@ package org.jetbrains.kotlin.test.generators
 
 import org.jetbrains.kotlin.generators.generateTestGroupSuiteWithJUnit5
 import org.jetbrains.kotlin.generators.util.TestGeneratorUtil
+import org.jetbrains.kotlin.test.AbstractFirLoadK1CompiledKotlin
+import org.jetbrains.kotlin.test.AbstractFirLoadK2CompiledKotlin
 import org.jetbrains.kotlin.test.TargetBackend
 import org.jetbrains.kotlin.test.runners.*
 import org.jetbrains.kotlin.test.runners.codegen.*
@@ -262,6 +264,16 @@ fun generateJUnit5CompilerTests(args: Array<String>) {
                 suiteTestClassName = "FirLightTreeOldFrontendNativeDiagnosticsTestGenerated"
             ) {
                 model("diagnostics/nativeTests", excludedPattern = excludedCustomTestdataPattern)
+            }
+        }
+
+        testGroup("compiler/fir/analysis-tests/tests-gen", "compiler/testData") {
+            testClass<AbstractFirLoadK1CompiledKotlin> {
+                model("loadJava/compiledKotlin", extension = "kt")
+            }
+
+            testClass<AbstractFirLoadK2CompiledKotlin> {
+                model("loadJava/compiledKotlin", extension = "kt")
             }
         }
 

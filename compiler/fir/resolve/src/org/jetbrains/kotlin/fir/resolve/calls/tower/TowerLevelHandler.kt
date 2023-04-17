@@ -43,9 +43,14 @@ internal class TowerLevelHandler {
 
         when (info.callKind) {
             CallKind.VariableAccess -> {
+                val wasUnsuccessful = !collector.isSuccess
+
                 processResult += towerLevel.processPropertiesByName(info, processor)
 
-                if (!collector.isSuccess && towerLevel is ScopeTowerLevel && !towerLevel.areThereExtensionReceiverOptions()) {
+                // We don't process objects if we were previously unsuccessful but found successful property candidates on this tower level.
+                val becameSuccessful = wasUnsuccessful && collector.isSuccess
+
+                if (!becameSuccessful && towerLevel is ScopeTowerLevel && !towerLevel.areThereExtensionReceiverOptions()) {
                     processResult += towerLevel.processObjectsByName(info, processor)
                 }
             }

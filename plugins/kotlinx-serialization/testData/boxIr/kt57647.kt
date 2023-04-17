@@ -14,6 +14,11 @@ value class Id(val id: @Contextual UUID) {
     }
 }
 
+@Serializable
+@JvmInline
+value class Parametrized<T: Any>(val l: List<T>)
+
+
 fun pageMain () {
     val id: Id = Id.random()
     println(id)

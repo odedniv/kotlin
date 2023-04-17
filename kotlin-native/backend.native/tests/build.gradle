@@ -5718,7 +5718,6 @@ Task objcExportTest(
         }
         codesign = !isStaticFramework
         framework(frameworkName) {
-            enabled = !isK2(project) // KT-56182
             sources = ['objcexport']
             libraries = [libraryName, noEnumEntriesLibraryName]
             artifact = 'Kt'

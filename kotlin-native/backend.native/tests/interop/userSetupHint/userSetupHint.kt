@@ -5,8 +5,6 @@
 
 import userSetupHint.*
 
-fun main(args: Array<String>) {
-    println(">>>>ok<<<<")
+fun userSetupHint(args: Array<String>) {
     test()
-    println(args)
 }

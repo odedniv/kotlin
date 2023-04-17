@@ -10,7 +10,6 @@ import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.caches.*
-import org.jetbrains.kotlin.fir.declarations.FirCallableDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirDeclarationOrigin
 import org.jetbrains.kotlin.fir.declarations.FirMemberDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirVariable
@@ -310,10 +309,10 @@ class FirTypeIntersectionScopeContext(
         symbol: D,
         scope: FirTypeScope,
         result: MutableCollection<MemberWithBaseScope<D>>,
-        visited: MutableSet<D>,
+        visited: MutableSet<Pair<D, FirTypeScope>>,
         processDirectOverridden: FirTypeScope.(D, (D, FirTypeScope) -> ProcessorAction) -> ProcessorAction,
     ) {
-        if (!visited.add(symbol)) return
+        if (!visited.add(symbol to scope)) return
         if (!symbol.fir.origin.fromSupertypes) {
             result.add(MemberWithBaseScope(symbol, scope))
             return

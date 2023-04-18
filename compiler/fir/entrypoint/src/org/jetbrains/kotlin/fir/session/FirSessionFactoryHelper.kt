@@ -113,8 +113,6 @@ object FirSessionFactoryHelper {
                         get() = stub()
                     override val languageVersion: LanguageVersion
                         get() = stub()
-                    override val specificFeatures: Map<LanguageFeature, LanguageFeature.State>
-                        get() = stub()
                 }
             ))
         }

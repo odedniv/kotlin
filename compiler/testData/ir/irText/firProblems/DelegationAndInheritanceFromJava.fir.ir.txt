@@ -46,7 +46,7 @@ FILE fqName:<root> fileName:/DelegationAndInheritanceFromJava.kt
       $this: VALUE_PARAMETER name:<this> type:<root>.Impl
       BLOCK_BODY
         RETURN type=kotlin.Nothing from='public open fun iterator (): kotlin.collections.MutableIterator<@[FlexibleNullability] kotlin.String?> [operator] declared in <root>.Impl'
-          CALL 'public abstract fun iterator (): kotlin.collections.MutableIterator<E of kotlin.collections.MutableSet> [operator] declared in kotlin.collections.MutableSet' type=kotlin.collections.MutableIterator<@[FlexibleNullability] kotlin.String?> origin=null
+          CALL 'public abstract fun iterator (): kotlin.collections.MutableIterator<E of kotlin.collections.MutableSet> [operator] declared in kotlin.collections.MutableSet' type=kotlin.collections.MutableIterator<E of kotlin.collections.MutableSet> origin=null
             $this: GET_FIELD 'FIELD DELEGATE name:$$delegate_0 type:<root>.Foo.B visibility:private [final]' type=<root>.Foo.B origin=null
               receiver: GET_VAR '<this>: <root>.Impl declared in <root>.Impl.iterator' type=<root>.Impl origin=null
     FUN DELEGATED_MEMBER name:remove visibility:public modality:OPEN <> ($this:<root>.Impl, element:@[FlexibleNullability] kotlin.String?) returnType:kotlin.Boolean

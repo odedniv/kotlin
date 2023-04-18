@@ -54,11 +54,18 @@ abstract class FirAbstractBodyResolveTransformer(phase: FirResolvePhase) : FirAb
     }
 
     override fun transformLazyExpression(lazyExpression: FirLazyExpression, data: ResolutionMode): FirStatement {
-        error("FirLazyExpression should be calculated before accessing")
+        suppressOrThrowError("FirLazyExpression should be calculated before accessing")
+        return lazyExpression
     }
 
     override fun transformLazyBlock(lazyBlock: FirLazyBlock, data: ResolutionMode): FirStatement {
-        error("FirLazyBlock should be calculated before accessing")
+        suppressOrThrowError("FirLazyBlock should be calculated before accessing")
+        return lazyBlock
+    }
+
+    private fun suppressOrThrowError(message: String) {
+        if (System.getProperty("kotlin.suppress.lazy.expression.access").toBoolean()) return
+        error(message)
     }
 
     protected inline val localScopes: List<FirLocalScope> get() = components.localScopes

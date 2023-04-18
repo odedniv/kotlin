@@ -53,14 +53,15 @@
 @end
 
 void run(void (^task)()) {
-    [NSApplication sharedApplication];
     dispatch_async(dispatch_get_main_queue(), ^{
+        // At this point all other scheduled main queue tasks were already executed.
+        // Executing via performBlock to allow a recursive run loop in `spin()`.
         [[NSRunLoop currentRunLoop] performBlock:^{
             task();
             [NSApp terminate:NULL];
         }];
     });
-    [NSApp run];
+    [[NSApplication sharedApplication] run];
 }
 
 uint64_t currentThreadId() {

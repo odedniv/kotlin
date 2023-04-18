@@ -61,7 +61,7 @@ private class LLFirContractsTargetResolver(
 
     override fun doLazyResolveUnderLock(target: FirElementWithResolveState) {
         when (target) {
-            is FirRegularClass, is FirAnonymousInitializer, is FirDanglingModifierList, is FirFileAnnotationsContainer, is FirTypeAlias -> {
+            is FirRegularClass, is FirAnonymousInitializer, is FirDanglingModifierList, is FirFileAnnotationsContainer, is FirTypeAlias, is FirScript -> {
                 // no contracts here
             }
             is FirCallableDeclaration -> {

@@ -89,7 +89,7 @@ private class LLFirAnnotationArgumentsTargetResolver(
                 target.transformTypeParameters(transformer.declarationsTransformer, ResolutionMode.ContextIndependent)
                 target.transformSuperTypeRefs(transformer.declarationsTransformer, ResolutionMode.ContextIndependent)
             }
-            is FirCallableDeclaration, is FirAnonymousInitializer, is FirDanglingModifierList, is FirFileAnnotationsContainer, is FirTypeAlias -> {
+            is FirCallableDeclaration, is FirAnonymousInitializer, is FirDanglingModifierList, is FirFileAnnotationsContainer, is FirTypeAlias, is FirScript -> {
                 target.transformSingle(transformer, ResolutionMode.ContextIndependent)
             }
             else -> throwUnexpectedFirElementError(target)

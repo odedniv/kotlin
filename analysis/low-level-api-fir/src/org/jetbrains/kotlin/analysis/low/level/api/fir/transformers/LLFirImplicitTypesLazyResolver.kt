@@ -77,7 +77,7 @@ private class LLFirImplicitBodyTargetResolver(
 
     override fun doLazyResolveUnderLock(target: FirElementWithResolveState) {
         when (target) {
-            is FirRegularClass, is FirDanglingModifierList, is FirAnonymousInitializer, is FirFileAnnotationsContainer, is FirTypeAlias -> {
+            is FirRegularClass, is FirDanglingModifierList, is FirAnonymousInitializer, is FirFileAnnotationsContainer, is FirTypeAlias, is FirScript -> {
                 // no implicit bodies here
             }
             is FirCallableDeclaration -> {

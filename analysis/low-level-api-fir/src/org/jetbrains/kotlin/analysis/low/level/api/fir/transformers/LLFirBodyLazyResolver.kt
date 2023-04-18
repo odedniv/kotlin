@@ -154,7 +154,7 @@ private class LLFirBodyTargetResolver(
             is FirDanglingModifierList, is FirFileAnnotationsContainer, is FirTypeAlias -> {
                 // no bodies here
             }
-            is FirCallableDeclaration, is FirAnonymousInitializer -> {
+            is FirCallableDeclaration, is FirAnonymousInitializer, is FirScript -> {
                 calculateLazyBodies(target)
                 target.transformSingle(transformer, ResolutionMode.ContextIndependent)
             }

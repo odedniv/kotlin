@@ -36,11 +36,10 @@ class FirGeneratedClassDeclaredMemberScope private constructor(
             generationContext: MemberGenerationContext,
             needNestedClassifierScope: Boolean
         ): FirGeneratedClassDeclaredMemberScope? {
-            val extensionsByCallableName = session.groupExtensionsByName(
+            val extensionsByCallableName = groupExtensionsByName(
                 generationContext.owner.fir,
-                nameExtractor = { getCallableNamesForClass(it, generationContext) },
-                nameTransformer = { it }
-            )
+                nameExtractor = { getCallableNamesForClass(it, generationContext) }
+            ) { it }
             val allCallableNames = extensionsByCallableName.keys
             if (allCallableNames.isEmpty()) return null
             return FirGeneratedClassDeclaredMemberScope(
@@ -121,7 +120,7 @@ class FirGeneratedClassDeclaredMemberScope private constructor(
     }
 }
 
-internal inline fun <T, V> FirSession.groupExtensionsByName(
+internal inline fun <T, V> groupExtensionsByName(
     klass: FirClass,
     nameExtractor: FirDeclarationGenerationExtension.(FirClassSymbol<*>) -> Set<T>,
     nameTransformer: (T) -> V
@@ -135,8 +134,8 @@ internal inline fun <T, V> FirSession.groupExtensionsByName(
     )
 }
 
-internal fun FirSession.getExtensionsForClass(klass: FirClass): List<FirDeclarationGenerationExtension> {
-    val extensions = extensionService.declarationGenerators
+internal fun getExtensionsForClass(klass: FirClass): List<FirDeclarationGenerationExtension> {
+    val extensions = klass.moduleData.session.extensionService.declarationGenerators
     return if (klass.origin.generated) {
         listOf(klass.ownerGenerator!!)
     } else {
@@ -159,7 +158,7 @@ class FirGeneratedClassNestedClassifierScope private constructor(
         ): FirGeneratedClassNestedClassifierScope? {
             val symbol = klass.symbol
             val context = NestedClassGenerationContext(klass.symbol, baseScope)
-            val extensionsByName = useSiteSession.getExtensionsForClass(klass).flatGroupBy {
+            val extensionsByName = getExtensionsForClass(klass).flatGroupBy {
                 it.nestedClassifierNamesCache.getValue(symbol, context)
             }
             if (extensionsByName.isEmpty()) return null

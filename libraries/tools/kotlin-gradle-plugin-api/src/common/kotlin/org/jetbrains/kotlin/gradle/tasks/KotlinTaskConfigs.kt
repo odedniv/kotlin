@@ -16,6 +16,7 @@ import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.work.Incremental
 import org.gradle.work.NormalizeLineEndings
 import org.jetbrains.kotlin.gradle.dsl.*
+import org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode
 import org.jetbrains.kotlin.gradle.plugin.CompilerPluginConfig
 
 interface KotlinCompileTool : PatternFilterable, Task {
@@ -96,6 +97,26 @@ interface KotlinJvmCompile : BaseKotlinCompile,
         replaceWith = ReplaceWith("compilerOptions")
     )
     val parentKotlinOptions: Property<KotlinJvmOptionsDeprecated>
+
+    /**
+     * Controls JVM target validation mode between Kotlin JVM compilation task from this plugin
+     * and related Java compilation task from Gradle.
+     *
+     * Having same JVM target ensures produced jar file contains class files with the same class file version.
+     * Also, Gradle Java compilation task [org.gradle.api.tasks.compile.JavaCompile.targetCompatibility] controls value
+     * of "org.gradle.jvm.version" [attribute](https://docs.gradle.org/current/javadoc/org/gradle/api/attributes/java/TargetJvmVersion.html)
+     * which itself controls produced artifact minimal supported JVM version via
+     * [Gradle Module Metadata](https://docs.gradle.org/current/userguide/publishing_gradle_module_metadata.html).
+     *
+     * To avoid problems with different targets we advise to use [JDK Toolchain](https://kotl.in/gradle/jvm/toolchain) feature.
+     *
+     * Default value for builds with Gradle <8.0 is [JvmTargetValidationMode.WARNING],
+     * with Gradle 8.0+ is [JvmTargetValidationMode.ERROR].
+     *
+     * @since 1.9.0
+     */
+    @get:Input
+    val jvmTargetValidationMode: Property<JvmTargetValidationMode>
 }
 
 interface KaptGenerateStubs : KotlinJvmCompile {

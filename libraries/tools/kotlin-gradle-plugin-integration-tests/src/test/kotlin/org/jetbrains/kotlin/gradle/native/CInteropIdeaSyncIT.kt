@@ -14,7 +14,7 @@ import org.junit.jupiter.api.DisplayName
 @NativeGradlePluginTests
 class CInteropIdeaSyncIT : KGPBaseTest() {
 
-    private val ideaSyncBuildOptions = BuildOptions().copy(freeArgs = listOf("-Didea.sync.active=true"))
+    private val ideaSyncBuildOptions = defaultBuildOptions.copy(freeArgs = listOf("-Didea.sync.active=true"))
 
     @DisplayName("Idea sync warning failing cinterop warning")
     @GradleTest

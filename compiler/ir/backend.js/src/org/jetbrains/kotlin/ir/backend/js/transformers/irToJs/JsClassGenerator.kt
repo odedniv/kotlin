@@ -23,7 +23,7 @@ import org.jetbrains.kotlin.js.backend.ast.*
 import org.jetbrains.kotlin.js.common.isValidES5Identifier
 import org.jetbrains.kotlin.utils.addIfNotNull
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
-import org.jetbrains.kotlin.utils.memoryOptimizedMapNotNull
+import org.jetbrains.kotlin.utils.toSmartList
 
 class JsClassGenerator(private val irClass: IrClass, val context: JsGenerationContext) {
     private val className = context.getNameForClass(irClass)
@@ -375,9 +375,9 @@ class JsClassGenerator(private val irClass: IrClass, val context: JsGenerationCo
         val listRef = irClass.superTypes
             .filter { it.classOrNull?.owner?.isExternal != true }
             .takeIf { it.size > 1 || it.singleOrNull() != baseClass }
-            ?.memoryOptimizedMapNotNull { it.asConstructorRef() }
+            ?.mapNotNull { it.asConstructorRef() }
             ?.takeIf { it.isNotEmpty() } ?: return null
-        return JsArrayLiteral(listRef)
+        return JsArrayLiteral(listRef.toSmartList())
     }
 
     private fun generateSuspendArity(): JsArrayLiteral? {
@@ -385,9 +385,9 @@ class JsClassGenerator(private val irClass: IrClass, val context: JsGenerationCo
         val arity = invokeFunctions
             .map { it.valueParameters.size }
             .distinct()
-            .memoryOptimizedMap { JsIntLiteral(it) }
+            .map { JsIntLiteral(it) }
 
-        return JsArrayLiteral(arity).takeIf { arity.isNotEmpty() }
+        return JsArrayLiteral(arity.toSmartList()).takeIf { arity.isNotEmpty() }
     }
 
     private fun generateAssociatedObjectKey(): JsIntLiteral? {
@@ -395,7 +395,7 @@ class JsClassGenerator(private val irClass: IrClass, val context: JsGenerationCo
     }
 
     private fun generateAssociatedObjects(): JsObjectLiteral? {
-        val associatedObjects = irClass.annotations.memoryOptimizedMapNotNull { annotation ->
+        val associatedObjects = irClass.annotations.mapNotNull { annotation ->
             val annotationClass = annotation.symbol.owner.constructedClass
             context.getAssociatedObjectKey(annotationClass)?.let { key ->
                 annotation.associatedObject()?.let { obj ->
@@ -404,7 +404,7 @@ class JsClassGenerator(private val irClass: IrClass, val context: JsGenerationCo
                     }
                 }
             }
-        }
+        }.toSmartList()
 
         return associatedObjects
             .takeIf { it.isNotEmpty() }

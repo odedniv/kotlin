@@ -142,3 +142,9 @@ fun <T> List<T>.smartCompact(): List<T> =
             if (this is ArrayList<*>) trimToSize()
         }
     }
+
+/**
+ * The same as [Collection.toMutableList] extension function, but it returns a SmartList which is better with in sense of memory consumption
+ * @see Collection.toMutableList
+*/
+fun <T> Collection<T>.toSmartList(): List<T> = SmartList<T>(this)

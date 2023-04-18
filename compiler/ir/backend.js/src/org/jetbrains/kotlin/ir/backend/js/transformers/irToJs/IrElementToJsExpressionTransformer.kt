@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.js.backend.ast.metadata.sideEffects
 import org.jetbrains.kotlin.js.backend.ast.metadata.synthetic
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
 import org.jetbrains.kotlin.utils.memoryOptimizedPlus
+import org.jetbrains.kotlin.utils.toSmartList
 
 @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
 class IrElementToJsExpressionTransformer : BaseIrElementToJsNodeTransformer<JsExpression, JsGenerationContext> {
@@ -50,7 +51,7 @@ class IrElementToJsExpressionTransformer : BaseIrElementToJsNodeTransformer<JsEx
 
     override fun visitVararg(expression: IrVararg, context: JsGenerationContext): JsExpression {
         assert(expression.elements.none { it is IrSpreadElement })
-        return JsArrayLiteral(expression.elements.memoryOptimizedMap { it.accept(this, context) }).withSource(expression, context)
+        return JsArrayLiteral(expression.elements.map { it.accept(this, context) }.toSmartList()).withSource(expression, context)
     }
 
     override fun visitExpressionBody(body: IrExpressionBody, context: JsGenerationContext): JsExpression =

@@ -24,7 +24,7 @@ import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.js.backend.ast.*
 import org.jetbrains.kotlin.js.backend.ast.metadata.synthetic
-import org.jetbrains.kotlin.utils.memoryOptimizedMap
+import org.jetbrains.kotlin.utils.toSmartList
 
 @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
 class IrElementToJsStatementTransformer : BaseIrElementToJsNodeTransformer<JsStatement, JsGenerationContext> {
@@ -34,7 +34,7 @@ class IrElementToJsStatementTransformer : BaseIrElementToJsNodeTransformer<JsSta
     }
 
     override fun visitBlockBody(body: IrBlockBody, context: JsGenerationContext): JsStatement {
-        return JsBlock(body.statements.memoryOptimizedMap { it.accept(this, context) }).withSource(body, context, container = context.currentFunction)
+        return JsBlock(body.statements.map { it.accept(this, context) }.toSmartList()).withSource(body, context, container = context.currentFunction)
     }
 
     override fun visitBlock(expression: IrBlock, context: JsGenerationContext): JsStatement {
@@ -43,7 +43,7 @@ class IrElementToJsStatementTransformer : BaseIrElementToJsNodeTransformer<JsSta
         } ?: context
 
         val container = expression.innerInlinedBlockOrThis.statements
-        val statements = container.memoryOptimizedMap { it.accept(this, newContext) }
+        val statements = container.map { it.accept(this, newContext) }.toSmartList()
 
         return if (expression is IrReturnableBlock) {
             val label = context.getNameForReturnableBlock(expression)
@@ -71,7 +71,7 @@ class IrElementToJsStatementTransformer : BaseIrElementToJsNodeTransformer<JsSta
         return if (expression.statements.isEmpty()) {
             JsEmpty
         } else {
-            JsBlock(expression.statements.memoryOptimizedMap { it.accept(this, context) }).withSource(expression, context)
+            JsBlock(expression.statements.map { it.accept(this, context) }.toSmartList()).withSource(expression, context)
         }
     }
 

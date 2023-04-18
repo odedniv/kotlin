@@ -9,6 +9,7 @@ import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.gradle.testbase.*
 import org.jetbrains.kotlin.konan.file.File
 import org.junit.jupiter.api.DisplayName
+import kotlin.io.path.writeText
 
 @DisplayName("Tests for the K/N CInterop tool during IDEA project import")
 @NativeGradlePluginTests
@@ -55,7 +56,7 @@ class CInteropIdeaSyncIT : KGPBaseTest() {
             }
 
             /* Remove noise that causes failure */
-            File(projectPath.resolve("src/nativeInterop/cinterop/sampleInteropNoise.h")).writeText("")
+            projectPath.resolve("src/nativeInterop/cinterop/sampleInteropNoise.h").writeText("")
 
             build("commonize", buildOptions = ideaSyncBuildOptions) {
                 assertTasksExecuted(interopTaskName)

@@ -253,6 +253,13 @@ public class DefaultErrorMessagesJvm implements DefaultErrorMessages.Extension {
                 "This behavior will be changed soon in favor of the property. " +
                 "Please use explicit cast to {0} if you wish to preserve current behavior. " +
                 "See https://youtrack.jetbrains.com/issue/KT-55017 for details", STRING, STRING);
+
+        MAP.put(BASE_CLASS_FIELD_WITH_DIFFERENT_SIGNATURE_THAN_DERIVED_CLASS_PROPERTY,
+                "The field in base class {0} has different signature compared with property in derived class {1}. " +
+                "This can lead to unpredictable behavior including shadowing the property with the field." +
+                "This behavior will be changed soon in favor of the property. " +
+                "Please use explicit cast to {0} if you wish to preserve current behavior. " +
+                "See https://youtrack.jetbrains.com/issue/KT-55017 for details", STRING, STRING);
     }
 
     @NotNull

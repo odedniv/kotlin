@@ -15418,6 +15418,12 @@ public class DiagnosticTestGenerated extends AbstractDiagnosticTest {
                 }
 
                 @Test
+                @TestMetadata("captureFromNullableTypeInScope.kt")
+                public void testCaptureFromNullableTypeInScope() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/inference/capturedTypes/captureFromNullableTypeInScope.kt");
+                }
+
+                @Test
                 @TestMetadata("captureFromNullableTypeVariable.kt")
                 public void testCaptureFromNullableTypeVariable() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/inference/capturedTypes/captureFromNullableTypeVariable.kt");

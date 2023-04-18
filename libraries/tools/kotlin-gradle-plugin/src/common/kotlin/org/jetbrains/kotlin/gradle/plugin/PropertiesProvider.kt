@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider.PropertyNames.KOTLI
 import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider.PropertyNames.KOTLIN_COMPILER_USE_PRECISE_COMPILATION_RESULTS_BACKUP
 import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider.PropertyNames.KOTLIN_CREATE_DEFAULT_MULTIPLATFORM_PUBLICATIONS
 import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider.PropertyNames.KOTLIN_JS_KARMA_BROWSERS
+import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider.PropertyNames.KOTLIN_MPP_ALLOW_LEGACY_DEPENDENCIES
 import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider.PropertyNames.KOTLIN_MPP_ANDROID_GRADLE_PLUGIN_COMPATIBILITY_NO_WARN
 import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider.PropertyNames.KOTLIN_MPP_ANDROID_SOURCE_SET_LAYOUT_ANDROID_STYLE_NO_WARN
 import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider.PropertyNames.KOTLIN_MPP_ANDROID_SOURCE_SET_LAYOUT_VERSION
@@ -513,6 +514,9 @@ internal class PropertiesProvider private constructor(private val project: Proje
     val createDefaultMultiplatformPublications: Boolean
         get() = booleanProperty(KOTLIN_CREATE_DEFAULT_MULTIPLATFORM_PUBLICATIONS) ?: true
 
+    val allowLegacyMppDependencies: Boolean
+        get() = booleanProperty(KOTLIN_MPP_ALLOW_LEGACY_DEPENDENCIES) ?: false
+
     /**
      * Retrieves a comma-separated list of browsers to use when running karma tests for [target]
      * @see KOTLIN_JS_KARMA_BROWSERS
@@ -599,6 +603,7 @@ internal class PropertiesProvider private constructor(private val project: Proje
         const val KOTLIN_COMPILER_KEEP_INCREMENTAL_COMPILATION_CACHES_IN_MEMORY = "kotlin.compiler.keepIncrementalCompilationCachesInMemory"
         const val KOTLIN_SUPPRESS_EXPERIMENTAL_IC_OPTIMIZATIONS_WARNING = "kotlin.compiler.suppressExperimentalICOptimizationsWarning"
         const val KOTLIN_CREATE_DEFAULT_MULTIPLATFORM_PUBLICATIONS = "kotlin.internal.mpp.createDefaultMultiplatformPublications"
+        const val KOTLIN_MPP_ALLOW_LEGACY_DEPENDENCIES = "kotlin.mpp.allow.legacy.dependencies"
     }
 
     companion object {

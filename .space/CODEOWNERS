@@ -82,7 +82,7 @@
 /compiler/light-classes/ "Kotlin IDE"
 /compiler/plugin-api/ "Kotlin Compiler Core"
 /compiler/preloader/ "Kotlin Compiler Core"
-/compiler/psi/ "Kotlin Compiler Core"
+/compiler/psi/ "Kotlin IDE"
 /compiler/resolution/ "Kotlin Compiler Core"
 /compiler/resolution.common/ "Kotlin Compiler Core"
 /compiler/resolution.common.jvm/ "Kotlin Compiler Core"

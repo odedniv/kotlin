@@ -23,14 +23,14 @@ internal fun PrimitiveType.castToIfNecessary(otherType: PrimitiveType): String {
     return ""
 }
 
-internal fun String.asSign(): String {
-    return when (this) {
+internal fun operatorSign(methodName: String): String {
+    return when (methodName) {
         "plus" -> "+"
         "minus" -> "-"
         "times" -> "*"
         "div" -> "/"
         "rem" -> "%"
-        else -> throw IllegalArgumentException("Unsupported binary operation: ${this}")
+        else -> throw IllegalArgumentException("Unsupported binary operation: ${methodName}")
     }
 }
 

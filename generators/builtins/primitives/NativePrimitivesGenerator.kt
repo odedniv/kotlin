@@ -67,14 +67,14 @@ class NativePrimitivesGenerator(writer: PrintWriter) : BasePrimitivesGenerator(w
         val thisCasted = "this" + thisKind.castToIfNecessary(otherKind)
         val otherCasted = parameterName + otherKind.castToIfNecessary(thisKind)
         if (thisKind == PrimitiveType.FLOAT && otherKind == PrimitiveType.DOUBLE) {
-            "- ${otherCasted}.compareTo(this)"
+            "-${otherCasted}.compareTo(this)"
         } else {
             "$thisCasted.compareTo($otherCasted)"
         }.addAsSingleLineBody(bodyOnNewLine = true)
     }
 
     override fun MethodBuilder.modifyGeneratedBinaryOperation(thisKind: PrimitiveType, otherKind: PrimitiveType) {
-        val sign = this.methodName.asSign()
+        val sign = operatorSign(this.methodName)
 
         if (thisKind != PrimitiveType.BYTE && thisKind != PrimitiveType.SHORT && thisKind == otherKind) {
             return setAsExternal()

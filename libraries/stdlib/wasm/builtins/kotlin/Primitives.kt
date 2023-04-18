@@ -1972,7 +1972,7 @@ public class Float private constructor(private val value: Float) : Number(), Com
      */
     @kotlin.internal.IntrinsicConstEvaluation
     public inline operator fun compareTo(other: Double): Int =
-        - other.compareTo(this)
+        -other.compareTo(this)
 
     /** Adds the other value to this value. */
     @kotlin.internal.IntrinsicConstEvaluation

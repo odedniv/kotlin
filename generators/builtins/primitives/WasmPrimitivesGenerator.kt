@@ -81,13 +81,13 @@ class WasmPrimitivesGenerator(writer: PrintWriter) : BasePrimitivesGenerator(wri
         val thisCasted = "this" + thisKind.castToIfNecessary(otherKind)
         val otherCasted = parameterName + otherKind.castToIfNecessary(thisKind)
         when {
-            thisKind == PrimitiveType.FLOAT && otherKind == PrimitiveType.DOUBLE -> "- ${otherCasted}.compareTo(this)"
+            thisKind == PrimitiveType.FLOAT && otherKind == PrimitiveType.DOUBLE -> "-${otherCasted}.compareTo(this)"
             else -> "$thisCasted.compareTo($otherCasted)"
         }.addAsSingleLineBody(bodyOnNewLine = true)
     }
 
     override fun MethodBuilder.modifyGeneratedBinaryOperation(thisKind: PrimitiveType, otherKind: PrimitiveType) {
-        val sign = methodName.asSign()
+        val sign = operatorSign(methodName)
         if (thisKind != PrimitiveType.BYTE && thisKind != PrimitiveType.SHORT && thisKind == otherKind) {
             val type = thisKind.capitalized
 

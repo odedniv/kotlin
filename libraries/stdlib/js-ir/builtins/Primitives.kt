@@ -1010,7 +1010,7 @@ public class Int private constructor() : Number(), Comparable<Int> {
      */
     @SinceKotlin("1.7")
     @ExperimentalStdlibApi
-    public operator fun rangeUntil(other: Byte): IntRange
+    public operator fun rangeUntil(other: Byte): IntRange = this until other
 
     /**
      * Creates a range from this value up to but excluding the specified [other] value.
@@ -1019,7 +1019,7 @@ public class Int private constructor() : Number(), Comparable<Int> {
      */
     @SinceKotlin("1.7")
     @ExperimentalStdlibApi
-    public operator fun rangeUntil(other: Short): IntRange
+    public operator fun rangeUntil(other: Short): IntRange = this until other
 
     /**
      * Creates a range from this value up to but excluding the specified [other] value.
@@ -1028,7 +1028,7 @@ public class Int private constructor() : Number(), Comparable<Int> {
      */
     @SinceKotlin("1.7")
     @ExperimentalStdlibApi
-    public operator fun rangeUntil(other: Int): IntRange
+    public operator fun rangeUntil(other: Int): IntRange = this until other
 
     /**
      * Creates a range from this value up to but excluding the specified [other] value.
@@ -1037,7 +1037,7 @@ public class Int private constructor() : Number(), Comparable<Int> {
      */
     @SinceKotlin("1.7")
     @ExperimentalStdlibApi
-    public operator fun rangeUntil(other: Long): LongRange
+    public operator fun rangeUntil(other: Long): LongRange = this until other
 
     /**
      * Shifts this value left by the [bitCount] number of bits.

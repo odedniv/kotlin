@@ -72,9 +72,6 @@ class BackRefFromAssociatedObject {
 
   ObjHeader* refPermanent() const;
 
-  void setFinalizeOnMainQueue(bool value) noexcept;
-  bool finalizeOnMainQueue() const noexcept;
-
  private:
   union {
     struct {
@@ -85,7 +82,6 @@ class BackRefFromAssociatedObject {
     struct {
       kotlin::mm::RawSpecialRef* ref_;
       kotlin::ManuallyScoped<kotlin::RWSpinLock<kotlin::MutexThreadStateHandling::kIgnore>> deallocMutex_;
-      bool finalizeOnMainQueue_;
     }; // New MM. Regular object.
     ObjHeader* permanentObj_; // New MM. Permanent object.
   };

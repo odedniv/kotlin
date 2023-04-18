@@ -6,7 +6,6 @@
 #if KONAN_OBJC_INTEROP
 
 #import <Foundation/NSException.h>
-#import <Foundation/NSThread.h>
 #import <objc/objc-exception.h>
 
 #include <objc/objc.h>
@@ -19,7 +18,6 @@
 #include "Memory.h"
 #include "MemorySharedRefs.hpp"
 
-#include "MainQueueProcessor.hpp"
 #include "Natives.h"
 #include "ObjCInterop.h"
 #include "ObjCExportPrivate.h"
@@ -83,16 +81,7 @@ id allocWithZoneImp(Class self, SEL _cmd, void* zone) {
   ObjHolder holder;
   auto kotlinObj = AllocInstanceWithAssociatedObject(typeInfo, result, holder.slot());
 
-  auto* backRef = getBackRef(result, classData);
-  backRef->initAndAddRef(kotlinObj);
-  // TODO: Consider additional filtering based on types:
-  //       * have some kind of an allowlist that can be populated by the user
-  //         to specify that objects of these types must be finalized only on
-  //         the main thread.
-  //       * prepopulate it for the system frameworks.
-  //       * if that were to be done at runtime, library authors could register
-  //         their types in a library initialization code.
-  backRef->setFinalizeOnMainQueue([NSThread isMainThread]);
+  getBackRef(result, classData)->initAndAddRef(kotlinObj);
 
   return result;
 }
@@ -126,36 +115,24 @@ void releaseImp(id self, SEL _cmd) {
   getBackRef(self)->releaseRef();
 }
 
-// [super release]
-void superRelease(id self, KotlinObjCClassData* classData) {
-  Class clazz = classData->objcClass;
-  struct objc_super s = {self, clazz};
-  auto messenger = reinterpret_cast<void (*) (struct objc_super*, SEL _cmd)>(objc_msgSendSuper2);
-  messenger(&s, @selector(release));
-}
-
 void releaseAsAssociatedObjectImp(id self, SEL _cmd) {
   auto* classData = GetKotlinClassData(self);
-  auto* backRef = getBackRef(self, classData);
-
   if (CurrentMemoryModel == MemoryModel::kExperimental) {
     // No need for any special handling. Weak reference handling machinery
     // has already cleaned up the reference to Kotlin object.
-    if (backRef->finalizeOnMainQueue() && kotlin::isMainQueueProcessorAvailable()) {
-      kotlin::runOnMainQueue(self, [](void* ptr) {
-        id self = static_cast<id>(ptr);
-        auto* classData = GetKotlinClassData(self);
-        superRelease(self, classData);
-      });
-    } else {
-      superRelease(self, classData);
-    }
+    // [super release]
+    Class clazz = classData->objcClass;
+    struct objc_super s = {self, clazz};
+    auto messenger = reinterpret_cast<void (*) (struct objc_super*, SEL _cmd)>(objc_msgSendSuper2);
+    messenger(&s, @selector(release));
     return;
   }
 
   // This function is called by the GC. It made a decision to reclaim Kotlin object, and runs
   // deallocation hooks at the moment, including deallocation of the "associated object" ([self])
   // using the [super release] call below.
+
+  auto* backRef = getBackRef(self, classData);
 
   // The deallocation involves running [self dealloc] which can contain arbitrary code.
   // In particular, this code can retain and release [self]. Obj-C and Swift runtimes handle this
@@ -171,7 +148,11 @@ void releaseAsAssociatedObjectImp(id self, SEL _cmd) {
   // the reference to it (e.g. when calling Kotlin method on [self]) would crash.
   // The latter is generally ok, because by the time superclass dealloc gets launched, subclass state
   // should already be deinitialized, and Kotlin methods operate on the subclass.
-  superRelease(self, classData);
+  // [super release]
+  Class clazz = classData->objcClass;
+  struct objc_super s = {self, clazz};
+  auto messenger = reinterpret_cast<void (*) (struct objc_super*, SEL _cmd)>(objc_msgSendSuper2);
+  messenger(&s, @selector(release));
 }
 
 void deallocImp(id self, SEL _cmd) {

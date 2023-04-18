@@ -206,7 +206,3 @@ template ObjHeader* BackRefFromAssociatedObject::ref<ErrorPolicy::kTerminate>() 
 ObjHeader* BackRefFromAssociatedObject::refPermanent() const {
   return ref<ErrorPolicy::kIgnore>();
 }
-
-void BackRefFromAssociatedObject::setFinalizeOnMainQueue(bool) noexcept {}
-
-bool BackRefFromAssociatedObject::finalizeOnMainQueue() const noexcept { return false; }

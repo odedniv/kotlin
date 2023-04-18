@@ -35,7 +35,7 @@ abstract class KotlinIrLinker(
     private val exportedDependencies: List<ModuleDescriptor>,
     val symbolProcessor: IrSymbolDeserializer.(IrSymbol, IdSignature) -> IrSymbol = { s, _ -> s },
 ) : IrDeserializer, FileLocalAwareLinker {
-    val internationService = DefaultIrInterningService()
+    val internationService = IrInterningService()
 
     // Kotlin-MPP related data. Consider some refactoring
     val expectIdSignatureToActualIdSignature = mutableMapOf<IdSignature, IdSignature>()

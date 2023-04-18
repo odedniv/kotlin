@@ -34,7 +34,7 @@ class IrBlockBodyImpl(
         this.initializer()
     }
 
-    override val statements: MutableList<IrStatement> = SmartList()
+    override val statements: MutableList<IrStatement> = ArrayList(2)
 
     override val factory: IrFactory
         get() = IrFactoryImpl

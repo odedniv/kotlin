@@ -35,5 +35,5 @@ class IrStringConcatenationImpl(
         this.arguments.addAll(arguments)
     }
 
-    override val arguments: MutableList<IrExpression> = SmartList()
+    override val arguments: MutableList<IrExpression> = ArrayList(2)
 }

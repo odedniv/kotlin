@@ -13,7 +13,7 @@ import kotlin.math.min
  * @see Iterable.map
  */
 inline fun <T, R> Collection<T>.memoryOptimizedMap(transform: (T) -> R): List<R> {
-    return mapTo(ArrayList<R>(size), transform).smartCompact()
+    return mapTo(ArrayList<R>(size), transform).compactIfPossible()
 }
 
 /**
@@ -21,7 +21,7 @@ inline fun <T, R> Collection<T>.memoryOptimizedMap(transform: (T) -> R): List<R>
  * @see Iterable.mapIndexed
  */
 inline fun <T, R> Collection<T>.memoryOptimizedMapIndexed(transform: (index: Int, T) -> R): List<R> {
-    return mapIndexedTo(ArrayList<R>(size), transform).smartCompact()
+    return mapIndexedTo(ArrayList<R>(size), transform).compactIfPossible()
 }
 
 /**
@@ -29,7 +29,7 @@ inline fun <T, R> Collection<T>.memoryOptimizedMapIndexed(transform: (index: Int
  * @see Iterable.mapNotNull
  */
 inline fun <T, R : Any> Collection<T>.memoryOptimizedMapNotNull(transform: (T) -> R?): List<R> {
-    return mapNotNullTo(ArrayList(), transform).smartCompact()
+    return mapNotNullTo(ArrayList(), transform).compactIfPossible()
 }
 
 /**
@@ -37,7 +37,7 @@ inline fun <T, R : Any> Collection<T>.memoryOptimizedMapNotNull(transform: (T) -
  * @see Iterable.flatMap
  */
 inline fun <T, R> Collection<T>.memoryOptimizedFlatMap(transform: (T) -> Iterable<R>): List<R> {
-    return flatMapTo(ArrayList<R>(), transform).smartCompact()
+    return flatMapTo(ArrayList<R>(), transform).compactIfPossible()
 }
 
 /**
@@ -45,7 +45,7 @@ inline fun <T, R> Collection<T>.memoryOptimizedFlatMap(transform: (T) -> Iterabl
  * @see Iterable.filter
  */
 inline fun <T> Collection<T>.memoryOptimizedFilter(predicate: (T) -> Boolean): List<T> {
-    return filterTo(ArrayList(), predicate).smartCompact()
+    return filterTo(ArrayList(), predicate).compactIfPossible()
 }
 
 /**
@@ -53,7 +53,7 @@ inline fun <T> Collection<T>.memoryOptimizedFilter(predicate: (T) -> Boolean): L
  * @see Iterable.filterNot
  */
 inline fun <T> Collection<T>.memoryOptimizedFilterNot(predicate: (T) -> Boolean): List<T> {
-    return filterNotTo(ArrayList(), predicate).smartCompact()
+    return filterNotTo(ArrayList(), predicate).compactIfPossible()
 }
 
 /**
@@ -61,7 +61,7 @@ inline fun <T> Collection<T>.memoryOptimizedFilterNot(predicate: (T) -> Boolean)
  * @see Iterable.filterIsInstance
  */
 inline fun <reified T> Collection<*>.memoryOptimizedFilterIsInstance(): List<T> {
-    return filterIsInstanceTo(ArrayList<T>()).smartCompact()
+    return filterIsInstanceTo(ArrayList<T>()).compactIfPossible()
 }
 
 /**
@@ -128,20 +128,6 @@ inline fun <reified T> Iterable<*>.findIsInstanceAnd(predicate: (T) -> Boolean):
     for (element in this) if (element is T && predicate(element)) return element
     return null
 }
-
-/**
- * The same as [org.jetbrains.kotlin.utils.compact] extension function, but it could be used with the
- * immutable list type (without [java.util.ArrayList.trimToSize] for the collections with more than 1 element)
- * @see org.jetbrains.kotlin.utils.compact
- */
-fun <T> List<T>.smartCompact(): List<T> =
-    when (size) {
-        0 -> emptyList()
-        1 -> Collections.singletonList(first())
-        else -> apply {
-            if (this is ArrayList<*>) trimToSize()
-        }
-    }
 
 /**
  * The same as [Collection.toMutableList] extension function, but it returns a SmartList which is better with in sense of memory consumption

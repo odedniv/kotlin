@@ -36,7 +36,7 @@ class IrWhenImpl(
         this.branches.addAll(branches)
     }
 
-    override val branches: MutableList<IrBranch> = SmartList()
+    override val branches: MutableList<IrBranch> = ArrayList(2)
 }
 
 open class IrBranchImpl(

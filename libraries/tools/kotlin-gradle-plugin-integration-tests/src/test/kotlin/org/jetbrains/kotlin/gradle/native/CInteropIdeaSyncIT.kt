@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.gradle.testbase.*
 import org.jetbrains.kotlin.konan.file.File
 import org.junit.jupiter.api.DisplayName
 
-@DisplayName("Tests for K/N interoperability with C")
+@DisplayName("Tests for the K/N CInterop tool during IDEA project import")
 @NativeGradlePluginTests
 class CInteropIdeaSyncIT : KGPBaseTest() {
 

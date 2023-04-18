@@ -13,9 +13,15 @@ import kotlin.math.min
  * @see Iterable.map
  */
 inline fun <T, R> Collection<T>.memoryOptimizedMap(transform: (T) -> R): List<R> {
-    if (isEmpty()) return emptyList()
-    if (size == 1) return Collections.singletonList(transform(first()))
-    return mapTo(ArrayList(size), transform)
+    return mapTo(ArrayList<R>(size), transform).smartCompact()
+}
+
+/**
+ * A memory-optimized version of [Iterable.mapIndexed].
+ * @see Iterable.mapIndexed
+ */
+inline fun <T, R> Collection<T>.memoryOptimizedMapIndexed(transform: (index: Int, T) -> R): List<R> {
+    return mapIndexedTo(ArrayList<R>(size), transform).smartCompact()
 }
 
 /**
@@ -24,16 +30,6 @@ inline fun <T, R> Collection<T>.memoryOptimizedMap(transform: (T) -> R): List<R>
  */
 inline fun <T, R : Any> Collection<T>.memoryOptimizedMapNotNull(transform: (T) -> R?): List<R> {
     return mapNotNullTo(ArrayList(), transform).smartCompact()
-}
-
-/**
- * A memory-optimized version of [Iterable.mapIndexed].
- * @see Iterable.mapIndexed
- */
-inline fun <T, R> Collection<T>.memoryOptimizedMapIndexed(transform: (index: Int, T) -> R): List<R> {
-    if (isEmpty()) return emptyList()
-    if (size == 1) return Collections.singletonList(transform(0, first()))
-    return mapIndexedTo(ArrayList<R>(size), transform)
 }
 
 /**
@@ -146,4 +142,3 @@ fun <T> List<T>.smartCompact(): List<T> =
             if (this is ArrayList<*>) trimToSize()
         }
     }
-

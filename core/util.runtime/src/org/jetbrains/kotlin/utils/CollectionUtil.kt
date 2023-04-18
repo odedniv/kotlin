@@ -6,13 +6,19 @@
 package org.jetbrains.kotlin.utils
 
 inline fun <reified R, C : MutableCollection<in R>> Iterable<*>.filterIsInstanceAndTo(destination: C, predicate: (R) -> Boolean): C {
-    for (element in this) if (element is R && predicate(element)) destination.add(element)
+    for (element in this) {
+        if (element is R && predicate(element)) {
+            destination.add(element)
+        }
+    }
     return destination
 }
 
 inline fun <reified T, reified R, C : MutableCollection<in R>> Iterable<*>.filterIsInstanceMapTo(destination: C, transform: (T) -> R): C {
-    for (element in this) if (element is T) {
-        destination.add(transform(element))
+    for (element in this) {
+        if (element is T) {
+            destination.add(transform(element))
+        }
     }
     return destination
 }
@@ -27,11 +33,16 @@ inline fun <reified R> Collection<*>.filterIsInstanceAnd(predicate: (R) -> Boole
     return filterIsInstanceAndTo(SmartList(), predicate)
 }
 
-inline fun <reified T, reified R, C : MutableCollection<in R>> Iterable<*>.filterIsInstanceMapNotNullTo(destination: C, transform: (T) -> R?): C {
-    for (element in this) if (element is T) {
-        val result = transform(element)
-        if (result != null) {
-            destination.add(result)
+inline fun <reified T, reified R, C : MutableCollection<in R>> Iterable<*>.filterIsInstanceMapNotNullTo(
+    destination: C,
+    transform: (T) -> R?
+): C {
+    for (element in this) {
+        if (element is T) {
+            val result = transform(element)
+            if (result != null) {
+                destination.add(result)
+            }
         }
     }
     return destination

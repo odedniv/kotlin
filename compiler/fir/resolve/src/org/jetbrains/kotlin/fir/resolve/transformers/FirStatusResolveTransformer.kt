@@ -90,12 +90,13 @@ open class FirStatusResolveTransformer(
         val computationStatus = statusComputationSession.startComputing(firClass)
         forceResolveStatusesOfSupertypes(firClass)
         /*
-         * Status of class may be already calculated if that class was in supertypes of one of previous classes
+         * Status of class may be already calculated if that class was in supertypes of one of the previous classes
          */
         if (computationStatus != StatusComputationSession.StatusComputationStatus.Computed) {
-            firClass.transformStatus(this, statusResolver.resolveStatus(firClass, containingClass, isLocal = false))
+            transformClassStatus(firClass)
             transformValueClassRepresentation(firClass)
         }
+
         return transformClass(firClass, data).also {
             statusComputationSession.endComputing(firClass)
         }
@@ -316,7 +317,7 @@ abstract class AbstractFirStatusResolveTransformer(
         }
     }
 
-    fun transformClassStatus(firClass: FirRegularClass) {
+    fun transformClassStatus(firClass: FirClass) {
         firClass.transformStatus(this, statusResolver.resolveStatus(firClass, containingClass, isLocal = false))
     }
 

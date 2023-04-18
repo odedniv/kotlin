@@ -37,7 +37,7 @@ class K2KotlinxSerializationIT : KGPBaseTest() {
         }
     }
 
-    @DisplayName("Compile code with kotlinx.serialization K2 against old K1 library without enum factory support. KT-TODO")
+    @DisplayName("Compile code with kotlinx.serialization K2 against old K1 library without enum factory support (KT-57704).")
     @GradleTest
     fun `test kotlinx serialization K2 against K1 library`(gradleVersion: GradleVersion, @TempDir tempDir: Path) {
         project("kotlinxSerializationK2AgainstK1Lib/lib", gradleVersion, localRepoDir = tempDir) {

@@ -242,7 +242,7 @@ class DelegatedMemberGenerator(private val components: Fir2IrComponents) : Fir2I
         val irCall = IrCallImpl(
             startOffset,
             endOffset,
-            delegateFunction.returnType,
+            superFunction.returnType,
             superFunction.symbol,
             superFunction.typeParameters.size,
             superFunction.valueParameters.size

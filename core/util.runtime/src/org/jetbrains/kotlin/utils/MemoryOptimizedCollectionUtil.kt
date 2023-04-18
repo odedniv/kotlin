@@ -96,9 +96,11 @@ infix fun <T> List<T>.memoryOptimizedPlus(element: T): List<T> =
  * @see Iterable.zip
  */
 infix fun <T, R> Collection<T>.memoryOptimizedZip(other: Collection<R>): List<Pair<T, R>> {
-    if (isEmpty() || other.isEmpty()) return emptyList()
-    if (min(size, other.size) == 1) return Collections.singletonList(first() to other.first())
-    return zip(other) { t1, t2 -> t1 to t2 }
+    return when {
+        isEmpty() || other.isEmpty() -> emptyList()
+        min(size, other.size) == 1 -> listOf(first() to other.first())
+        else -> zip(other) { t1, t2 -> t1 to t2 }
+    }
 }
 
 /**
@@ -111,11 +113,15 @@ infix fun <T, R> Collection<T>.memoryOptimizedZip(other: Collection<R>): List<Pa
  */
 fun <T> Sequence<T>.atMostOne(): T? {
     val iterator = iterator()
-    if (!iterator.hasNext())
-        return null
+
+    if (!iterator.hasNext()) return null
+
     val single = iterator.next()
-    if (iterator.hasNext())
+
+    if (iterator.hasNext()) {
         throw IllegalArgumentException("Sequence has more than one element.")
+    }
+
     return single
 }
 
@@ -125,12 +131,16 @@ fun <T> Sequence<T>.atMostOne(): T? {
  * @see org.jetbrains.kotlin.util.collectionUtils.filterIsInstanceAnd
  */
 inline fun <reified T> Iterable<*>.findIsInstanceAnd(predicate: (T) -> Boolean): T? {
-    for (element in this) if (element is T && predicate(element)) return element
+    for (element in this) {
+        if (element is T && predicate(element)) {
+            return element
+        }
+    }
     return null
 }
 
 /**
  * The same as [Collection.toMutableList] extension function, but it returns a SmartList which is better with in sense of memory consumption
  * @see Collection.toMutableList
-*/
+ */
 fun <T> Collection<T>.toSmartList(): List<T> = SmartList<T>(this)

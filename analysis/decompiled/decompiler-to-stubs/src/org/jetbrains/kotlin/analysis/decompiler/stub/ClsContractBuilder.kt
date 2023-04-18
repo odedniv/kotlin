@@ -14,38 +14,35 @@ import org.jetbrains.kotlin.psi.stubs.impl.*
 import org.jetbrains.kotlin.utils.addIfNotNull
 
 class ClsContractBuilder(private val typeTable: TypeTable, private val typeStubBuilder: TypeClsStubBuilder) {
-    fun loadContract(proto: ProtoBuf.Contract): List<KotlinContractEffect>? {
+    fun loadContract(proto: ProtoBuf.Contract): List<KotlinContractDescriptionElement>? {
         return proto.effectList.map { loadPossiblyConditionalEffect(it) ?: return null }
     }
 
     private fun loadPossiblyConditionalEffect(
         proto: ProtoBuf.Effect
-    ): KotlinContractEffect? {
+    ): KotlinContractDescriptionElement? {
         if (proto.hasConclusionOfConditionalEffect()) {
             val conclusion = loadExpression(proto.conclusionOfConditionalEffect) ?: return null
             val effect = loadSimpleEffect(proto) ?: return null
-            return effect.copy(conclusion = conclusion)
+            return KotlinContractConditionalEffectDeclaration(effect, conclusion)
         }
         return loadSimpleEffect(proto)
     }
 
-    private fun loadSimpleEffect(proto: ProtoBuf.Effect): KotlinContractEffect? {
+    private fun loadSimpleEffect(proto: ProtoBuf.Effect): KotlinContractEffectDeclaration? {
         val type: ProtoBuf.Effect.EffectType = if (proto.hasEffectType()) proto.effectType else return null
-        return when(type) {
+        return when (type) {
             ProtoBuf.Effect.EffectType.RETURNS_CONSTANT -> {
                 val argument = proto.effectConstructorArgumentList.firstOrNull()
                 val returnValue = if (argument == null) {
-                    null
+                    KotlinContractConstantReference.WILDCARD
                 } else {
-                    loadExpression(argument) ?: return null
+                    loadExpression(argument) as? KotlinContractConstantReference ?: return null
                 }
-                KotlinContractEffect(KotlinContractEffectType.RETURNS_CONSTANT, listOfNotNull(returnValue),
-                                     conclusion = null,
-                                     invocationKind = null
-                )
+                KotlinContractReturnsEffectDeclaration(returnValue)
             }
             ProtoBuf.Effect.EffectType.RETURNS_NOT_NULL -> {
-                KotlinContractEffect(KotlinContractEffectType.RETURNS_NOT_NULL, arguments = null, conclusion = null, invocationKind = null)
+                KotlinContractReturnsEffectDeclaration(KotlinContractConstantReference.NOT_NULL)
             }
             ProtoBuf.Effect.EffectType.CALLS -> {
                 val argument = proto.effectConstructorArgumentList.firstOrNull() ?: return null
@@ -54,7 +51,7 @@ class ClsContractBuilder(private val typeTable: TypeTable, private val typeStubB
                     proto.kind.toDescriptorInvocationKind()
                 else
                     return null
-                KotlinContractEffect(KotlinContractEffectType.CALLS, listOf(callable), conclusion = null, invocationKind)
+                KotlinCallsEffectDeclaration(callable, invocationKind)
             }
         }
     }
@@ -69,26 +66,16 @@ class ClsContractBuilder(private val typeTable: TypeTable, private val typeStubB
 
         return when (complexType) {
             ComplexExpressionType.AND_SEQUENCE -> {
-                KotlinContractExpression(
-                    isNegated = false,
-                    isInNullPredicate = false,
-                    valueParameter = null,
-                    type = null,
-                    constantValue = null,
-                    andArgs = proto.andArgumentList.mapTo(childs) { loadExpression(it) ?: return null },
-                    orArgs = null
+                KotlinContractBooleanExpression(
+                    proto.andArgumentList.mapTo(childs) { loadExpression(it) ?: return null },
+                    true
                 )
             }
 
             ComplexExpressionType.OR_SEQUENCE -> {
-                KotlinContractExpression(
-                    isNegated = false,
-                    isInNullPredicate = false,
-                    valueParameter = null,
-                    type = null,
-                    constantValue = null,
-                    andArgs = null,
-                    orArgs = proto.orArgumentList.mapTo(childs) { loadExpression(it) ?: return null },
+                KotlinContractBooleanExpression(
+                    proto.orArgumentList.mapTo(childs) { loadExpression(it) ?: return null },
+                    false
                 )
             }
 
@@ -101,48 +88,35 @@ class ClsContractBuilder(private val typeTable: TypeTable, private val typeStubB
 
         return when (primitiveType) {
             PrimitiveExpressionType.VALUE_PARAMETER_REFERENCE, PrimitiveExpressionType.RECEIVER_REFERENCE -> {
-                extractVariable(proto)?.copy(isNegated = isInverted)
+                val variable = extractVariable(proto) ?: return null
+                if (isInverted) KotlinContractLogicalNot(variable) else variable
             }
 
-            PrimitiveExpressionType.CONSTANT ->
-                KotlinContractExpression(
-                    isNegated = isInverted,
-                    isInNullPredicate = false,
-                    valueParameter = null,
-                    type = null,
-                    constantValue = loadConstant(proto.constantValue),
-                    andArgs = null,
-                    orArgs = null
-                )
+            PrimitiveExpressionType.CONSTANT -> {
+                val constant = loadConstant(proto.constantValue)
+                if (isInverted) KotlinContractLogicalNot(constant) else constant
+            }
 
             PrimitiveExpressionType.INSTANCE_CHECK -> {
                 val variable = extractVariable(proto) ?: return null
                 val type = extractType(proto) ?: return null
-                variable.copy(isNegated = isInverted, type = type)
+                KotlinContractIsInstancePredicate(variable, type, isNegated = isInverted)
             }
 
             PrimitiveExpressionType.NULLABILITY_CHECK -> {
                 val variable = extractVariable(proto) ?: return null
-                variable.copy(isNegated = isInverted, isInNullPredicate = true)
+                KotlinContractIsNullPredicate(variable, isNegated = isInverted)
             }
 
             null -> null
         }
     }
 
-    private fun extractVariable(proto: ProtoBuf.Expression): KotlinContractExpression? {
+    private fun extractVariable(proto: ProtoBuf.Expression): KotlinContractValueParameterReference? {
         if (!proto.hasValueParameterReference()) return null
 
         val valueParameterIndex = proto.valueParameterReference - 1
-        return KotlinContractExpression(
-            isNegated = false,
-            isInNullPredicate = false,
-            valueParameter = valueParameterIndex,
-            type = null,
-            constantValue = null,
-            andArgs = null,
-            orArgs = null
-        )
+        return KotlinContractValueParameterReference(valueParameterIndex)
     }
 
     private fun ProtoBuf.Effect.InvocationKind.toDescriptorInvocationKind(): EventOccurrencesRange = when (this) {
@@ -155,10 +129,10 @@ class ClsContractBuilder(private val typeTable: TypeTable, private val typeStubB
         return typeStubBuilder.createKotlinTypeBean(proto.isInstanceType(typeTable))
     }
 
-    private fun loadConstant(value: ProtoBuf.Expression.ConstantValue): KotlinContractConstantValue = when (value) {
-        ProtoBuf.Expression.ConstantValue.TRUE -> KotlinContractConstantValue.TRUE
-        ProtoBuf.Expression.ConstantValue.FALSE -> KotlinContractConstantValue.FALSE
-        ProtoBuf.Expression.ConstantValue.NULL -> KotlinContractConstantValue.NULL
+    private fun loadConstant(value: ProtoBuf.Expression.ConstantValue): KotlinContractConstantReference = when (value) {
+        ProtoBuf.Expression.ConstantValue.TRUE -> KotlinContractConstantReference.TRUE
+        ProtoBuf.Expression.ConstantValue.FALSE -> KotlinContractConstantReference.FALSE
+        ProtoBuf.Expression.ConstantValue.NULL -> KotlinContractConstantReference.NULL
     }
 
 

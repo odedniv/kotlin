@@ -41,9 +41,7 @@ abstract class AbstractAdditionalStubInfoTest : AbstractDecompiledClassTest() {
                     builder.append("\n" + "  ".repeat(level))
                         .append(
                             contract.joinToString("\n" + "  ".repeat(level), "effect: ") { effect ->
-                                effect.effectType.name + "; " + effect.conclusion.toString() + "; " +
-                                        (effect.invocationKind?.name ?: "no invocation kind") + "; " +
-                                        effect.arguments?.joinToString(", ", "args: [", "]")
+                                effect.toString()
                             })
                 }
             }

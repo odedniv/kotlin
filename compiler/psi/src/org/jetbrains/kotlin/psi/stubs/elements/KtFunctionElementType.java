@@ -23,13 +23,14 @@ import com.intellij.psi.stubs.StubOutputStream;
 import com.intellij.util.io.StringRef;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.contracts.description.EventOccurrencesRange;
 import org.jetbrains.kotlin.name.FqName;
 import org.jetbrains.kotlin.psi.KtFile;
 import org.jetbrains.kotlin.psi.KtNamedFunction;
 import org.jetbrains.kotlin.psi.psiUtil.KtPsiUtilKt;
 import org.jetbrains.kotlin.psi.stubs.KotlinFunctionStub;
-import org.jetbrains.kotlin.psi.stubs.impl.*;
+import org.jetbrains.kotlin.psi.stubs.impl.KotlinContractDescriptionElement;
+import org.jetbrains.kotlin.psi.stubs.impl.KotlinContractEffectType;
+import org.jetbrains.kotlin.psi.stubs.impl.KotlinFunctionStubImpl;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -74,71 +75,15 @@ public class KtFunctionElementType extends KtStubElementType<KotlinFunctionStub,
         boolean haveContract = stub.mayHaveContract();
         dataStream.writeBoolean(haveContract);
         if (haveContract && stub instanceof KotlinFunctionStubImpl) {
-            List<KotlinContractEffect> effects = ((KotlinFunctionStubImpl) stub).getContract();
+            List<KotlinContractDescriptionElement> effects = ((KotlinFunctionStubImpl) stub).getContract();
             dataStream.writeInt(effects == null ? 0 : effects.size());
             if (effects != null) {
-                for (KotlinContractEffect effect : effects) {
+                for (KotlinContractDescriptionElement effect : effects) {
                     dataStream.writeInt(effect.getEffectType().ordinal());
-                    writeExpressions(dataStream, effect.getArguments());
-                    KotlinContractExpression conclusion = effect.getConclusion();
-                    dataStream.writeBoolean(conclusion != null);
-                    if (conclusion != null) {
-                        writeExpression(dataStream, conclusion);
-                    }
-                    EventOccurrencesRange invocationKind = effect.getInvocationKind();
-                    dataStream.writeInt(invocationKind != null ? invocationKind.ordinal() : -1);
+                    effect.serializeTo(dataStream);
                 }
             }
         }
-    }
-
-    private static void writeExpressions(@NotNull StubOutputStream dataStream, List<KotlinContractExpression> arguments) throws IOException {
-        dataStream.writeInt(arguments != null ? arguments.size() : -1);
-        if (arguments != null) {
-            for (KotlinContractExpression argument : arguments) {
-                writeExpression(dataStream, argument);
-            }
-        }
-    }
-
-    private static List<KotlinContractExpression> readExpressions(@NotNull StubInputStream dataStream) throws IOException {
-        int count = dataStream.readInt();
-        if (count == -1) return null;
-        List<KotlinContractExpression> result = new ArrayList<>();
-        for (int i = 0; i < count; i++) {
-            result.add(readExpression(dataStream));
-        }
-        return result;
-    }
-
-    private static void writeExpression(@NotNull StubOutputStream dataStream, KotlinContractExpression argument) throws IOException {
-        dataStream.writeBoolean(argument.isNegated());
-        dataStream.writeBoolean(argument.isInNullPredicate());
-        Integer valueParameter = argument.getValueParameter();
-        dataStream.writeInt(valueParameter != null ? valueParameter : NO_VALUE_PARAMETER);
-        KotlinTypeBean type = argument.getType();
-        KtUserTypeElementType.serializeType(dataStream, type);
-        KotlinContractConstantValue value = argument.getConstantValue();
-        dataStream.writeInt(value != null ? value.ordinal() : -1);
-        writeExpressions(dataStream, argument.getAndArgs());
-        writeExpressions(dataStream, argument.getOrArgs());
-    }
-
-    private static KotlinContractExpression readExpression(@NotNull StubInputStream dataStream) throws IOException {
-        boolean isNegated = dataStream.readBoolean();
-        boolean isInNullPredicate = dataStream.readBoolean();
-        Integer valueParameter = dataStream.readInt();
-        if (valueParameter == NO_VALUE_PARAMETER) {
-            valueParameter = null;
-        }
-        KotlinTypeBean type = KtUserTypeElementType.deserializeType(dataStream);
-        int constantValueOrdinal = dataStream.readInt();
-        KotlinContractConstantValue value = constantValueOrdinal < 0 ? null : KotlinContractConstantValue.getEntries().get(constantValueOrdinal);
-
-        List<KotlinContractExpression> andArgs = readExpressions(dataStream);
-        List<KotlinContractExpression> orArgs = readExpressions(dataStream);
-
-        return new KotlinContractExpression(isNegated, isInNullPredicate, valueParameter, type, value, andArgs, orArgs);
     }
 
     @NotNull
@@ -155,18 +100,13 @@ public class KtFunctionElementType extends KtStubElementType<KotlinFunctionStub,
         boolean hasBody = dataStream.readBoolean();
         boolean hasTypeParameterListBeforeFunctionName = dataStream.readBoolean();
         boolean mayHaveContract = dataStream.readBoolean();
-        List<KotlinContractEffect> effects = null;
+        List<KotlinContractDescriptionElement> effects = null;
         if (mayHaveContract) {
             effects = new ArrayList<>();
             int count = dataStream.readInt();
             for (int i = 0; i< count; i++) {
                 KotlinContractEffectType effectType = KotlinContractEffectType.getEntries().get(dataStream.readInt());
-                List<KotlinContractExpression> arguments = readExpressions(dataStream);
-                boolean hasConclusion = dataStream.readBoolean();
-                KotlinContractExpression conclusion = hasConclusion ? readExpression(dataStream) : null;
-                int invocationKindOrdinal = dataStream.readInt();
-                EventOccurrencesRange invocationKind = invocationKindOrdinal < 0 ? null : EventOccurrencesRange.getEntries().get(invocationKindOrdinal);
-                effects.add(new KotlinContractEffect(effectType, arguments, conclusion, invocationKind));
+                effects.add(effectType.deserialize(dataStream));
             }
         }
         return new KotlinFunctionStubImpl(
@@ -174,9 +114,6 @@ public class KtFunctionElementType extends KtStubElementType<KotlinFunctionStub,
                 hasTypeParameterListBeforeFunctionName, mayHaveContract, effects
         );
     }
-
-    //-1 corresponds to receiver
-    private static final int NO_VALUE_PARAMETER = -2;
 
     @Override
     public void indexStub(@NotNull KotlinFunctionStub stub, @NotNull IndexSink sink) {

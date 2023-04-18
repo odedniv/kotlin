@@ -16,13 +16,13 @@
 
 package org.jetbrains.kotlin.psi.stubs.impl
 
+import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
 import com.intellij.util.io.StringRef
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.stubs.KotlinFunctionStub
 import org.jetbrains.kotlin.psi.stubs.elements.KtStubElementTypes
-import org.jetbrains.kotlin.name.FqName
-import com.intellij.psi.PsiElement
 
 class KotlinFunctionStubImpl(
     parent: StubElement<out PsiElement>?,
@@ -34,7 +34,7 @@ class KotlinFunctionStubImpl(
     private val hasBody: Boolean,
     private val hasTypeParameterListBeforeFunctionName: Boolean,
     private val mayHaveContract: Boolean,
-    val contract: List<KotlinContractEffect>?
+    val contract: List<KotlinContractDescriptionElement>?
 ) : KotlinStubBaseImpl<KtNamedFunction>(parent, KtStubElementTypes.FUNCTION), KotlinFunctionStub {
     init {
         if (isTopLevel && fqName == null) {

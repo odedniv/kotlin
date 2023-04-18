@@ -30,6 +30,11 @@ interface IrInterningService {
  * and names in IR nodes
  */
 class DefaultIrInterningService : IrInterningService {
+    /**
+     * We use here an open-addressing map, because it consumes at least twice lesser memory than with bucket-based implementation:
+     * - Open-addressing (cost per entry): ref to key + ref to value
+     * - Bucket-based (cost per entry): hash code + ref to key + ref to value + ref to the next node + class header with memory alignment
+     */
     private val strings by lazy { ObjectOpenHashSet<String>() }
     private val names by lazy { ObjectOpenHashSet<Name>() }
 

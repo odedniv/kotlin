@@ -5,7 +5,9 @@
 
 package org.jetbrains.kotlin.analysis.low.level.api.fir.resolve.extensions
 
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ModificationTracker
+import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.kotlin.analysis.api.resolve.extensions.KtResolveExtension
 import org.jetbrains.kotlin.analysis.api.resolve.extensions.KtResolveExtensionFile
 import org.jetbrains.kotlin.analysis.api.resolve.extensions.KtResolveExtensionReferenceTargetsPsiProvider
@@ -192,16 +194,24 @@ private class LLFirResolveExtensionToolDeclarationProvider(
                 eventSystemEnabled = true // so every generated KtFile backed by some VirtualFile
             )
             val text = file.buildFileText()
-            val ktFile = createKtFile(factory, file.getFileName(), text)
+            val targetPsiProvider = file.createTargetPsiProvider()
+            val ktFile = createKtFile(factory, file.getFileName(), text, targetPsiProvider)
             FileBasedKotlinDeclarationProvider(ktFile)
         }
     }
 
 
     @OptIn(KtModuleStructureInternals::class)
-    private fun createKtFile(factory: KtPsiFactory, fileName: String, fileText: String): KtFile {
+    private fun createKtFile(
+        factory: KtPsiFactory,
+        fileName: String,
+        fileText: String,
+        targetPsiProvider: KtResolveExtensionReferenceTargetsPsiProvider
+    ): KtFile {
         val ktFile = factory.createFile(fileName, fileText)
-        ktFile.virtualFile.analysisContextModule = ktModule
+        val virtualFile = ktFile.virtualFile
+        virtualFile.analysisContextModule = ktModule
+        virtualFile.resolveExtensionReferenceTargetsPsiProvider = targetPsiProvider
         return ktFile
     }
 }
@@ -266,3 +276,6 @@ private class LLFirResolveExtensionToolPackageProvider(
 private fun ClassId.getTopLevelShortClassName(): Name {
     return Name.guessByFirstCharacter(relativeClassName.asString().substringBefore("."))
 }
+
+@KtModuleStructureInternals
+public var VirtualFile.resolveExtensionReferenceTargetsPsiProvider: KtResolveExtensionReferenceTargetsPsiProvider? by UserDataProperty(Key.create("KT_RESOLVE_EXTENSION_TARGET_PSI_PROVIDER"))

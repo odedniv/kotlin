@@ -62,7 +62,6 @@ void mm::ExtraObjectData::Uninstall() noexcept {
 #ifdef KONAN_OBJC_INTEROP
     if (getFlag(FLAGS_RELEASE_ON_MAIN_QUEUE) && isMainQueueProcessorAvailable()) {
         runOnMainQueue(associatedObject_, [](void* obj) {
-            CalledFromNativeGuard guard;
             Kotlin_ObjCExport_releaseAssociatedObject(obj);
         });
     } else {

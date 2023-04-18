@@ -43,16 +43,12 @@ class OnDestroyHookSub(onDestroy: (ULong) -> Unit) : OnDestroyHook(onDestroy)
 
 val aliveObjectIds = LockedSet<ULong>()
 
-fun uninline(f: () -> ULong): ULong = f()
-
-fun alloc(ctor: ((ULong) -> Unit) -> ULong): ULong = uninline {
-    autoreleasepool {
-        val id = ctor {
-            aliveObjectIds.remove(it)
-        }
-        aliveObjectIds.add(id)
-        id
+fun alloc(ctor: ((ULong) -> Unit) -> ULong): ULong = autoreleasepool {
+    val id = ctor {
+        aliveObjectIds.remove(it)
     }
+    aliveObjectIds.add(id)
+    id
 }
 
 fun waitDestruction(id: ULong) {
@@ -182,11 +178,9 @@ fun testProtocolOnSecondaryThread() {
     waitDestruction(id)
 }
 
-fun runAllTests(args: Array<String>) {
-    run {
-        val exitCode = testLauncherEntryPoint(args)
-        if (exitCode != 0) {
-            exitProcess(exitCode)
-        }
+fun runAllTests(args: Array<String>) = startApp {
+    val exitCode = testLauncherEntryPoint(args)
+    if (exitCode != 0) {
+        exitProcess(exitCode)
     }
 }

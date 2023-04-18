@@ -10,7 +10,7 @@
 -(uintptr_t)identity;
 @end
 
-void run(void(^task)());
+void startApp(void(^task)());
 uint64_t currentThreadId();
 BOOL isMainThread();
 void spin();

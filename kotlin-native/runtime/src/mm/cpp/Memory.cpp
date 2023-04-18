@@ -51,7 +51,7 @@ void ObjHeader::SetAssociatedObject(void* obj) {
     //       * prepopulate it for the system frameworks.
     //       * if that were to be done at runtime, library authors could register
     //         their types in a library initialization code.
-    if (pthread_main_np() != 0) {
+    if (pthread_main_np() == 1) {
         extraObject.setFlag(mm::ExtraObjectData::FLAGS_RELEASE_ON_MAIN_QUEUE);
     }
     return extraObject.AssociatedObject().store(obj, std::memory_order_release);
@@ -61,7 +61,7 @@ void* ObjHeader::CasAssociatedObject(void* expectedObj, void* obj) {
     auto& extraObject = mm::ExtraObjectData::FromMetaObjHeader(meta_object());
     bool success = extraObject.AssociatedObject().compare_exchange_strong(expectedObj, obj);
     // TODO: Consider additional filtering outlined above.
-    if (success && pthread_main_np() != 0) {
+    if (success && pthread_main_np() == 1) {
         extraObject.setFlag(mm::ExtraObjectData::FLAGS_RELEASE_ON_MAIN_QUEUE);
     }
     return expectedObj;

@@ -52,7 +52,7 @@
 
 @end
 
-void run(void (^task)()) {
+void startApp(void (^task)()) {
     dispatch_async(dispatch_get_main_queue(), ^{
         // At this point all other scheduled main queue tasks were already executed.
         // Executing via performBlock to allow a recursive run loop in `spin()`.

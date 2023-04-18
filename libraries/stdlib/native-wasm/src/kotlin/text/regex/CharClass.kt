@@ -217,6 +217,7 @@ internal class CharClass(val ignoreCase: Boolean = false, negative: Boolean = fa
         return this
     }
 
+    @OptIn(ExperimentalNativeApi::class)
     fun add(start: Int, end: Int): CharClass {
         if (start > end)
             throw IllegalArgumentException("Incorrect range of symbols (start > end)")

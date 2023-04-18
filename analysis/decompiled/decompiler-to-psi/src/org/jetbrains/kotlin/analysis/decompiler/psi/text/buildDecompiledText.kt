@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.analysis.decompiler.psi.text
 
 import com.intellij.openapi.util.TextRange
 import org.jetbrains.kotlin.analysis.decompiler.stub.COMPILED_DEFAULT_PARAMETER_VALUE
+import org.jetbrains.kotlin.builtins.StandardNames
 import org.jetbrains.kotlin.contracts.description.ContractProviderKey
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.name.FqName
@@ -21,6 +22,7 @@ import org.jetbrains.kotlin.resolve.DescriptorUtils.isEnumEntry
 import org.jetbrains.kotlin.resolve.constants.*
 import org.jetbrains.kotlin.resolve.descriptorUtil.secondaryConstructors
 import org.jetbrains.kotlin.types.isFlexible
+import org.jetbrains.kotlin.util.OperatorNameConventions
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 
 private const val DECOMPILED_CODE_COMMENT = "/* compiled code */"
@@ -50,7 +52,11 @@ internal fun CallableMemberDescriptor.mustNotBeWrittenToDecompiledText(): Boolea
 
         CallableMemberDescriptor.Kind.SYNTHESIZED -> {
             // Of all synthesized functions, only `component*` functions are rendered (for historical reasons)
-            !DataClassDescriptorResolver.isComponentLike(name)
+            !DataClassDescriptorResolver.isComponentLike(name) && name !in listOf(
+                OperatorNameConventions.EQUALS,
+                StandardNames.HASHCODE_NAME,
+                OperatorNameConventions.TO_STRING
+            )
         }
     }
 }

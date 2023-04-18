@@ -15,7 +15,6 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.PrintStream
 import kotlin.time.Duration
-import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 import kotlin.time.measureTimedValue
 import org.jetbrains.kotlin.konan.file.File as KonanFile
@@ -31,7 +30,6 @@ internal fun callCompiler(compilerArgs: Array<String>, kotlinNativeClassLoader: 
     val compilerXmlOutput: ByteArrayOutputStream
     val exitCode: ExitCode
 
-    @OptIn(ExperimentalTime::class)
     val duration = measureTime {
         val servicesClass = Class.forName(Services::class.java.canonicalName, true, kotlinNativeClassLoader)
         val emptyServices = servicesClass.getField("EMPTY").get(servicesClass)
@@ -81,7 +79,6 @@ internal fun callCompilerWithoutOutputInterceptor(
     val exitCode: ExitCode
     val compilerOutput: String
 
-    @OptIn(ExperimentalTime::class)
     val duration = measureTime {
         val compilerClass = Class.forName("org.jetbrains.kotlin.cli.bc.K2Native", true, kotlinNativeClassLoader)
         val entryPoint = compilerClass.getMethod(
@@ -107,7 +104,6 @@ internal fun callCompilerWithoutOutputInterceptor(
     return CompilationToolCallResult(exitCode, compilerOutput, toolOutputHasErrors = toolOutputHasErrors, duration)
 }
 
-@OptIn(ExperimentalTime::class)
 internal fun invokeCInterop(
     kotlinNativeClassLoader: ClassLoader,
     targets: KotlinNativeTargets,

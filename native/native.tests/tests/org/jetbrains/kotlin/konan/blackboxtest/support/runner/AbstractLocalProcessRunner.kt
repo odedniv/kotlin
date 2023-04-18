@@ -24,7 +24,6 @@ internal abstract class AbstractLocalProcessRunner<R>(protected val checks: Test
 
     protected open fun customizeProcess(process: Process) = Unit
 
-    @OptIn(ExperimentalTime::class)
     final override fun buildRun() = AbstractRun {
         runBlocking(Dispatchers.IO) {
             val unfilteredOutput = UnfilteredProcessOutput()

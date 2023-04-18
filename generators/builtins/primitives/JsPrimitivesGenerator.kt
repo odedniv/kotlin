@@ -35,7 +35,6 @@ class JsPrimitivesGenerator(writer: PrintWriter) : BasePrimitivesGenerator(write
     }
 
     override fun MethodBuilder.modifyGeneratedRangeUntil(thisKind: PrimitiveType) {
-        if (thisKind != PrimitiveType.INT) return
         "this until $parameterName".addAsSingleLineBody(bodyOnNewLine = false)
     }
 }

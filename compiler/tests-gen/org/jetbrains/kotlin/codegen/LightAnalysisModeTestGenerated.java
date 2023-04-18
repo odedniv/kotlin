@@ -12592,6 +12592,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)
     public static class Delegation extends AbstractLightAnalysisModeTest {
+        @TestMetadata("delegationToIntersectionType2.kt")
+        public void ignoreDelegationToIntersectionType2() throws Exception {
+            runTest("compiler/testData/codegen/box/delegation/delegationToIntersectionType2.kt");
+        }
+
         @TestMetadata("kt30102_comparable.kt")
         public void ignoreKt30102_comparable() throws Exception {
             runTest("compiler/testData/codegen/box/delegation/kt30102_comparable.kt");
@@ -12628,11 +12633,6 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
         @TestMetadata("delegationToIntersectionType.kt")
         public void testDelegationToIntersectionType() throws Exception {
             runTest("compiler/testData/codegen/box/delegation/delegationToIntersectionType.kt");
-        }
-
-        @TestMetadata("delegationToIntersectionType2.kt")
-        public void testDelegationToIntersectionType2() throws Exception {
-            runTest("compiler/testData/codegen/box/delegation/delegationToIntersectionType2.kt");
         }
 
         @TestMetadata("delegationToMap.kt")

@@ -11,8 +11,8 @@ import com.intellij.psi.codeStyle.CodeStyleSettingsFacade
 import com.intellij.psi.codeStyle.JavaFileCodeStyleFacade
 import com.intellij.psi.codeStyle.JavaFileCodeStyleFacadeFactory
 
-class DummyJavaFileCodeStyleFacadeFactory : JavaFileCodeStyleFacadeFactory {
-    class DummyJavaFileCodeStyleFacade : JavaFileCodeStyleFacade {
+internal class DummyJavaFileCodeStyleFacadeFactory : JavaFileCodeStyleFacadeFactory {
+    private class DummyJavaFileCodeStyleFacade : JavaFileCodeStyleFacade {
         override fun getNamesCountToUseImportOnDemand(): Int = 0
         override fun isToImportOnDemand(qualifiedName: String): Boolean = false
         override fun useFQClassNames(): Boolean = false

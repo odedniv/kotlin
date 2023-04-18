@@ -763,8 +763,15 @@ abstract class CommonCompilerArguments : CommonToolArguments() {
             field = value
         }
 
+    protected var isFallbackMode = false
+        private set
+
     @OptIn(IDEAPluginsCompatibilityAPI::class)
     open fun configureAnalysisFlags(collector: MessageCollector, languageVersion: LanguageVersion): MutableMap<AnalysisFlag<*>, Any> {
+        if (isFallbackMode) {
+            skipMetadataVersionCheck = true
+            skipPrereleaseCheck = true
+        }
         return HashMap<AnalysisFlag<*>, Any>().apply {
             put(AnalysisFlags.skipMetadataVersionCheck, skipMetadataVersionCheck)
             put(AnalysisFlags.skipPrereleaseCheck, skipPrereleaseCheck || skipMetadataVersionCheck)
@@ -790,8 +797,11 @@ abstract class CommonCompilerArguments : CommonToolArguments() {
         }
     }
 
-    open fun configureLanguageFeatures(collector: MessageCollector): MutableMap<LanguageFeature, LanguageFeature.State> =
-        HashMap<LanguageFeature, LanguageFeature.State>().apply {
+    open fun configureLanguageFeatures(collector: MessageCollector): MutableMap<LanguageFeature, LanguageFeature.State> {
+        if (isFallbackMode) {
+            useK2 = false
+        }
+        return HashMap<LanguageFeature, LanguageFeature.State>().apply {
             if (multiPlatform) {
                 put(LanguageFeature.MultiPlatformProjects, LanguageFeature.State.ENABLED)
             }
@@ -869,6 +879,7 @@ abstract class CommonCompilerArguments : CommonToolArguments() {
                 configureLanguageFeaturesFromInternalArgs(collector)
             }
         }
+    }
 
     private fun HashMap<LanguageFeature, LanguageFeature.State>.configureLanguageFeaturesFromInternalArgs(collector: MessageCollector) {
         val featuresThatForcePreReleaseBinaries = mutableListOf<LanguageFeature>()
@@ -924,24 +935,25 @@ abstract class CommonCompilerArguments : CommonToolArguments() {
     }
 
     fun toLanguageVersionSettings(collector: MessageCollector): LanguageVersionSettings {
-        return toLanguageVersionSettings(collector, emptyMap())
-    }
-
-    fun toLanguageVersionSettings(
-        collector: MessageCollector,
-        additionalAnalysisFlags: Map<AnalysisFlag<*>, Any>
-    ): LanguageVersionSettings {
-        val languageVersion = parseOrConfigureLanguageVersion(collector)
+        var languageVersion = parseOrConfigureLanguageVersion(collector)
         // If only "-language-version" is specified, API version is assumed to be equal to the language version
         // (API version cannot be greater than the language version)
-        val apiVersion = ApiVersion.createByLanguageVersion(parseVersion(collector, apiVersion, "API") ?: languageVersion)
+        var apiVersion = ApiVersion.createByLanguageVersion(parseVersion(collector, apiVersion, "API") ?: languageVersion)
 
         checkApiVersionIsNotGreaterThenLanguageVersion(languageVersion, apiVersion, collector)
+
+        val isKaptUsed = pluginOptions?.any { it.startsWith("plugin:org.jetbrains.kotlin.kapt3") } == true
+        if (isKaptUsed && languageVersion >= LanguageVersion.KOTLIN_2_0) {
+            collector.report(WARNING, "Kapt currently doesn't support language version $languageVersion.\nFalling back to 1.9.")
+            languageVersion = LanguageVersion.KOTLIN_1_9
+            apiVersion = minOf(apiVersion, ApiVersion.KOTLIN_1_9)
+            isFallbackMode = true
+        }
 
         val languageVersionSettings = LanguageVersionSettingsImpl(
             languageVersion,
             apiVersion,
-            configureAnalysisFlags(collector, languageVersion) + additionalAnalysisFlags,
+            configureAnalysisFlags(collector, languageVersion),
             configureLanguageFeatures(collector)
         )
 

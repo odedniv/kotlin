@@ -27,7 +27,10 @@ import org.jetbrains.kotlin.cli.common.messages.PrintingMessageCollector
 import org.jetbrains.kotlin.cli.jvm.config.JavaSourceRoot
 import org.jetbrains.kotlin.cli.jvm.config.JvmClasspathRoot
 import org.jetbrains.kotlin.compiler.plugin.*
-import org.jetbrains.kotlin.config.*
+import org.jetbrains.kotlin.config.CommonConfigurationKeys
+import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.config.CompilerConfigurationKey
+import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.container.ComponentProvider
 import org.jetbrains.kotlin.container.StorageComponentContainer
 import org.jetbrains.kotlin.container.useInstance
@@ -67,43 +70,9 @@ class Kapt3CommandLineProcessor : CommandLineProcessor {
         }
         if (configuration.getBoolean(CommonConfigurationKeys.USE_FIR)) {
             configuration[CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY]?.report(
-                CompilerMessageSeverity.WARNING,
-                "Kapt currently doesn't support language version 2.0.\nFalling back to 1.9."
+                CompilerMessageSeverity.ERROR,
+                "kapt currently doesn't support language version 2.0\nPlease use language version 1.9 or below"
             )
-            configuration.put(CommonConfigurationKeys.USE_FIR, false)
-            val baseLanguageVersionSettings = configuration[CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS]
-            val fallbackLanguageVersionSettings =
-                if (baseLanguageVersionSettings == null)
-                    LanguageVersionSettingsImpl(LanguageVersion.KOTLIN_1_9, ApiVersion.KOTLIN_1_9)
-                else
-                    object : LanguageVersionSettings {
-                        override fun getFeatureSupport(feature: LanguageFeature): LanguageFeature.State {
-                            val since = feature.sinceVersion
-                            return if (since != null && since > languageVersion || feature.sinceApiVersion > apiVersion)
-                                LanguageFeature.State.DISABLED
-                            else
-                                baseLanguageVersionSettings.getFeatureSupport(feature)
-                        }
-
-                        override fun isPreRelease(): Boolean = !languageVersion.isStable ||
-                                LanguageFeature.values().any {
-                                    getFeatureSupport(it) == LanguageFeature.State.ENABLED && it.forcesPreReleaseBinariesIfEnabled()
-                                }
-
-                        @Suppress("UNCHECKED_CAST")
-                        override fun <T> getFlag(flag: AnalysisFlag<T>): T =
-                            when (flag) {
-                                AnalysisFlags.skipMetadataVersionCheck, AnalysisFlags.skipPrereleaseCheck -> true as T
-                                else -> baseLanguageVersionSettings.getFlag(flag)
-                            }
-
-                        override val apiVersion: ApiVersion
-                            get() = ApiVersion.KOTLIN_1_9
-
-                        override val languageVersion: LanguageVersion
-                            get() = LanguageVersion.KOTLIN_1_9
-                    }
-            configuration.put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, fallbackLanguageVersionSettings)
         }
 
         val kaptOptions = configuration[KAPT_OPTIONS]

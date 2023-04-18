@@ -65,6 +65,9 @@ abstract class AbstractAdditionalStubInfoTest : AbstractDecompiledClassTest() {
                             })
                 }
             }
+            is KotlinParameterStubImpl -> {
+                stub.functionTypeParameterName?.let { builder.append("   paramNameByAnnotation: ").append(it) }
+            }
         }
         for (child in stub.childrenStubs) {
             builder.append("\n").append("  ".repeat(level))

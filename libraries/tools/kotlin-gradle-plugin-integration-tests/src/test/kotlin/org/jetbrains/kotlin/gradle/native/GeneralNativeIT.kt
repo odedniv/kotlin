@@ -8,7 +8,6 @@ package org.jetbrains.kotlin.gradle.native
 import com.intellij.testFramework.TestDataFile
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
-import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.GradleVersion
 import org.jdom.input.SAXBuilder
 import org.jetbrains.kotlin.gradle.*
@@ -1219,7 +1218,7 @@ class GeneralNativeIT : BaseGradleIT() {
         }
 
         /**
-         * Filter [BuildResult.getOutput] for specific task with given [taskPath]
+         * Filter output for specific task with given [taskPath]
          *
          * Requires using [LogLevel.DEBUG].
          */

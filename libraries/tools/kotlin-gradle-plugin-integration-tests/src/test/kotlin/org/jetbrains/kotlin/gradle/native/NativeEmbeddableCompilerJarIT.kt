@@ -30,8 +30,8 @@ internal class NativeEmbeddableCompilerJarIT : KGPBaseTest() {
         nativeProject("executables".withPrefix, gradleVersion) {
             build(":linkDebugExecutableHost", buildOptions = buildOptions.copy(logLevel = LogLevel.DEBUG)) {
                 assertTasksClasspath(":linkDebugExecutableHost", ":compileKotlinHost") {
-                    assertFalse(it.includesRegularJar())
-                    assertTrue(it.includesEmbeddableJar())
+                    assertFalse(it.includesRegularJar(), "Actual classpath is: $it")
+                    assertTrue(it.includesEmbeddableJar(), "Actual classpath is: $it")
                 }
             }
         }
@@ -47,8 +47,8 @@ internal class NativeEmbeddableCompilerJarIT : KGPBaseTest() {
                 buildOptions = buildOptions.copy(logLevel = LogLevel.DEBUG)
             ) {
                 assertTasksClasspath(":linkDebugExecutableHost", ":compileKotlinHost") {
-                    assertTrue(it.includesRegularJar())
-                    assertFalse(it.includesEmbeddableJar())
+                    assertTrue(it.includesRegularJar(), "Actual classpath is: $it")
+                    assertFalse(it.includesEmbeddableJar(), "Actual classpath is: $it")
                 }
             }
         }
@@ -64,8 +64,8 @@ internal class NativeEmbeddableCompilerJarIT : KGPBaseTest() {
                 buildOptions = buildOptions.copy(logLevel = LogLevel.DEBUG)
             ) {
                 assertTasksClasspath(":linkDebugExecutableHost", ":compileKotlinHost") {
-                    assertFalse(it.includesRegularJar())
-                    assertTrue(it.includesEmbeddableJar())
+                    assertFalse(it.includesRegularJar(), "Actual classpath is: $it")
+                    assertTrue(it.includesEmbeddableJar(), "Actual classpath is: $it")
                 }
             }
         }
@@ -77,8 +77,8 @@ internal class NativeEmbeddableCompilerJarIT : KGPBaseTest() {
         nativeProject("executables".withPrefix, gradleVersion) {
             build(":linkDebugExecutableHost", buildOptions = buildOptions.copy(logLevel = LogLevel.DEBUG)) {
                 assertTasksClasspath(":linkDebugExecutableHost", ":compileKotlinHost") {
-                    assertFalse(it.includesRegularJar())
-                    assertTrue(it.includesEmbeddableJar())
+                    assertFalse(it.includesRegularJar(), "Actual classpath is: $it")
+                    assertTrue(it.includesEmbeddableJar(), "Actual classpath is: $it")
                 }
             }
 
@@ -93,8 +93,8 @@ internal class NativeEmbeddableCompilerJarIT : KGPBaseTest() {
             ) {
                 assertTasksExecuted(":linkDebugExecutableHost", ":compileKotlinHost")
                 assertTasksClasspath(":linkDebugExecutableHost", ":compileKotlinHost") {
-                    assertTrue(it.includesRegularJar())
-                    assertFalse(it.includesEmbeddableJar())
+                    assertTrue(it.includesRegularJar(), "Actual classpath is: $it")
+                    assertFalse(it.includesEmbeddableJar(), "Actual classpath is: $it")
                 }
             }
         }

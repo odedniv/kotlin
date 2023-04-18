@@ -586,12 +586,8 @@ class GenerateIrRuntime {
         ExternalDependenciesGenerator(symbolTable, listOf(jsLinker))
             .generateUnboundSymbolsAsDependencies()
 
-<<<<<<< HEAD
         jsLinker.postProcess(inOrAfterLinkageStep = true)
-=======
-        jsLinker.postProcess()
         jsLinker.clear()
->>>>>>> b9f4bea38ff (define another finaliztion method inside KotlinIrLinker to clean internationService)
 
         moduleFragment.patchDeclarationParents()
 

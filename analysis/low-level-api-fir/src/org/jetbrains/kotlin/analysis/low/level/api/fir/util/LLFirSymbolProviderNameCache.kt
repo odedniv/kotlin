@@ -19,12 +19,38 @@ import org.jetbrains.kotlin.name.Name
  * symbol finding early if the symbol name isn't contained in the symbol provider's domain.
  */
 internal abstract class LLFirSymbolProviderNameCache {
+    /**
+     * Returns the set of top-level classifier (classes, interfaces, objects, and type-aliases) names in the given scope inside the [packageFqName].
+     *
+     * The result may have false-positive entries but cannot have false-negative entries. It should contain all the names in the package but may have some additional names that are not there.
+     *
+     * The null value might be returned when it's too heavyweight to calculate the results.
+     */
     abstract fun getTopLevelClassifierNamesInPackage(packageFqName: FqName): Set<String>?
 
+
+    /**
+     * Returns the set of top-level callable (functions and properties) names in the given scope inside the [packageFqName].
+     *
+     * The result may have false-positive entries but cannot have false-negative entries. It should contain all the names in the package but may have some additional names that are not there.
+     *
+     * The null value might be returned when it's too heavyweight to calculate the results.
+     */
     abstract fun getTopLevelCallableNamesInPackage(packageFqName: FqName): Set<Name>?
 
+
+    /**
+     * Checks if the scope may contain a top-level classifier (class, interface, object, or type-alias) with the given [classId].
+     *
+     * The result may be a false-positive result but cannot be a false-negative.
+     */
     abstract fun mayHaveTopLevelClassifier(classId: ClassId, mayHaveFunctionClass: Boolean): Boolean
 
+    /**
+     * Checks if the scope may contain a top-level callable (function or property) with the [name] inside the [packageFqName].
+     *
+     * The result may be a false-positive result but cannot be a false-negative.
+     */
     abstract fun mayHaveTopLevelCallable(packageFqName: FqName, name: Name): Boolean
 }
 

@@ -354,9 +354,13 @@ class CallAndReferenceGenerator(
             val isDynamicAccess = firSymbol?.origin == FirDeclarationOrigin.DynamicScope
 
             if (isDynamicAccess) {
+                val receiverExpression = explicitReceiverExpression
+                    ?: (qualifiedAccess.dispatchReceiver as? FirThisReceiverExpression)?.let(visitor::convertToIrExpression)
+                    ?: error("Must've had a receiver")
+
                 return convertToIrCallForDynamic(
                     qualifiedAccess,
-                    explicitReceiverExpression ?: error("Must've had a receiver"),
+                    receiverExpression,
                     type,
                     calleeReference,
                     firSymbol ?: error("Must have had a symbol"),
@@ -520,9 +524,9 @@ class CallAndReferenceGenerator(
             val isDynamicAccess = firSymbol?.origin == FirDeclarationOrigin.DynamicScope
 
             if (isDynamicAccess) {
-                val receiverExpression = (explicitReceiverExpression
+                val receiverExpression = explicitReceiverExpression
                     ?: (variableAssignment.dispatchReceiver as? FirThisReceiverExpression)?.let(visitor::convertToIrExpression)
-                    ?: error("Must've had a receiver"))
+                    ?: error("Must've had a receiver")
 
                 return convertToIrSetCallForDynamic(
                     variableAssignment,

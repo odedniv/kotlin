@@ -42,8 +42,6 @@
          <trust group="org.jetbrains.kotlin" name="kotlin-scripting-jvm" version="1.9.[0-9](-.+)?" regex="true"/>
          <trust group="org.jetbrains.kotlin" name="kotlin-serialization" version="1.9.[0-9](-.+)?" regex="true"/>
          <trust group="org.jetbrains.kotlin" name="kotlin-serialization-unshaded" version="1.9.[0-9](-.+)?" regex="true"/>
-         <trust group="org.jetbrains.kotlin" name="kotlinx-serialization-compiler-plugin" version="1.9.[0-9](-.+)?" regex="true"/>
-         <trust group="org.jetbrains.kotlin" name="kotlinx-serialization-compiler-plugin-embeddable" version="1.9.[0-9](-.+)?" regex="true"/>
          <trust group="org.jetbrains.kotlin" name="kotlin-stdlib" version="1.9.[0-9](-.+)?" regex="true"/>
          <trust group="org.jetbrains.kotlin" name="kotlin-stdlib-common" version="1.9.[0-9](-.+)?" regex="true"/>
          <trust group="org.jetbrains.kotlin" name="kotlin-stdlib-jdk7" version="1.9.[0-9](-.+)?" regex="true"/>
@@ -60,6 +58,8 @@
          <trust group="org.jetbrains.kotlin" name="kotlin-tooling-metadata" version="1.9.[0-9](-.+)?" regex="true"/>
          <trust group="org.jetbrains.kotlin" name="kotlin-util-io" version="1.9.[0-9](-.+)?" regex="true"/>
          <trust group="org.jetbrains.kotlin" name="kotlin-util-klib" version="1.9.[0-9](-.+)?" regex="true"/>
+         <trust group="org.jetbrains.kotlin" name="kotlinx-serialization-compiler-plugin" version="1.9.[0-9](-.+)?" regex="true"/>
+         <trust group="org.jetbrains.kotlin" name="kotlinx-serialization-compiler-plugin-embeddable" version="1.9.[0-9](-.+)?" regex="true"/>
       </trusted-artifacts>
    </configuration>
    <components>

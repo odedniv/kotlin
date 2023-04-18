@@ -143,7 +143,7 @@ val commonCompilerModules = arrayOf(
     ":analysis:project-structure",
     ":analysis:kt-references",
     ":kotlin-build-common",
-    ":compiler:kotlin-build-statistic",
+    ":compiler:build-tools:kotlin-build-statistic",
 ).also { extra["commonCompilerModules"] = it }
 
 val firCompilerCoreModules = arrayOf(
@@ -263,7 +263,7 @@ extra["kotlinJpsPluginMavenDependencies"] = listOf(
     ":kotlin-util-klib",
     ":kotlin-util-klib-metadata",
     ":native:kotlin-native-utils",
-    ":compiler:kotlin-build-statistic",
+    ":compiler:build-tools:kotlin-build-statistic",
 )
 
 extra["kotlinJpsPluginMavenDependenciesNonTransitiveLibs"] = listOf(

@@ -64,7 +64,7 @@ dependencies {
     commonImplementation(project(":kotlin-util-klib"))
     commonImplementation(project(":native:kotlin-klib-commonizer-api"))
     commonImplementation(project(":kotlin-project-model"))
-    commonImplementation(project(":compiler:kotlin-build-statistic"))
+    commonImplementation(project(":compiler:build-tools:kotlin-build-statistic"))
 
     commonRuntimeOnly(project(":kotlin-compiler-embeddable"))
     commonRuntimeOnly(project(":kotlin-annotation-processing-embeddable"))
@@ -99,7 +99,7 @@ dependencies {
     testImplementation(commonDependency("junit:junit"))
     testImplementation(project(":kotlin-gradle-statistics"))
     testImplementation(project(":kotlin-tooling-metadata"))
-    testImplementation(projectTests(":compiler:kotlin-build-statistic"))
+    testImplementation(projectTests(":compiler:build-tools:kotlin-build-statistic"))
 }
 
 if (kotlinBuildProperties.isInJpsBuildIdeaSync) {

@@ -20,7 +20,7 @@ dependencies {
     api(project(":compiler:backend.jvm.entrypoint"))
     api(project(":kotlin-build-common"))
     api(project(":daemon-common"))
-    api(project(":kotlin-build-statistic"))
+    api(project(":compiler:kotlin-build-statistic"))
     compileOnly(intellijCore())
 
     testApi(commonDependency("junit:junit"))
@@ -31,7 +31,7 @@ dependencies {
     testApi(intellijCore())
     testApi(commonDependency("org.jetbrains.intellij.deps:log4j"))
     testApi(commonDependency("org.jetbrains.intellij.deps:jdom"))
-    testApi(projectTests(":kotlin-build-statistic"))
+    testApi(projectTests(":compiler:kotlin-build-statistic"))
 
     testImplementation(commonDependency("com.google.code.gson:gson"))
     testRuntimeOnly(commonDependency("org.jetbrains.kotlin:kotlin-reflect")) { isTransitive = false }

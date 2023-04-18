@@ -6,7 +6,7 @@
 package org.jetbrains.kotlin.build.report.statistic
 
 import com.google.gson.Gson
-import org.jetbrains.kotlin.util.Logger
+import org.jetbrains.kotlin.compilerRunner.KotlinLogger
 import java.io.IOException
 import java.io.Serializable
 import java.net.HttpURLConnection
@@ -15,7 +15,7 @@ import java.util.*
 import kotlin.system.measureTimeMillis
 
 interface HttpReportService {
-    fun sendData(data: Any, log: Logger)
+    fun sendData(data: Any, log: KotlinLogger)
 }
 
 class HttpReportServiceImpl(
@@ -27,18 +27,20 @@ class HttpReportServiceImpl(
     private var invalidUrl = false
     private var requestPreviousFailed = false
 
-    private fun checkResponseAndLog(connection: HttpURLConnection, log: Logger) {
+    private fun checkResponseAndLog(connection: HttpURLConnection, log: KotlinLogger) {
         val isResponseBad = connection.responseCode !in 200..299
         if (isResponseBad) {
             val message = "Failed to send statistic to ${connection.url} with ${connection.responseCode}: ${connection.responseMessage}"
             if (!requestPreviousFailed) {
-                log.warning(message)
+                log.warn(message)
+            } else {
+                log.debug(message)
             }
             requestPreviousFailed = true
         }
     }
 
-    override fun sendData(data: Any, log: Logger) {
+    override fun sendData(data: Any, log: KotlinLogger) {
         val elapsedTime = measureTimeMillis {
             if (invalidUrl) {
                 return
@@ -46,7 +48,7 @@ class HttpReportServiceImpl(
             val connection = try {
                 URL(url).openConnection() as HttpURLConnection
             } catch (e: IOException) {
-                log.warning("Unable to open connection to ${url}: ${e.message}")
+                log.warn("Unable to open connection to ${url}: ${e.message}")
                 invalidUrl = true
                 return
             }
@@ -67,12 +69,12 @@ class HttpReportServiceImpl(
                 connection.connect()
                 checkResponseAndLog(connection, log)
             } catch (e: Exception) {
-                log.warning("Unexpected exception happened ${e.message}: ${e.stackTrace}")
+                log.warn("Unexpected exception happened ${e.message}: ${e.stackTrace}")
                 checkResponseAndLog(connection, log)
             } finally {
                 connection.disconnect()
             }
         }
-        log.log("Report statistic by http takes $elapsedTime ms")
+        log.debug("Report statistic by http takes $elapsedTime ms")
     }
 }

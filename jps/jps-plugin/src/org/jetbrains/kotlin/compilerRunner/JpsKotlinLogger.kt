@@ -19,8 +19,8 @@ package org.jetbrains.kotlin.compilerRunner
 import com.intellij.openapi.diagnostic.Logger
 
 internal class JpsKotlinLogger(private val log: Logger) : KotlinLogger {
-    override fun error(msg: String) {
-        log.error(msg)
+    override fun error(msg: String, throwable: Throwable?) {
+        log.error(msg, throwable)
     }
 
     override fun warn(msg: String) {
@@ -33,6 +33,14 @@ internal class JpsKotlinLogger(private val log: Logger) : KotlinLogger {
 
     override fun debug(msg: String) {
         log.debug(msg)
+    }
+
+    override fun lifecycle(msg: String) {
+        TODO("Not yet implemented")
+    }
+
+    override fun fatal(msg: String): Nothing {
+        TODO("Not yet implemented")
     }
 
     override val isDebugEnabled: Boolean

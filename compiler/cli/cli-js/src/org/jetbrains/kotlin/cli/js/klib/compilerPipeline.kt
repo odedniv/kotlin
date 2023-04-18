@@ -49,7 +49,6 @@ import org.jetbrains.kotlin.library.KotlinAbiVersion
 import org.jetbrains.kotlin.library.unresolvedDependencies
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.js.JsPlatforms
-import org.jetbrains.kotlin.progress.IncrementalNextRoundException
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
 import org.jetbrains.kotlin.utils.metadataVersion
@@ -211,12 +210,12 @@ fun serializeFirKlib(
     }
 }
 
-fun compareFirMetadataAndGoToNextICRoundIfNeeded(
+fun shouldGoToNextIcRound(
     moduleStructure: ModulesStructure,
     firOutputs: List<ModuleCompilerAnalyzedOutput>,
     fir2IrActualizedResult: Fir2IrActualizedResult,
     config: CompilerConfiguration,
-) {
+): Boolean {
     val sourceFiles = mutableListOf<KtSourceFile>()
     val firFilesAndSessionsBySourceFile = mutableMapOf<KtSourceFile, Triple<FirFile, FirSession, ScopeSession>>()
 
@@ -231,7 +230,7 @@ fun compareFirMetadataAndGoToNextICRoundIfNeeded(
 
     val actualizedExpectDeclarations = fir2IrActualizedResult.irActualizationResult.extractFirDeclarations()
 
-    val nextRoundChecker = config.get(JSConfigurationKeys.INCREMENTAL_NEXT_ROUND_CHECKER) ?: return
+    val nextRoundChecker = config.get(JSConfigurationKeys.INCREMENTAL_NEXT_ROUND_CHECKER) ?: return false
 
     for (ktFile in sourceFiles) {
 
@@ -256,5 +255,5 @@ fun compareFirMetadataAndGoToNextICRoundIfNeeded(
         nextRoundChecker.checkProtoChanges(File(ktFile.path!!), packageFragment.toByteArray())
     }
 
-    if (nextRoundChecker.shouldGoToNextRound()) throw IncrementalNextRoundException()
+    return nextRoundChecker.shouldGoToNextRound()
 }

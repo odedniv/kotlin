@@ -6,10 +6,8 @@
 package org.jetbrains.kotlin.fir.scopes.impl
 
 import org.jetbrains.kotlin.fir.FirSession
-import org.jetbrains.kotlin.fir.caches.FirCache
-import org.jetbrains.kotlin.fir.caches.FirLazyValue
-import org.jetbrains.kotlin.fir.caches.firCachesFactory
-import org.jetbrains.kotlin.fir.caches.getValue
+import org.jetbrains.kotlin.fir.FirSessionComponent
+import org.jetbrains.kotlin.fir.caches.*
 import org.jetbrains.kotlin.fir.declarations.FirClass
 import org.jetbrains.kotlin.fir.declarations.FirRegularClass
 import org.jetbrains.kotlin.fir.declarations.utils.classId
@@ -62,39 +60,27 @@ class FirGeneratedClassDeclaredMemberScope private constructor(
         useSiteSession.nestedClassifierScope(firClass)
     }
 
-    private val firCachesFactory = useSiteSession.firCachesFactory
-
     // ------------------------------------------ caches ------------------------------------------
 
-    private val functionCache: FirCache<Name, List<FirNamedFunctionSymbol>, Nothing?> = firCachesFactory.createCache { callableId, _ ->
-        generateMemberFunctions(callableId)
-    }
-
-    private val propertyCache: FirCache<Name, List<FirPropertySymbol>, Nothing?> = firCachesFactory.createCache { callableId, _ ->
-        generateMemberProperties(callableId)
-    }
-
-    private val constructorCache: FirLazyValue<List<FirConstructorSymbol>> = firCachesFactory.createLazyValue {
-        generateConstructors()
-    }
+    private val cache = firClass.moduleData.session.generatedDeclarationsCache.cacheByClass.getValue(firClass.symbol)
 
     // ------------------------------------------ generators ------------------------------------------
 
-    private fun generateMemberFunctions(name: Name): List<FirNamedFunctionSymbol> {
+    internal fun generateMemberFunctions(name: Name): List<FirNamedFunctionSymbol> {
         if (name == SpecialNames.INIT) return emptyList()
         return extensionsByCallableName[name].orEmpty()
             .flatMap { it.generateFunctions(CallableId(firClass.classId, name), generationContext) }
             .onEach { it.fir.validate() }
     }
 
-    private fun generateMemberProperties(name: Name): List<FirPropertySymbol> {
+    internal fun generateMemberProperties(name: Name): List<FirPropertySymbol> {
         if (name == SpecialNames.INIT) return emptyList()
         return extensionsByCallableName[name].orEmpty()
             .flatMap { it.generateProperties(CallableId(firClass.classId, name), generationContext) }
             .onEach { it.fir.validate() }
     }
 
-    private fun generateConstructors(): List<FirConstructorSymbol> {
+    internal fun generateConstructors(): List<FirConstructorSymbol> {
         return extensionsByCallableName[SpecialNames.INIT].orEmpty()
             .flatMap { it.generateConstructors(generationContext) }
             .onEach { it.fir.validate() }
@@ -116,20 +102,20 @@ class FirGeneratedClassDeclaredMemberScope private constructor(
 
     override fun processFunctionsByName(name: Name, processor: (FirNamedFunctionSymbol) -> Unit) {
         if (name !in getCallableNames()) return
-        for (functionSymbol in functionCache.getValue(name)) {
+        for (functionSymbol in cache.functionCache.getValue(name, this)) {
             processor(functionSymbol)
         }
     }
 
     override fun processPropertiesByName(name: Name, processor: (FirVariableSymbol<*>) -> Unit) {
         if (name !in getCallableNames()) return
-        for (propertySymbol in propertyCache.getValue(name)) {
+        for (propertySymbol in cache.propertyCache.getValue(name, this)) {
             processor(propertySymbol)
         }
     }
 
     override fun processDeclaredConstructors(processor: (FirConstructorSymbol) -> Unit) {
-        for (constructorSymbol in constructorCache.getValue()) {
+        for (constructorSymbol in cache.getConstructors(this)) {
             processor(constructorSymbol)
         }
     }
@@ -181,12 +167,9 @@ class FirGeneratedClassNestedClassifierScope private constructor(
         }
     }
 
-    private val nestedClassifierCache: FirCache<Name, FirRegularClassSymbol?, Nothing?> =
-        useSiteSession.firCachesFactory.createCache { name, _ ->
-            generateNestedClassifier(name)
-        }
+    private val cache = context.owner.moduleData.session.generatedDeclarationsCache.cacheByClass.getValue(context.owner)
 
-    private fun generateNestedClassifier(name: Name): FirRegularClassSymbol? {
+    internal fun generateNestedClassifier(name: Name): FirRegularClassSymbol? {
         if (klass is FirRegularClass) {
             val companion = klass.companionObjectSymbol
             if (companion != null && companion.origin.generated && companion.classId.shortClassName == name) {
@@ -217,7 +200,7 @@ class FirGeneratedClassNestedClassifierScope private constructor(
     }
 
     override fun getNestedClassSymbol(name: Name): FirRegularClassSymbol? {
-        return nestedClassifierCache.getValue(name)
+        return cache.classifiersCache.getValue(name, this)
     }
 
     override fun isEmpty(): Boolean {
@@ -228,3 +211,30 @@ class FirGeneratedClassNestedClassifierScope private constructor(
         return extensionsByName.keys
     }
 }
+
+class FirGeneratedMemberDeclarationsCache(session: FirSession) : FirSessionComponent {
+    private val cachesFactory = session.firCachesFactory
+
+    internal val cacheByClass: FirCache<FirClassSymbol<*>, Cache, Nothing?> =
+        cachesFactory.createCache { _ -> Cache(cachesFactory) }
+
+    internal class Cache(cachesFactory: FirCachesFactory) {
+        val functionCache: FirCache<Name, List<FirNamedFunctionSymbol>, FirGeneratedClassDeclaredMemberScope> =
+            cachesFactory.createCache { name, scope -> scope.generateMemberFunctions(name) }
+
+        val propertyCache: FirCache<Name, List<FirPropertySymbol>, FirGeneratedClassDeclaredMemberScope> =
+            cachesFactory.createCache { name, scope -> scope.generateMemberProperties(name) }
+
+        private val constructorCache: FirCache<Unit, List<FirConstructorSymbol>, FirGeneratedClassDeclaredMemberScope> =
+            cachesFactory.createCache { _, scope -> scope.generateConstructors() }
+
+        fun getConstructors(scope: FirGeneratedClassDeclaredMemberScope): List<FirConstructorSymbol> {
+            return constructorCache.getValue(Unit, scope)
+        }
+
+        val classifiersCache: FirCache<Name, FirRegularClassSymbol?, FirGeneratedClassNestedClassifierScope> =
+            cachesFactory.createCache { name, scope -> scope.generateNestedClassifier(name) }
+    }
+}
+
+private val FirSession.generatedDeclarationsCache: FirGeneratedMemberDeclarationsCache by FirSession.sessionComponentAccessor()

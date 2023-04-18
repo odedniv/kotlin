@@ -5,11 +5,42 @@
 
 package org.jetbrains.kotlin.gradle.testbase
 
+import org.gradle.api.logging.LogLevel
+import org.gradle.testkit.runner.BuildResult
+import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.konan.target.HostManager
 import org.jetbrains.kotlin.konan.target.presetName
 import java.util.*
 
 val DEFAULT_CURRENT_PLATFORM_TARGET_NAME_POSTFIX = HostManager.host.presetName.lowercase(Locale.getDefault())
+
+@Language("RegExp")
+private fun taskOutputRegex(
+    taskName: String
+) = """
+    \[org\.gradle\.internal\.operations\.DefaultBuildOperationRunner] Build operation 'Task $taskName' started
+    ([\s\S]+?)
+    \[org\.gradle\.internal\.operations\.DefaultBuildOperationRunner] Build operation 'Task $taskName' completed
+    """.trimIndent()
+    .replace("\n", "")
+    .toRegex()
+
+/**
+ * Filter [BuildResult.getOutput] for specific task with given [taskPath]
+ *
+ * Requires using [LogLevel.DEBUG].
+ */
+fun BuildResult.getOutputForTask(taskPath: String): String = getOutputForTask(taskPath, output)
+
+/**
+ * Filter [BuildResult.getOutput] for specific task with given [taskPath]
+ *
+ * Requires using [LogLevel.DEBUG].
+ */
+fun getOutputForTask(taskPath: String, output: String): String = taskOutputRegex(taskPath)
+    .find(output)
+    ?.let { it.groupValues[1] }
+    ?: error("Could not find output for task $taskPath")
 
 /**
  * Extracts classpath of given task's output
@@ -23,14 +54,18 @@ fun extractNativeCompilerClasspath(taskOutput: String, toolName: NativeToolKind)
     extractNativeToolSettings(taskOutput, toolName, NativeToolSettingsKind.COMPILER_CLASSPATH).toList()
 
 enum class NativeToolKind(val title: String) {
-    KONANC("konanc")
+    KONANC("konanc"),
+    GENERATE_PLATFORM_LIBRARIES("generatePlatformLibraries"),
+    C_INTEROP("cinterop")
 }
 
-private enum class NativeToolSettingsKind(val title: String) {
-    COMPILER_CLASSPATH("Classpath")
+enum class NativeToolSettingsKind(val title: String) {
+    COMPILER_CLASSPATH("Classpath"),
+    COMMAND_LINE_ARGUMENTS("Arguments"),
+    CUSTOM_ENV_VARIABLES("Custom ENV variables")
 }
 
-private fun extractNativeToolSettings(
+fun extractNativeToolSettings(
     taskOutput: String,
     toolName: NativeToolKind,
     settingsKind: NativeToolSettingsKind

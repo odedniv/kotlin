@@ -125,16 +125,16 @@ fun BuildResult.assertTasksPackedToCache(vararg tasks: String) {
 }
 
 /**
- * Asserts classpath of the tasks, which were executed (with native compiler by default).
+ * Asserts classpath of the given K/N compiler tool for given tasks' paths.
  *
  * Note: Log level of output must be set to [LogLevel.DEBUG].
  *
- * @param tasksNames names of the tasks, which classpath should be checked with give assertions
+ * @param tasksPaths names of the tasks, which classpath should be checked with give assertions
  * @param toolName name of build tool
  * @param assertions assertions, with will be applied to each classpath of each given task
  */
 fun BuildResult.assertTasksClasspath(
-    vararg tasksNames: String,
+    vararg tasksPaths: String,
     toolName: NativeToolKind = NativeToolKind.KONANC,
     assertions: (List<String>) -> Unit
-) = tasksNames.forEach { taskName -> assertions(extractNativeCompilerClasspath(getOutputForTask(taskName), toolName)) }
+) = tasksPaths.forEach { taskPath -> assertions(extractNativeCompilerClasspath(getOutputForTask(taskPath), toolName)) }

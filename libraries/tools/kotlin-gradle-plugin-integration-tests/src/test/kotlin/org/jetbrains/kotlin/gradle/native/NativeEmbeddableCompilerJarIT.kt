@@ -71,7 +71,7 @@ internal class NativeEmbeddableCompilerJarIT : KGPBaseTest() {
         }
     }
 
-    @DisplayName("K/N with embeddable compiler flag turned off config shouldn't contain kotlin-native.jar and should contain kotlin-native-compiler-embeddable.jar")
+    @DisplayName("K/N project's builds with switching embeddable compiler flag turned from on to off")
     @GradleTest
     fun testSwitch(gradleVersion: GradleVersion) {
         nativeProject("executables".withPrefix, gradleVersion) {

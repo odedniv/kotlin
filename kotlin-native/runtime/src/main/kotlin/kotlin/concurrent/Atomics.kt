@@ -195,7 +195,17 @@ public class AtomicReference<T> {
     /**
      * Atomically sets the value to the given [new value][newValue] and returns the old value.
      */
-    public fun getAndSet(newValue: T): T = swap(newValue)
+    public fun getAndSet(newValue: T): T {
+        while (true) {
+            val old = value
+            if (old === newValue) {
+                return old
+            }
+            if (compareAndSet(old, newValue)) {
+                return old
+            }
+        }
+    }
 
     /**
      * Atomically sets the value to the given [new value][newValue] if the current value equals the [expected value][expected],
@@ -228,18 +238,6 @@ public class AtomicReference<T> {
      */
     public override fun toString(): String =
             "${debugString(this)} -> ${debugString(value)}"
-
-    internal fun swap(newValue: T): T {
-        while (true) {
-            val old = value
-            if (old === newValue) {
-                return old
-            }
-            if (compareAndSet(old, newValue)) {
-                return old
-            }
-        }
-    }
 
     // Implementation details.
     @GCUnsafeCall("Kotlin_AtomicReference_set")

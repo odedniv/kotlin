@@ -135,7 +135,7 @@ fun BuildResult.assertOutputContainsExactlyTimes(
     expected: String,
     expectedCount: Int = 1
 ) {
-    assertOutputContainsExactlyTimes(expected, expectedCount)
+    assertOutputContainsExactlyTimes(expected.toRegex(RegexOption.LITERAL), expectedCount)
 }
 
 fun BuildResult.assertOutputContainsExactlyTimes(

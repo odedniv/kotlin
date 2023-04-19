@@ -9,8 +9,6 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.gradle.testbase.*
 import org.junit.jupiter.api.DisplayName
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 @DisplayName("Tests for K/N builds with embeddable compiler jar")
 @NativeGradlePluginTests
@@ -30,8 +28,12 @@ internal class NativeEmbeddableCompilerJarIT : KGPBaseTest() {
         nativeProject("executables".withPrefix, gradleVersion) {
             build(":linkDebugExecutableHost", buildOptions = buildOptions.copy(logLevel = LogLevel.DEBUG)) {
                 assertTasksClasspath(":linkDebugExecutableHost", ":compileKotlinHost") {
-                    assertFalse(it.includesRegularJar(), "Actual classpath is: $it")
-                    assertTrue(it.includesEmbeddableJar(), "Actual classpath is: $it")
+                    assert(!it.includesRegularJar()) {
+                        "Actual classpath is: $it"
+                    }
+                    assert(it.includesEmbeddableJar()) {
+                        "Actual classpath is: $it"
+                    }
                 }
             }
         }
@@ -47,8 +49,12 @@ internal class NativeEmbeddableCompilerJarIT : KGPBaseTest() {
                 buildOptions = buildOptions.copy(logLevel = LogLevel.DEBUG)
             ) {
                 assertTasksClasspath(":linkDebugExecutableHost", ":compileKotlinHost") {
-                    assertTrue(it.includesRegularJar(), "Actual classpath is: $it")
-                    assertFalse(it.includesEmbeddableJar(), "Actual classpath is: $it")
+                    assert(it.includesRegularJar()) {
+                        "Actual classpath is: $it"
+                    }
+                    assert(!it.includesEmbeddableJar()) {
+                        "Actual classpath is: $it"
+                    }
                 }
             }
         }
@@ -64,8 +70,12 @@ internal class NativeEmbeddableCompilerJarIT : KGPBaseTest() {
                 buildOptions = buildOptions.copy(logLevel = LogLevel.DEBUG)
             ) {
                 assertTasksClasspath(":linkDebugExecutableHost", ":compileKotlinHost") {
-                    assertFalse(it.includesRegularJar(), "Actual classpath is: $it")
-                    assertTrue(it.includesEmbeddableJar(), "Actual classpath is: $it")
+                    assert(!it.includesRegularJar()) {
+                        "Actual classpath is: $it"
+                    }
+                    assert(it.includesEmbeddableJar()) {
+                        "Actual classpath is: $it"
+                    }
                 }
             }
         }
@@ -77,8 +87,12 @@ internal class NativeEmbeddableCompilerJarIT : KGPBaseTest() {
         nativeProject("executables".withPrefix, gradleVersion) {
             build(":linkDebugExecutableHost", buildOptions = buildOptions.copy(logLevel = LogLevel.DEBUG)) {
                 assertTasksClasspath(":linkDebugExecutableHost", ":compileKotlinHost") {
-                    assertFalse(it.includesRegularJar(), "Actual classpath is: $it")
-                    assertTrue(it.includesEmbeddableJar(), "Actual classpath is: $it")
+                    assert(!it.includesRegularJar()) {
+                        "Actual classpath is: $it"
+                    }
+                    assert(it.includesEmbeddableJar()) {
+                        "Actual classpath is: $it"
+                    }
                 }
             }
 
@@ -93,8 +107,12 @@ internal class NativeEmbeddableCompilerJarIT : KGPBaseTest() {
             ) {
                 assertTasksExecuted(":linkDebugExecutableHost", ":compileKotlinHost")
                 assertTasksClasspath(":linkDebugExecutableHost", ":compileKotlinHost") {
-                    assertTrue(it.includesRegularJar(), "Actual classpath is: $it")
-                    assertFalse(it.includesEmbeddableJar(), "Actual classpath is: $it")
+                    assert(it.includesRegularJar()) {
+                        "Actual classpath is: $it"
+                    }
+                    assert(!it.includesEmbeddableJar()) {
+                        "Actual classpath is: $it"
+                    }
                 }
             }
         }

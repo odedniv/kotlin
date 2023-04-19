@@ -133,3 +133,11 @@ internal actual inline fun checkCountOverflow(count: Int): Int {
     }
     return count
 }
+
+/**
+ * Returns an immutable list containing only the specified object [element].
+ * The returned list is serializable (JVM).
+ * @sample samples.collections.Collections.Lists.singletonReadOnlyList
+ */
+@SinceKotlin("1.9")
+public actual fun <T> listOf(element: T): List<T> = arrayListOf(element)

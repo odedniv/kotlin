@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2018 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2023 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -64,7 +64,7 @@ internal actual fun <T> copyToArrayImpl(collection: Collection<*>, array: Array<
 /**
  * Returns an immutable list containing only the specified object [element].
  */
-public fun <T> listOf(element: T): List<T> = arrayListOf(element)
+public actual fun <T> listOf(element: T): List<T> = arrayListOf(element)
 
 @PublishedApi
 @SinceKotlin("1.3")
@@ -85,7 +85,7 @@ internal actual inline fun <E> buildListInternal(capacity: Int, builderAction: M
 /**
  * Returns an immutable set containing only the specified object [element].
  */
-public fun <T> setOf(element: T): Set<T> = hashSetOf(element)
+public actual fun <T> setOf(element: T): Set<T> = hashSetOf(element)
 
 @PublishedApi
 @SinceKotlin("1.3")
@@ -100,13 +100,6 @@ internal actual inline fun <E> buildSetInternal(builderAction: MutableSet<E>.() 
 internal actual inline fun <E> buildSetInternal(capacity: Int, builderAction: MutableSet<E>.() -> Unit): Set<E> {
     return LinkedHashSet<E>(capacity).apply(builderAction).build()
 }
-
-
-/**
- * Returns an immutable map, mapping only the specified key to the
- * specified value.
- */
-public fun <K, V> mapOf(pair: Pair<K, V>): Map<K, V> = hashMapOf(pair)
 
 @PublishedApi
 @SinceKotlin("1.3")
@@ -260,3 +253,14 @@ internal actual fun mapCapacity(expectedSize: Int) = expectedSize
 internal fun checkBuilderCapacity(capacity: Int) {
     require(capacity >= 0) { "capacity must be non-negative." }
 }
+
+/**
+ * Returns an immutable map, mapping only the specified key to the
+ * specified value.
+ *
+ * The returned map is serializable (JVM).
+ *
+ * @sample samples.collections.Maps.Instantiation.mapFromPairs
+ */
+@SinceKotlin("1.9")
+public actual fun <K, V> mapOf(pair: Pair<K, V>): Map<K, V> = hashMapOf(pair)

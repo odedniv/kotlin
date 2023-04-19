@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.fir.resolve.providers.FirSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.providers.FirSymbolProviderInternals
 import org.jetbrains.kotlin.fir.scopes.FirKotlinScopeProvider
 import org.jetbrains.kotlin.fir.symbols.impl.*
+import org.jetbrains.kotlin.idea.KotlinModuleFileType
 import org.jetbrains.kotlin.name.*
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.resolve.jvm.JvmClassName
@@ -144,8 +145,10 @@ class JvmStubBasedFirDeserializedSymbolProvider(
             .mapNotNull { it.originalElement as? KtNamedFunction }
             .mapNotNull { function ->
                 val file = function.containingKtFile
+                val virtualFile = file.virtualFile
+                if (virtualFile.extension == KotlinModuleFileType.EXTENSION) return@mapNotNull null
                 if (file.packageFqName.asString()
-                        .replace(".", "/") + "/" + file.virtualFile.nameWithoutExtension in KotlinBuiltins
+                        .replace(".", "/") + "/" + virtualFile.nameWithoutExtension in KotlinBuiltins
                 ) return@mapNotNull null
                 val moduleData = moduleDataProvider.getModuleData(function.containingLibrary()) ?: return@mapNotNull null
                 val symbol = FirNamedFunctionSymbol(callableId)
